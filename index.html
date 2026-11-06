@@ -2400,6 +2400,23 @@ html:not([data-theme="dark"]) .rt-chip:not(.bd-seasonal):not(.bd-night):not(#rcL
 html[data-theme="dark"] .veh-sub { color: #e8e8e8; }
 #vehInfo .info-row span { white-space: pre-wrap; }
 #importLog { white-space: pre-line; }
+html[data-theme="dark"] .info-row,
+html[data-theme="dark"] .info-row span { color: #e8e8e8; }
+html[data-theme="dark"] .info-row b { color: #9a9aa0; }
+.cv-filters.rn-filters { grid-template-columns: 1fr 1fr; }
+.cv-filters select { cursor: pointer; }
+html[data-theme="dark"] .cv-filters select { background: #2a2a2a; color: #e8e8e8; border-color: #444; }
+.rn-card { margin-top: 14px; overflow: hidden; background: #ffffff; border-radius: 10px !important; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.rn-head { padding: 12px 16px; background: rgba(128,128,128,.12); border-left: 4px solid #808080; }
+.rn-head small { display: block; margin-bottom: 2px; font-size: 12px; color: #777777; }
+.rn-head b { font-size: 17px; color: #222222; word-break: break-word; }
+.rn-sub { padding: 8px 16px; font-size: 13px; font-weight: 700; color: #777777; border-top: 1px solid rgba(128,128,128,.2); background: rgba(128,128,128,.06); }
+.rn-head + .rn-sub { border-top: none; }
+.rn-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px; }
+.rn-chips .rt-chip { font-size: 17px; padding: 3px 10px; }
+html[data-theme="dark"] .rn-card { background: #2a2a2a; }
+html[data-theme="dark"] .rn-head b { color: #e8e8e8; }
+@media (max-width: 600px) { .cv-filters.rn-filters { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -2547,7 +2564,14 @@ html[data-theme="dark"] .veh-sub { color: #e8e8e8; }
         <div id="entList"></div>
         <p id="entEmpty" class="cv-empty">Підприємств поки немає</p>
       </div>
-      <div class="cv-tabpane hidden" id="tab-routes"><p class="cv-empty">Скоро...</p></div>
+      <div class="cv-tabpane hidden" id="tab-routes">
+        <div class="cv-filters rn-filters">
+          <select id="rnType"></select>
+          <select id="rnMode"></select>
+        </div>
+        <div id="rnList"></div>
+        <p id="rnEmpty" class="cv-empty">Маршрутів поки немає</p>
+    </div>
       <div class="cv-tabpane hidden" id="tab-schemes"><p class="cv-empty">Скоро...</p></div>
       <div class="cv-tabpane hidden" id="tab-about">
         <h2 class="cv-about-title">Про місто</h2>
@@ -2741,6 +2765,7 @@ html[data-theme="dark"] .veh-sub { color: #e8e8e8; }
         <label>Період експлуатації<input id="rtPeriod" type="text" maxlength="100"></label>
         <div class="veh-pick"><span>Статус</span><button class="dd-btn" id="rtStatusBtn" type="button"><span class="dd-label"></span><i class="dd-arrow"></i></button></div>
         <div class="veh-pick"><span>Режим роботи</span><button class="dd-btn" id="rtModeBtn" type="button"><span class="dd-label"></span><i class="dd-arrow"></i></button></div>
+        <div class="veh-pick full"><span>Вид транспорту</span><button class="dd-btn" id="rtTypeBtn" type="button"><span class="dd-label"></span><i class="dd-arrow"></i></button></div>
         <label class="full">Назва маршруту<input id="rtName" type="text" maxlength="200"></label>
         <label class="full">Примітка<input id="rtNote" type="text" maxlength="500"></label>
       </div>
@@ -3289,7 +3314,9 @@ function renderCity() {
     enterprises = [];
     vehicles = [];
     setTimeout(loadEnterprises, 0);
+    cityRoutes = [];
     setTimeout(loadVehicles, 0);
+    setTimeout(loadCityRoutes, 0);
   }
   renderEnterprises();
   renderVehicles();
@@ -3694,6 +3721,7 @@ function renderEnterprises() {
   $('entListEdit').replaceChildren(...edit);
   $('entHeadEdit').classList.toggle('hidden', !edit.length);
   $('entEmptyEdit').classList.toggle('hidden', !!edit.length);
+  renderCityRoutes();
 }
 
 async function loadEnterprises() {
@@ -3999,8 +4027,12 @@ function buildVehTable(list, editable) {
     ['Поч. роб.', 'start_date'], ['Списаний', 'written_off'], ['Примітка', 'note']
   ].forEach(([h, k]) => {
     const th = document.createElement('th');
-    th.className = 'sortable';
     th.appendChild(document.createTextNode(h));
+    if (k === 'note') {
+      head.appendChild(th);
+      return;
+    }
+    th.className = 'sortable';
     if (vehSort.key === k) {
       const a = document.createElement('span');
       a.textContent = vehSort.dir > 0 ? ' ▲' : ' ▼';
@@ -4478,6 +4510,7 @@ async function loadRoutes() {
   routes = error ? [] : data || [];
   renderVehicles();
   if (error) $('evRoutes').textContent = error.message;
+  loadCityRoutes();
 }
 
 function openRouteInfo(r) {
@@ -4493,10 +4526,11 @@ function openRouteInfo(r) {
   const per = (r.period || '').trim();
   $('rcPerLbl').textContent = per && !/[-–—]/.test(per) ? 'Початок експлуатації' : 'Період експлуатації';
   $('rcPeriod').textContent = per || '—';
-  $('rcEnt').textContent = curEnt ? curEnt.name : '';
+  const re = enterprises.find(x => x.id === r.enterprise_id) || curEnt;
+  $('rcEnt').textContent = re ? re.name : '';
   $('rcNote').textContent = r.note || '';
   $('rcNoteBox').classList.toggle('hidden', !r.note);
-  $('rcEdit').classList.toggle('hidden', !canEditEnt());
+  $('rcEdit').classList.toggle('hidden', !canEditEnt() || !curEnt);
   openModal('routeInfo');
 }
 
@@ -4517,6 +4551,7 @@ function openRouteForm(r) {
   $('rtNote').value = r && r.note ? r.note : '';
   setRtStatus(r ? r.status : 'active');
   setRtMode(r ? r.mode : 'regular');
+  setRtType(r ? r.transport : null);
   $('rtDelete').classList.toggle('hidden', !r);
   setMsg($('rtMsg'), '');
   resetRtDelete();
@@ -4543,7 +4578,7 @@ $('routeForm').addEventListener('submit', async ev => {
     setMsg($('rtMsg'), 'Вкажи лінію маршруту');
     return;
   }
-  const row = { line, name: t('rtName'), period: t('rtPeriod'), note: t('rtNote'), status: rtStatus, mode: rtMode };
+  const row = { line, name: t('rtName'), period: t('rtPeriod'), note: t('rtNote'), status: rtStatus, mode: rtMode, transport: rtType };
   $('rtSubmit').disabled = true;
   let error;
   if (rtEditingId) {
@@ -4714,6 +4749,7 @@ const DICT = Object.create(null);
   ['легенду кольорів', 'легенду цветов', 'color legend'],
   ['Сховати', 'Скрыть', 'Hide'],
   ['Маршрутів поки немає', 'Маршрутов пока нет', 'No routes yet'],
+  ['Усі типи маршрутів', 'Все типы маршрутов', 'All route types'],
   ['Поки порожньо', 'Пока пусто', 'Empty for now'],
   ['Пароль', 'Пароль', 'Password'],
   ['Немає акаунта?', 'Нет аккаунта?', 'No account?'],
@@ -5452,12 +5488,17 @@ const IMP_STATUS = {
   unknown: 'unknown',
   renumbered: 'renumbered',
   transferred: 'renumbered',
-  notcity: 'not_here'
+  notcity: 'not_here',
+  withdrawn: 'withdrawn',
+  rebuild: 'rebuilt',
+  replate: 'plate_changed'
 };
+const IMP_ENT_STATUS = { no_pass: 'no_passengers', unreal: 'unrealized' };
+const IMP_TYPE = { ebus: 'bus' };
 
 async function runImport(d) {
   const log = t => { $('importLog').textContent = t; };
-  if (!d || d.__format !== 'transphoto_sttst_v1') throw new Error('Невірний формат файлу');
+  if (!d || !['transphoto_sttst_v1', 'transphoto_backup_v1'].includes(d.__format)) throw new Error('Невірний формат файлу');
   const { data: s } = await db.auth.getSession();
   if (!s.session) throw new Error('Увійди в акаунт');
   const uid = s.session.user.id;
@@ -5467,7 +5508,7 @@ async function runImport(d) {
     const n = Number(t);
     return t === '' || isNaN(n) ? null : n;
   };
-  const st = { cities: 0, ents: 0, vehs: 0, skipped: 0, cityLimit: 0 };
+  const st = { cities: 0, ents: 0, vehs: 0, skipped: 0, cityLimit: 0, noCity: 0, noEnt: 0 };
   const cityMap = {};
   const entMap = {};
 
@@ -5502,7 +5543,7 @@ async function runImport(d) {
   const existEnt = {};
   for (const sy of d.systems || []) {
     const cid = cityMap[sy.cityId];
-    if (!cid) continue;
+    if (!cid) { st.noCity++; continue; }
     log('Підприємства: ' + sy.name + '...');
     if (!existEnt[cid]) {
       const r = await db.from('enterprises').select('id, name').eq('city_id', cid);
@@ -5520,7 +5561,7 @@ async function runImport(d) {
       owner_id: uid,
       name: sy.name,
       transport_types: types,
-      status: ENT_STATUSES.some(x => x.key === sy.sysStatus) ? sy.sysStatus : 'active',
+      status: (k => ENT_STATUSES.some(x => x.key === k) ? k : 'active')(IMP_ENT_STATUS[sy.sysStatus] || sy.sysStatus),
       founded_year: num(sy.founded),
       note: [txt(sy.depots), txt(sy.note)].filter(Boolean).join('\n') || null
     }).select('id').single();
@@ -5532,24 +5573,26 @@ async function runImport(d) {
 
   const bySys = {};
   (d.vehicles || []).forEach(v => {
-    if (!entMap[v.systemId]) return;
+    if (!entMap[v.systemId]) { st.noEnt++; return; }
     (bySys[v.systemId] = bySys[v.systemId] || []).push(v);
   });
   for (const sid of Object.keys(bySys)) {
     const e = entMap[sid];
     log('ТС: імпортовано ' + st.vehs + '...');
-    const r = await db.from('vehicles').select('fleet_no').eq('enterprise_id', e.id);
+    const r = await db.from('vehicles').select('fleet_no, plate_no, model').eq('enterprise_id', e.id);
     if (r.error) throw r.error;
-    const have = new Set((r.data || []).map(x => String(x.fleet_no)));
+    const vkey = (f, p, m) => [f, p, m].map(x => String(x == null ? '' : x).trim()).join('|');
+    const have = new Set((r.data || []).map(x => vkey(x.fleet_no, x.plate_no, x.model)));
     const rows = [];
     bySys[sid].forEach(v => {
       const fleet = txt(v.num);
       const model = txt(v.model);
-      if (!fleet || !model || have.has(fleet)) {
+      const k = vkey(fleet, txt(v.gos_num), model);
+      if (!fleet || !model || have.has(k)) {
         st.skipped++;
         return;
       }
-      have.add(fleet);
+      have.add(k);
       rows.push({
         city_id: e.city,
         enterprise_id: e.id,
@@ -5557,7 +5600,7 @@ async function runImport(d) {
         fleet_no: fleet,
         extra_no: txt(v.extra_num),
         plate_no: txt(v.gos_num),
-        vehicle_type: ENT_TYPES.some(t => t.key === v.type) ? v.type : 'bus',
+        vehicle_type: (k => ENT_TYPES.some(t => t.key === k) ? k : 'bus')(IMP_TYPE[v.type] || v.type),
         model,
         factory_no: txt(v.serial),
         build_year: num(v.year),
@@ -5578,6 +5621,8 @@ async function runImport(d) {
 
   log('Готово.\nМіст: ' + st.cities + '\nПідприємств: ' + st.ents + '\nТС: ' + st.vehs +
     '\nПропущено (вже є): ' + st.skipped +
+    '\nПідприємств без міста у файлі: ' + st.noCity +
+    '\nТС без підприємства: ' + st.noEnt +
     (st.cityLimit ? '\nМіст пропущено через ліміт 5: ' + st.cityLimit : '') +
     '\nФото з файлу не імпортуються.');
 }
@@ -5611,6 +5656,145 @@ $('importFile').addEventListener('change', async e => {
 });
 
 setInterval(loadNotifs, 30000);
+
+/* ---------- Маршрути міста ---------- */
+let cityRoutes = [];
+let rtType = 'bus';
+
+$('rnType').replaceChildren(new Option('Всі види транспорту', ''), ...ENT_TYPES.map(t => new Option(t.name, t.key)));
+$('rnMode').replaceChildren(new Option('Усі типи маршрутів', ''), ...RT_MODES.map(m => new Option(m.name, m.key)));
+$('rnType').addEventListener('change', renderCityRoutes);
+$('rnMode').addEventListener('change', renderCityRoutes);
+
+function setRtType(key) {
+  const own = curEnt && curEnt.transport_types ? curEnt.transport_types : [];
+  const it = ENT_TYPES.find(t => t.key === key) || ENT_TYPES.find(t => own.includes(t.key)) || ENT_TYPES[0];
+  rtType = it.key;
+  setPickBtn('rtTypeBtn', it);
+}
+$('rtTypeBtn').addEventListener('click', () => openPicker('Вид транспорту', ENT_TYPES, rtType, it => setRtType(it.key), 'route'));
+
+function renderCityRoutes() {
+  const tf = $('rnType').value;
+  const mf = $('rnMode').value;
+  const cmp = (a, b) => String(a.line).localeCompare(String(b.line), undefined, { numeric: true });
+  const ti = k => ENT_TYPES.findIndex(t => t.key === k);
+  const mi = k => RT_MODES.findIndex(m => m.key === k);
+  const nets = [];
+  enterprises.forEach(ent => {
+    const subs = new Map();
+    cityRoutes.filter(r => r.enterprise_id === ent.id).forEach(r => {
+      const tk = r.transport || (ent.transport_types || [])[0] || 'bus';
+      const mode = r.mode || 'regular';
+      if ((tf && tk !== tf) || (mf && mode !== mf)) return;
+      const key = tk + '|' + mode;
+      if (!subs.has(key)) subs.set(key, { tk, mode, list: [] });
+      subs.get(key).list.push(r);
+    });
+    if (!subs.size) return;
+    const card = document.createElement('div');
+    card.className = 'rn-card';
+    const head = document.createElement('div');
+    head.className = 'rn-head';
+    const sm = document.createElement('small');
+    sm.textContent = 'Підприємство';
+    const nm = document.createElement('b');
+    nm.textContent = ent.name;
+    head.append(sm, nm);
+    card.appendChild(head);
+    [...subs.values()].sort((a, b) => ti(a.tk) - ti(b.tk) || mi(a.mode) - mi(b.mode)).forEach(s => {
+      const t = ENT_TYPES.find(x => x.key === s.tk);
+      const m = RT_MODES.find(x => x.key === s.mode);
+      const h = document.createElement('div');
+      h.className = 'rn-sub';
+      h.textContent = (t ? t.name : s.tk) + (s.mode !== 'regular' && m ? ' · ' + m.name : '');
+      const box = document.createElement('div');
+      box.className = 'rn-chips';
+      s.list.sort(cmp).forEach(r => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = rtClass(r);
+        b.textContent = r.line;
+        b.title = r.name || '';
+        b.addEventListener('click', () => openRouteInfo(r));
+        box.appendChild(b);
+      });
+      card.append(h, box);
+    });
+    nets.push(card);
+  });
+  $('rnList').replaceChildren(...nets);
+  $('rnEmpty').textContent = cityRoutes.length ? 'Нічого не знайдено' : 'Маршрутів поки немає';
+  $('rnEmpty').classList.toggle('hidden', nets.length > 0);
+}
+
+async function loadCityRoutes() {
+  const id = currentId;
+  if (!id) {
+    cityRoutes = [];
+    renderCityRoutes();
+    return;
+  }
+  const { data, error } = await db.from('routes').select('*').eq('city_id', id);
+  if (id !== currentId) return;
+  cityRoutes = error ? [] : data || [];
+  renderCityRoutes();
+}
+
+/* ---------- Живі оновлення ---------- */
+let liveOk = false;
+const live = { cities: false, ents: false, vehs: false, routes: false };
+let liveTimer = null;
+
+function queueLive(k) {
+  live[k] = true;
+  clearTimeout(liveTimer);
+  liveTimer = setTimeout(async () => {
+    const l = { ...live };
+    live.cities = live.ents = live.vehs = live.routes = false;
+    if (l.cities) await loadCities();
+    if (l.ents && currentId) {
+      await loadEnterprises();
+      if (curEnt) {
+        curEnt = enterprises.find(x => x.id === curEnt.id) || null;
+        renderCity();
+      }
+    }
+    if (l.vehs && curEnt) await loadVehicles();
+    if (l.routes) {
+      if (curEnt) await loadRoutes();
+      else await loadCityRoutes();
+    }
+  }, 500);
+}
+
+function inCurrentCity(p) {
+  const row = p.new && p.new.city_id ? p.new : p.old;
+  return !row || !row.city_id || row.city_id === currentId;
+}
+
+db.channel('live')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, p => {
+    if (p.new && p.new.user_id === me.uid) loadNotifs();
+    else if (p.eventType === 'DELETE') loadNotifs();
+  })
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'cities' }, () => queueLive('cities'))
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'enterprises' }, p => { if (inCurrentCity(p)) queueLive('ents'); })
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'vehicles' }, p => { if (inCurrentCity(p)) queueLive('vehs'); })
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, p => { if (inCurrentCity(p)) queueLive('routes'); })
+  .subscribe(status => { liveOk = status === 'SUBSCRIBED'; });
+
+// запасний варіант, якщо realtime недоступний
+setInterval(() => {
+  if (liveOk || document.hidden) return;
+  queueLive('cities'); queueLive('ents'); queueLive('vehs'); queueLive('routes');
+}, 30000);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) return;
+  loadNotifs();
+  queueLive('cities'); queueLive('ents'); queueLive('vehs'); queueLive('routes');
+});
 
 $('logout').addEventListener('click', async () => {
   await db.auth.signOut();
