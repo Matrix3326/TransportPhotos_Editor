@@ -2318,6 +2318,88 @@ html[data-theme="dark"] .ent-card { background: #2a2a2a; }
 html[data-theme="dark"] .ent-card .ent-group { color: #e8e8e8; }
 html[data-theme="dark"] .ent-card .ent-row.ent-row { background: transparent; }
 html[data-theme="dark"] .ent-card .ent-row.ent-row:hover { background: rgba(255,255,255,.06); }
+.tree-search {
+  width: 100%;
+  height: 38px;
+  margin: 0 0 8px 0;
+  border-radius: 8px;
+}
+.tree-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #222222;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+.tree-head:hover {
+  background: #e6e6e6;
+}
+.tree-country {
+  padding: 9px 10px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.tree-region {
+  padding: 8px 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.tree-arrow {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid #777777;
+  border-bottom: 2px solid #777777;
+  transform: rotate(-45deg);
+  transition: transform 0.25s ease;
+}
+.tree-node.open > .tree-head .tree-arrow {
+  transform: rotate(45deg);
+}
+.tree-body {
+  display: none;
+  padding-left: 16px;
+}
+.tree-node.open > .tree-body {
+  display: block;
+}
+html[data-theme="dark"] .tree-head {
+  color: #e8e8e8;
+}
+html[data-theme="dark"] .tree-head:hover {
+  background: #343434;
+}
+.veh-table tbody td,
+.veh-table tbody td:first-child,
+.veh-table tbody td:last-child {
+  border: none !important;
+}
+.veh-table tbody td {
+  background: color-mix(in srgb, var(--c, #8f8f8f) 28%, rgba(128, 128, 128, 0.14));
+}
+html:not([data-theme="dark"]) .rt-chip:not(.bd-seasonal):not(.bd-night):not(#rcLine) {
+  background-color: #ffffff;
+  color: #222222;
+}
+html:not([data-theme="dark"]) .rt-chip:not(.bd-seasonal):not(.bd-night):not(#rcLine):hover {
+  filter: brightness(0.95);
+}
+#vehInfo .info-row b { width: 110px; }
+.veh-table th.sortable { cursor: pointer; user-select: none; }
+.veh-table th.sortable:hover { filter: brightness(1.25); }
+.veh-sub { margin: 22px 0 10px 0; text-align: center; font-size: 20px; font-weight: 700; color: #222222; }
+html[data-theme="dark"] .veh-sub { color: #e8e8e8; }
+#vehInfo .info-row span { white-space: pre-wrap; }
+#importLog { white-space: pre-line; }
 </style>
 </head>
 <body>
@@ -2325,6 +2407,8 @@ html[data-theme="dark"] .ent-card .ent-row.ent-row:hover { background: rgba(255,
   <button class="burger" id="toggleSide" type="button" aria-label="Меню"><span></span><span></span><span></span></button>
   <span class="brand">TransportPhotos Editor</span>
   <div class="spacer"></div>
+  <button class="btn" id="openImport" type="button">📂database</button>
+  <input id="importFile" type="file" accept=".sttst,.json" hidden>
   <button class="btn" id="openSettings" type="button" aria-label="Налаштування">⚙️</button>
   <div id="guest" class="group">
     <button class="btn" id="openLogin" type="button">Увійти</button>
@@ -2496,7 +2580,6 @@ html[data-theme="dark"] .ent-card .ent-row.ent-row:hover { background: rgba(255,
       </div>
       <div id="vehList" class="veh-wrap"></div>
       <p id="vehEmpty" class="cv-empty">ТС поки немає</p>
-      <p class="ev-count" id="evCount"></p>
       <div class="ev-legend">
         <button class="lg-toggle" id="lgToggle" type="button">Показати <b>легенду кольорів</b></button>
         <div class="lg-wrap" id="lgWrap">
@@ -2518,7 +2601,8 @@ html[data-theme="dark"] .ent-card .ent-row.ent-row:hover { background: rgba(255,
     </div>
     <div class="side-block">
       <h3>Міста</h3>
-      <div id="allCities"></div>
+      <input class="cv-search tree-search" id="citySearch" type="text" placeholder="Муніципалітет, регіон, країна">
+      <div id="allCities" class="tree"></div>
     </div>
   </aside>
 </main>
@@ -2690,6 +2774,19 @@ html[data-theme="dark"] .ent-card .ent-row.ent-row:hover { background: rgba(255,
       </div>
     </div>
 
+    <div id="vehInfo" class="view">
+      <h2 id="vhTitle"></h2>
+      <div id="vhRows"></div>
+      <button class="btn dark hidden" id="vhEdit" type="button">Редагувати</button>
+      <button class="btn light" id="vhClose" type="button">Закрити</button>
+    </div>
+
+    <div id="importView" class="view">
+      <h2>Імпорт бази</h2>
+      <p id="importLog" class="pending-text"></p>
+      <button class="btn light" id="importClose" type="button">Закрити</button>
+    </div>
+
     <div id="settingsView" class="view">
       <h2>Налаштування</h2>
       <div class="set-label">Мова</div>
@@ -2801,7 +2898,7 @@ const $ = id => document.getElementById(id);
 const placeholder = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"><rect width="44" height="44" fill="#d9d9d9"/><circle cx="22" cy="17" r="8" fill="#9a9a9a"/><path d="M6 44c0-10 7-16 16-16s16 6 16 16z" fill="#9a9a9a"/></svg>');
 const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
 const maxSize = 2 * 1024 * 1024;
-const views = { login: $('loginForm'), register: $('registerForm'), pending: $('pendingView'), city: $('cityForm'), pick: $('pickView'), reason: $('reasonView'), notif: $('notifView'), ent: $('entForm'), veh: $('vehForm'), route: $('routeForm'), routeInfo: $('routeInfo'), settings: $('settingsView'), dup: $('dupForm'), ban: $('banView') };
+const views = { login: $('loginForm'), register: $('registerForm'), pending: $('pendingView'), city: $('cityForm'), pick: $('pickView'), reason: $('reasonView'), notif: $('notifView'), ent: $('entForm'), veh: $('vehForm'), route: $('routeForm'), routeInfo: $('routeInfo'), settings: $('settingsView'), dup: $('dupForm'), ban: $('banView'), vehInfo: $('vehInfo'), import: $('importView') };
 
 let me = { uid: null, role: null };
 const LANGS = ['uk', 'ru', 'en'];
@@ -3217,7 +3314,7 @@ async function loadCities() {
   const uid = s.session ? s.session.user.id : null;
   const mine = uid ? cities.filter(c => c.owner_id === uid) : [];
   fillList($('myCities'), mine);
-  fillList($('allCities'), cities.filter(c => c.is_published));
+  drawTree();
   if (!cities.some(c => c.id === currentId)) currentId = null;
   renderCity();
   renderRequests();
@@ -3466,11 +3563,12 @@ document.addEventListener('keydown', e => {
 
 const ENT_TYPES = [
   { key: 'bus', abbr: 'А', name: 'Автобус', color: '#7ac938' },
-  { key: 'trolleybus', abbr: 'Тр', name: 'Тролейбус', color: '#0006a8' },
-  { key: 'tram', abbr: 'Т', name: 'Трамвай', color: '#bd0032' },
-  { key: 'metro', abbr: 'М', name: 'Метро', color: '#ff0000' },
-  { key: 'monorail', abbr: 'МН', name: 'Монорельс', color: '#ff6a00' },
-  { key: 'funicular', abbr: 'Ф', name: 'Фунікулер', color: '#aa00ff' }
+  { key: 'trolleybus', abbr: 'Тр', name: 'Trolleybus', color: '#0006a8' },
+  { key: 'tram', abbr: 'Т', name: 'Tram / LRV', color: '#bd0032' },
+  { key: 'metro', abbr: 'М', name: 'Metro / Railway', color: '#ff0000' },
+  { key: 'monorail', abbr: 'МН', name: 'Monorail', color: '#ff6a00' },
+  { key: 'funicular', abbr: 'Ф', name: 'Funicular', color: '#aa00ff' },
+  { key: 'other', abbr: 'Ін', name: '(Other)', color: '#575757' }
 ];
 
 const ENT_STATUSES = [
@@ -3578,10 +3676,7 @@ function buildEntRows(editable) {
       h.className = 'ent-group';
       const t = document.createElement('span');
       t.textContent = g.name;
-      const n = document.createElement('i');
-      n.className = 'ent-count';
-      n.textContent = g.rows.length;
-      h.append(t, n);
+      h.append(t);
       card.appendChild(h);
     }
     card.append(...g.rows);
@@ -3728,6 +3823,32 @@ let vehType = 'bus';
 let vehStatus = 'active';
 let vehDelTimer = null;
 let vehQuery = '';
+let vehSort = { key: 'fleet_no', dir: 1 };
+const VEH_OLD = ['written_off', 'rebuilt', 'renumbered', 'plate_changed'];
+
+function vehSortVal(v, k) {
+  const x = v[k];
+  if (x == null || x === '') return null;
+  if (k === 'arrived' || k === 'start_date' || k === 'written_off') {
+    const p = String(x).split('.').map(Number);
+    const y = p[p.length - 1];
+    const m = p.length > 1 ? p[p.length - 2] : 0;
+    return isNaN(y) ? null : y * 100 + (isNaN(m) ? 0 : m);
+  }
+  if (k === 'build_year') return Number(x);
+  return String(x);
+}
+
+function vehCmp(a, b) {
+  const k = vehSort.key;
+  const x = vehSortVal(a, k);
+  const y = vehSortVal(b, k);
+  if (x === null && y === null) return 0;
+  if (x === null) return 1;
+  if (y === null) return -1;
+  const r = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), undefined, { numeric: true });
+  return r * vehSort.dir;
+}
 
 function entOpen(c) {
   return !!c && !!curEnt && curEnt.city_id === c.id;
@@ -3872,14 +3993,28 @@ function buildVehTable(list, editable) {
   const table = document.createElement('table');
   table.className = 'veh-table';
   const head = table.createTHead().insertRow();
-  ['№', 'Тип', 'Модель', 'Зав. №', 'Побуд.', 'Надійшов', 'Поч. роб.', 'Списаний', 'Держ. №', 'Примітка'].forEach(h => {
+  [
+    ['№', 'fleet_no'], ['Держ. №', 'plate_no'], ['Тип', 'vehicle_type'], ['Модель', 'model'],
+    ['Зав. №', 'factory_no'], ['Побуд.', 'build_year'], ['Надійшов', 'arrived'],
+    ['Поч. роб.', 'start_date'], ['Списаний', 'written_off'], ['Примітка', 'note']
+  ].forEach(([h, k]) => {
     const th = document.createElement('th');
-    th.textContent = h;
+    th.className = 'sortable';
+    th.appendChild(document.createTextNode(h));
+    if (vehSort.key === k) {
+      const a = document.createElement('span');
+      a.textContent = vehSort.dir > 0 ? ' ▲' : ' ▼';
+      th.appendChild(a);
+    }
+    th.addEventListener('click', () => {
+      vehSort = { key: k, dir: vehSort.key === k ? -vehSort.dir : 1 };
+      renderVehicles();
+    });
     head.appendChild(th);
   });
   const body = table.createTBody();
   [...list]
-    .sort((a, b) => String(a.fleet_no).localeCompare(String(b.fleet_no), undefined, { numeric: true }))
+    .sort((a, b) => vehCmp(a, b) || String(a.fleet_no).localeCompare(String(b.fleet_no), undefined, { numeric: true }))
     .forEach(v => {
       const st = VEH_STATUSES.find(s => s.key === v.status);
       const tp = ENT_TYPES.find(t => t.key === v.vehicle_type);
@@ -3888,10 +4023,8 @@ function buildVehTable(list, editable) {
         tr.style.setProperty('--c', st.color);
         tr.title = st.name;
       }
-      if (editable) {
-        tr.className = 'editable';
-        tr.addEventListener('click', () => openVehForm(v));
-      }
+      tr.className = 'editable';
+      tr.addEventListener('click', () => openVehInfo(v, editable));
       const num = tr.insertCell();
       const b = document.createElement('b');
       b.textContent = v.fleet_no;
@@ -3901,6 +4034,7 @@ function buildVehTable(list, editable) {
         s.textContent = ' (' + v.extra_no + ')';
         num.appendChild(s);
       }
+      tr.insertCell().textContent = v.plate_no || '—';
       const typeCell = tr.insertCell();
       typeCell.textContent = tp ? tp.abbr : '—';
       if (tp) typeCell.title = tp.name;
@@ -3910,8 +4044,7 @@ function buildVehTable(list, editable) {
       tr.insertCell().textContent = v.arrived || '—';
       tr.insertCell().textContent = v.start_date || '—';
       tr.insertCell().textContent = v.written_off || '—';
-      tr.insertCell().textContent = v.plate_no || '—';
-      tr.insertCell().textContent = v.note || '—';
+      tr.insertCell().textContent = v.note || '';
     });
   return table;
 }
@@ -3949,10 +4082,19 @@ function renderVehicles() {
 
   const q = vehQuery.trim().toLowerCase();
   const list = vehicles.filter(v => !q || [v.fleet_no, v.extra_no, v.plate_no, v.model, v.factory_no].some(x => String(x || '').toLowerCase().includes(q)));
-  $('vehList').replaceChildren(...(list.length ? [buildVehTable(list, edit)] : []));
+  const mainList = list.filter(v => !VEH_OLD.includes(v.status));
+  const oldList = list.filter(v => VEH_OLD.includes(v.status));
+  const blocks = [];
+  if (mainList.length) blocks.push(buildVehTable(mainList, edit));
+  if (oldList.length) {
+    const h = document.createElement('h3');
+    h.className = 'veh-sub';
+    h.textContent = 'Списані, передані і модернізовані ТЗ';
+    blocks.push(h, buildVehTable(oldList, edit));
+  }
+  $('vehList').replaceChildren(...blocks);
   if (vehicles.length && !list.length) $('vehEmpty').textContent = 'Нічого не знайдено';
   $('vehEmpty').classList.toggle('hidden', list.length > 0);
-  $('evCount').textContent = vehicles.length ? 'Показано записів: ' + list.length + ' з ' + vehicles.length : '';
 }
 
 async function loadVehicles() {
@@ -4028,6 +4170,43 @@ function openVehForm(v) {
   resetVehDelete();
   openModal('veh');
 }
+
+let vhCur = null;
+
+function openVehInfo(v, editable) {
+  vhCur = v;
+  const st = VEH_STATUSES.find(s => s.key === v.status);
+  const tp = ENT_TYPES.find(t => t.key === v.vehicle_type);
+  $('vhTitle').textContent = v.fleet_no + (v.extra_no ? ' (' + v.extra_no + ')' : '');
+  const rows = [
+    ['Держ. №', v.plate_no],
+    ['Тип', tp && tp.name],
+    ['Модель', v.model],
+    ['Заводський №', v.factory_no],
+    ['Рік побудови', v.build_year],
+    ['VIN', v.vin],
+    ['Початок роботи', v.start_date],
+    ['Надійшов', v.arrived],
+    ['Списаний', v.written_off],
+    ['Статус', st && st.name],
+    ['Примітка', v.note]
+  ].filter(r => r[1] != null && r[1] !== '').map(r => {
+    const d = document.createElement('div');
+    d.className = 'info-row';
+    const b = document.createElement('b');
+    b.textContent = r[0];
+    const s = document.createElement('span');
+    s.textContent = r[1];
+    d.append(b, s);
+    return d;
+  });
+  $('vhRows').replaceChildren(...rows);
+  $('vhEdit').classList.toggle('hidden', !editable);
+  openModal('vehInfo');
+}
+
+$('vhEdit').addEventListener('click', () => openVehForm(vhCur));
+$('vhClose').addEventListener('click', closeModal);
 
 $('addVeh').addEventListener('click', () => openVehForm(null));
 $('vehCancel').addEventListener('click', closeModal);
@@ -4427,6 +4606,7 @@ function applyAccountPrefs(p) {
 
 const DICT = Object.create(null);
 [
+  ['Муніципалітет, регіон, країна', 'Муниципалитет, регион, страна', 'Municipality, region, country'],
   ['Акаунт заблоковано', 'Аккаунт заблокирован', 'Account banned'],
   ['Дублювати', 'Дублировать', 'Duplicate'],
   ['Дублювати ТС', 'Дублировать ТС', 'Duplicate vehicle'],
@@ -4588,6 +4768,7 @@ const DICT = Object.create(null);
   ['Тролейбус', 'Троллейбус', 'Trolleybus'],
   ['Трамвай', 'Трамвай', 'Tram'],
   ['Метро', 'Метро', 'Metro'],
+  ['(Інше)', '(Другое)', '(Other)'],
   ['Монорельс', 'Монорельс', 'Monorail'],
   ['Фунікулер', 'Фуникулёр', 'Funicular'],
   ['Додати ТС', 'Добавить ТС', 'Add vehicle'],
@@ -4653,7 +4834,8 @@ const DICT = Object.create(null);
   ['Заводська табличка', 'Заводская табличка', 'Factory plate'],
   ['Інфраструктура', 'Инфраструктура', 'Infrastructure'],
   ['Неідентифікований транспорт', 'Неопознанный транспорт', 'Unidentified vehicle'],
-  ['Додаткова спецтехніка', 'Дополнительная спецтехника', 'Additional special equipment']
+  ['Додаткова спецтехніка', 'Дополнительная спецтехника', 'Additional special equipment'],
+  ['Списані, передані і модернізовані ТЗ', 'Списанные, переданные и модернизированные ТС', 'Written-off, transferred and modernized vehicles']
 ].forEach(r => { DICT[r[0]] = { ru: r[1], en: r[2] }; });
 
 const PREFIX = [
@@ -5197,6 +5379,235 @@ $('notifClear').addEventListener('click', async () => {
   await db.from('notifications').delete().eq('user_id', me.uid);
   notifs = [];
   drawNotifs();
+});
+
+const treeOpen = new Set();
+
+function drawTree() {
+  const q = $('citySearch').value.trim().toLowerCase();
+  const list = cities.filter(c => c.is_published && (!q || [c.name, c.region, c.country].some(x => String(x || '').toLowerCase().includes(q))));
+  const cmp = (a, b) => String(a).localeCompare(String(b), 'uk');
+  const byCountry = new Map();
+  list.forEach(c => {
+    const k = c.country || '—';
+    if (!byCountry.has(k)) byCountry.set(k, { loose: [], regions: new Map() });
+    const g = byCountry.get(k);
+    if (c.region) {
+      if (!g.regions.has(c.region)) g.regions.set(c.region, []);
+      g.regions.get(c.region).push(c);
+    } else {
+      g.loose.push(c);
+    }
+  });
+  const item = c => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'side-item' + (c.id === currentId ? ' active' : '');
+    b.dataset.id = c.id;
+    b.textContent = c.name;
+    b.addEventListener('click', () => showCity(c.id));
+    return b;
+  };
+  const node = (key, title, cls) => {
+    const n = document.createElement('div');
+    n.className = 'tree-node' + (q || treeOpen.has(key) ? ' open' : '');
+    const h = document.createElement('button');
+    h.type = 'button';
+    h.className = 'tree-head ' + cls;
+    const a = document.createElement('i');
+    a.className = 'tree-arrow';
+    const t = document.createElement('span');
+    t.textContent = title;
+    h.append(a, t);
+    const body = document.createElement('div');
+    body.className = 'tree-body';
+    h.addEventListener('click', () => {
+      if (n.classList.toggle('open')) treeOpen.add(key);
+      else treeOpen.delete(key);
+    });
+    n.append(h, body);
+    return { n, body };
+  };
+  const out = [];
+  [...byCountry.keys()].sort(cmp).forEach(country => {
+    const g = byCountry.get(country);
+    const c = node('c:' + country, country, 'tree-country');
+    g.loose.sort((a, b) => cmp(a.name, b.name)).forEach(x => c.body.appendChild(item(x)));
+    [...g.regions.keys()].sort(cmp).forEach(region => {
+      const r = node('r:' + country + '|' + region, region, 'tree-region');
+      g.regions.get(region).sort((a, b) => cmp(a.name, b.name)).forEach(x => r.body.appendChild(item(x)));
+      c.body.appendChild(r.n);
+    });
+    out.push(c.n);
+  });
+  $('allCities').replaceChildren(...out);
+}
+
+$('citySearch').addEventListener('input', drawTree);
+
+const IMP_STATUS = {
+  active: 'active',
+  notactive: 'inactive',
+  retired: 'written_off',
+  unknown: 'unknown',
+  renumbered: 'renumbered',
+  transferred: 'renumbered',
+  notcity: 'not_here'
+};
+
+async function runImport(d) {
+  const log = t => { $('importLog').textContent = t; };
+  if (!d || d.__format !== 'transphoto_sttst_v1') throw new Error('Невірний формат файлу');
+  const { data: s } = await db.auth.getSession();
+  if (!s.session) throw new Error('Увійди в акаунт');
+  const uid = s.session.user.id;
+  const txt = v => String(v == null ? '' : v).trim() || null;
+  const num = v => {
+    const t = String(v == null ? '' : v).replace(/\s/g, '');
+    const n = Number(t);
+    return t === '' || isNaN(n) ? null : n;
+  };
+  const st = { cities: 0, ents: 0, vehs: 0, skipped: 0, cityLimit: 0 };
+  const cityMap = {};
+  const entMap = {};
+
+  for (const c of d.cities || []) {
+    log('Міста: ' + c.name + '...');
+    const own = cities.filter(x => x.owner_id === uid);
+    const ex = own.find(x => x.name === c.name);
+    if (ex) {
+      cityMap[c.id] = ex.id;
+      continue;
+    }
+    if (own.length + st.cities >= 5 && !isStaff()) {
+      st.cityLimit++;
+      continue;
+    }
+    const r = await db.from('cities').insert({
+      owner_id: uid,
+      name: c.name,
+      country: txt(c.country) || '—',
+      region: txt(c.region),
+      population: num(c.population),
+      founded_year: num(c.year),
+      area_km2: num(c.area),
+      author_contacts: txt(c.website),
+      description: txt(c.desc)
+    }).select('id').single();
+    if (r.error) throw r.error;
+    cityMap[c.id] = r.data.id;
+    st.cities++;
+  }
+
+  const existEnt = {};
+  for (const sy of d.systems || []) {
+    const cid = cityMap[sy.cityId];
+    if (!cid) continue;
+    log('Підприємства: ' + sy.name + '...');
+    if (!existEnt[cid]) {
+      const r = await db.from('enterprises').select('id, name').eq('city_id', cid);
+      if (r.error) throw r.error;
+      existEnt[cid] = r.data || [];
+    }
+    const ex = existEnt[cid].find(x => x.name === sy.name);
+    if (ex) {
+      entMap[sy.id] = { id: ex.id, city: cid };
+      continue;
+    }
+    const types = (sy.types || []).filter(t => ENT_TYPES.some(x => x.key === t)).slice(0, 5);
+    const r = await db.from('enterprises').insert({
+      city_id: cid,
+      owner_id: uid,
+      name: sy.name,
+      transport_types: types,
+      status: ENT_STATUSES.some(x => x.key === sy.sysStatus) ? sy.sysStatus : 'active',
+      founded_year: num(sy.founded),
+      note: [txt(sy.depots), txt(sy.note)].filter(Boolean).join('\n') || null
+    }).select('id').single();
+    if (r.error) throw r.error;
+    entMap[sy.id] = { id: r.data.id, city: cid };
+    existEnt[cid].push({ id: r.data.id, name: sy.name });
+    st.ents++;
+  }
+
+  const bySys = {};
+  (d.vehicles || []).forEach(v => {
+    if (!entMap[v.systemId]) return;
+    (bySys[v.systemId] = bySys[v.systemId] || []).push(v);
+  });
+  for (const sid of Object.keys(bySys)) {
+    const e = entMap[sid];
+    log('ТС: імпортовано ' + st.vehs + '...');
+    const r = await db.from('vehicles').select('fleet_no').eq('enterprise_id', e.id);
+    if (r.error) throw r.error;
+    const have = new Set((r.data || []).map(x => String(x.fleet_no)));
+    const rows = [];
+    bySys[sid].forEach(v => {
+      const fleet = txt(v.num);
+      const model = txt(v.model);
+      if (!fleet || !model || have.has(fleet)) {
+        st.skipped++;
+        return;
+      }
+      have.add(fleet);
+      rows.push({
+        city_id: e.city,
+        enterprise_id: e.id,
+        owner_id: uid,
+        fleet_no: fleet,
+        extra_no: txt(v.extra_num),
+        plate_no: txt(v.gos_num),
+        vehicle_type: ENT_TYPES.some(t => t.key === v.type) ? v.type : 'bus',
+        model,
+        factory_no: txt(v.serial),
+        build_year: num(v.year),
+        vin: txt(v.vin),
+        start_date: txt(v.start_date),
+        arrived: txt(v.arrived),
+        written_off: txt(v.decommissioned),
+        status: IMP_STATUS[v.status] || 'active',
+        note: [txt(v.note), v.routes && String(v.routes).trim() ? 'Маршрути: ' + String(v.routes).trim() : ''].filter(Boolean).join('. ') || null
+      });
+    });
+    for (let i = 0; i < rows.length; i += 50) {
+      const ins = await db.from('vehicles').insert(rows.slice(i, i + 50));
+      if (ins.error) throw ins.error;
+      st.vehs += Math.min(50, rows.length - i);
+    }
+  }
+
+  log('Готово.\nМіст: ' + st.cities + '\nПідприємств: ' + st.ents + '\nТС: ' + st.vehs +
+    '\nПропущено (вже є): ' + st.skipped +
+    (st.cityLimit ? '\nМіст пропущено через ліміт 5: ' + st.cityLimit : '') +
+    '\nФото з файлу не імпортуються.');
+}
+
+$('openImport').addEventListener('click', async () => {
+  const { data } = await db.auth.getSession();
+  if (!data.session) {
+    openModal('login');
+    return;
+  }
+  $('importFile').click();
+});
+
+$('importClose').addEventListener('click', closeModal);
+
+$('importFile').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  $('importLog').textContent = 'Читаю файл...';
+  $('importClose').disabled = true;
+  openModal('import');
+  try {
+    await runImport(JSON.parse(await file.text()));
+  } catch (err) {
+    $('importLog').textContent = 'Помилка: ' + (err.message || err);
+  }
+  $('importClose').disabled = false;
+  entCity = null;
+  await loadCities();
 });
 
 setInterval(loadNotifs, 30000);
