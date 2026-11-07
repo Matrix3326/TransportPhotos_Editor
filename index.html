@@ -3265,8 +3265,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     storage: safeStorage,
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: false,
-    lock: (name, acquireTimeout, fn) => fn()
+    detectSessionInUrl: false
   }
 });
 
@@ -6935,6 +6934,7 @@ function hidePages() {
 }
 
 function showPage(id, hash) {
+  window.scrollTo({ top: 0 });
   currentId = null;
   curEnt = null;
   renderCity();
@@ -6942,15 +6942,15 @@ function showPage(id, hash) {
   if (location.hash !== hash) history.pushState(null, '', hash);
 }
 
-function route() {
+function route(fromPop) {
   const h = location.hash;
   if (h === '#upload') openPhotoForm();
   else if (h === '#my') openMyPhotos();
   else if (h === '#gallery') openGallery();
   else if (h.startsWith('#photo=')) openPhotoById(h.slice(7));
-  else PAGES.forEach(id => $(id).classList.add('hidden'));
+  else if (fromPop) PAGES.forEach(id => $(id).classList.add('hidden'));
 }
-window.addEventListener('popstate', route);
+window.addEventListener('popstate', () => route(true));
 
 function upReset() {
   UP_FIELDS.forEach(id => { $(id).value = ''; });
