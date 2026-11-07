@@ -3265,7 +3265,8 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     storage: safeStorage,
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: false
+    detectSessionInUrl: false,
+    lock: (name, acquireTimeout, fn) => fn()
   }
 });
 
@@ -6033,6 +6034,10 @@ async function runImport(d) {
     return t === '' || isNaN(n) ? null : n;
   };
   const st = { cities: 0, ents: 0, vehs: 0, skipped: 0, cityLimit: 0, noCity: 0, noEnt: 0 };
+  const yr = v => {
+    const m = String(v == null ? '' : v).match(/(\d{4})\s*$/);
+    return m ? Number(m[1]) : null;
+  };
   const cityMap = {};
   const entMap = {};
 
@@ -6054,7 +6059,7 @@ async function runImport(d) {
       country: txt(c.country) || '—',
       region: txt(c.region),
       population: num(c.population),
-      founded_year: num(c.year),
+      founded_year: yr(c.year),
       area_km2: num(c.area),
       author_contacts: txt(c.website),
       description: txt(c.desc)
@@ -6086,7 +6091,7 @@ async function runImport(d) {
       name: sy.name,
       transport_types: types,
       status: (k => ENT_STATUSES.some(x => x.key === k) ? k : 'active')(IMP_ENT_STATUS[sy.sysStatus] || sy.sysStatus),
-      founded_year: num(sy.founded),
+      founded_year: yr(sy.founded),
       note: [txt(sy.depots), txt(sy.note)].filter(Boolean).join('\n') || null
     }).select('id').single();
     if (r.error) throw r.error;
@@ -6127,7 +6132,7 @@ async function runImport(d) {
         vehicle_type: (k => ENT_TYPES.some(t => t.key === k) ? k : 'bus')(IMP_TYPE[v.type] || v.type),
         model,
         factory_no: txt(v.serial),
-        build_year: num(v.year),
+        build_year: yr(v.year),
         vin: txt(v.vin),
         start_date: txt(v.start_date),
         arrived: txt(v.arrived),
@@ -6941,6 +6946,7 @@ function route() {
   const h = location.hash;
   if (h === '#upload') openPhotoForm();
   else if (h === '#my') openMyPhotos();
+  else if (h === '#gallery') openGallery();
   else if (h.startsWith('#photo=')) openPhotoById(h.slice(7));
   else PAGES.forEach(id => $(id).classList.add('hidden'));
 }
@@ -7018,12 +7024,13 @@ async function loadMy() {
 }
 
 async function openMyPhotos() {
+  showPage('myView', '#my');
   const { data: s } = await db.auth.getSession();
   if (!s.session) {
+    hidePages();
     openModal('login');
     return;
   }
-  showPage('myView', '#my');
   await loadMy();
 }
 
@@ -7452,15 +7459,12 @@ async function loadGallery() {
   renderGallery();
 }
 
-$('openGallery').addEventListener('click', () => {
-  currentId = null;
-  curEnt = null;
-  renderCity();
-  hidePages();
-  $('galleryView').classList.remove('hidden');
+function openGallery() {
+  showPage('galleryView', '#gallery');
   renderGallery();
   loadGallery();
-});
+}
+$('openGallery').addEventListener('click', openGallery);
 
 /* ---------- Сторінка фото ---------- */
 let ppCur = null;
@@ -7679,7 +7683,7 @@ function closePhoto() {
   ppCur = null;
   if (pr && pr.pages.length) {
     pr.pages.forEach(id => $(id).classList.remove('hidden'));
-    history.replaceState(null, '', pr.pages.includes('myView') ? '#my' : location.pathname + location.search);
+  history.replaceState(null, '', pr.pages.includes('myView') ? '#my' : pr.pages.includes('galleryView') ? '#gallery' : location.pathname + location.search);
   } else if (pr && pr.cityId) {
     currentId = pr.cityId;
     curEnt = pr.ent;
