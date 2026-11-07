@@ -6970,7 +6970,7 @@ async function openPhotoForm(p) {
   }
   const uid = s.session.user.id;
   const list = cities
-    .filter(c => c.is_published || c.owner_id === uid || isStaff())
+    .filter(c => c.is_published)
     .sort((a, b) => String(a.name).localeCompare(String(b.name), 'uk'));
   if (!list.length) {
     alert('Поки немає міст');
@@ -7131,7 +7131,7 @@ function openTreePicker(title, rows, selId, onPick, allLabel, back) {
 }
 
 function openCityTree() {
-  const all = phCityList.map(x => cities.find(c => c.id === x.key)).filter(Boolean);
+  const all = phCityList.map(x => cities.find(c => c.id === x.key)).filter(c => c && c.is_published);
   openTreePicker('Місто', all, phCityId, pickCity, null, 'photoUp');
 }
 
