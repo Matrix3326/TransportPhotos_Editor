@@ -2552,6 +2552,7 @@ html[data-theme="dark"] .up-inl input { color: #e8e8e8; }
 .pp-top { margin-bottom: 14px; }
 .pp-img { display: block; width: 100%; max-width: 960px; margin: 0 auto; aspect-ratio: 4 / 3; background: #111111; border-radius: 8px; overflow: hidden; }
 .pp-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pp-img img, .ph-pic img { image-rendering: auto; }
 .pp-meta, .pp-info { max-width: 960px; margin-left: auto; margin-right: auto; }
 .pp-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; padding: 16px 4px; font-size: 15px; }
 .pp-info { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; padding: 4px 4px 22px; }
@@ -2827,7 +2828,7 @@ html[data-theme="dark"] .up-inl input { color: #e8e8e8; }
         </div>
         <input id="phFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>
         <div class="up-prev hidden" id="phPrevBox">
-          <canvas id="phCanvas" class="ph-prev" width="640" height="480"></canvas>
+          <canvas id="phCanvas" class="ph-prev" width="960" height="720"></canvas>
           <div class="up-file">
             <button class="up-x" id="phRemove" type="button" aria-label="Прибрати фото">✕</button>
             <span id="phFileInfo"></span>
@@ -3479,11 +3480,26 @@ $('pendResend').addEventListener('click', async () => {
   setMsg($('pendMsg'), 'Лист надіслано ще раз', true);
   startResendTimer();
 });
+function dropPending(p) {
+  if (!p) return;
+  fetch(SUPABASE_URL + '/rest/v1/rpc/cancel_signup', {
+    method: 'POST',
+    keepalive: true,
+    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_email: p.email, p_password: p.password })
+  }).catch(() => {});
+}
+
 $('pendCancel').addEventListener('click', () => {
+  dropPending(pending);
   stopPolling();
   pending = null;
   pendingPrefs = null;
   showView('register');
+});
+
+window.addEventListener('pagehide', () => {
+  if (pending) dropPending(pending);
 });
 
 $('loginForm').addEventListener('submit', async e => {
@@ -6271,8 +6287,8 @@ document.addEventListener('visibilitychange', () => {
 /* ---------- Фото ---------- */
 const PH_CATS = ['Зовнішнє фото', 'Салон', 'Кабіна', 'Обладнання', 'Детальна зйомка', 'Заводська табличка', 'Інфраструктура', 'Неідентифікований транспорт', 'Додаткова спецтехніка'];
 const PH_TYPE_BY_NAME = { 'Tram / LRV': 'tram', 'Trolleybus': 'trolleybus', 'Bus': 'bus', 'Metro / Railway': 'metro', 'Funicular': 'funicular', 'Monorail': 'monorail', '(Other)': 'other' };
-const PH_W = 960;    // 4:3 при висоті 720px (720p): 960x720
-const PH_Q = 0.92;   // якість JPEG
+const PH_W = 1920;
+const PH_Q = 0.98;
 let photos = [];
 let phImg = null;
 let phFx = 0.5;
@@ -6505,25 +6521,26 @@ function phCrop() {
     sh = h;
     sw = h * 4 / 3;
   }
-  return [(w - sw) * phFx, (h - sh) * phFy, sw, sh];
+  return [Math.round((w - sw) * phFx), Math.round((h - sh) * phFy), Math.floor(sw), Math.floor(sh)];
 }
 
 function phDraw() {
   const c = $('phCanvas');
   const ctx = c.getContext('2d');
-  c.width = 640;
-  c.height = 480;
+  c.width = 960;
+  c.height = 720;
   if (!phImg) {
     ctx.fillStyle = '#9a9a9a';
-    ctx.fillRect(0, 0, 640, 480);
+    ctx.fillRect(0, 0, 960, 720);
     ctx.fillStyle = '#ffffff';
-    ctx.font = '22px Arial';
+    ctx.font = '32px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('Оберіть фото', 320, 245);
+    ctx.fillText('Оберіть фото', 480, 365);
     return;
   }
   const [sx, sy, sw, sh] = phCrop();
-  ctx.drawImage(phImg, sx, sy, sw, sh, 0, 0, 640, 480);
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(phImg, sx, sy, sw, sh, 0, 0, 960, 720);
 }
 
 function phPan(dx, dy) {
@@ -7211,7 +7228,7 @@ $('photoUp').addEventListener('submit', async ev => {
       const cx = cv.getContext('2d');
       cx.fillStyle = '#ffffff';
       cx.fillRect(0, 0, cw, ch);
-      cx.imageSmoothingQuality = 'high';
+      cx.imageSmoothingEnabled = false;
       cx.drawImage(phImg, sx, sy, sw, sh, 0, 0, cw, ch);
       while (cw / 2 >= ow) {
         const nw = Math.round(cw / 2);
@@ -7235,11 +7252,13 @@ $('photoUp').addEventListener('submit', async ev => {
         x3.drawImage(cv, 0, 0, cw, ch, 0, 0, ow, oh);
         cv = c3;
       }
-      const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', PH_Q));
+      const lossless = cv.width <= 1280;
+      const mime = lossless ? 'image/png' : 'image/jpeg';
+      const blob = await new Promise(r => cv.toBlob(r, mime, PH_Q));
       if (!blob) throw new Error('Не вдалося стиснути фото');
       const uid = s.session.user.id;
-      const path = uid + '/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.jpg';
-      const up = await db.storage.from('photos').upload(path, blob, { contentType: 'image/jpeg', cacheControl: '31536000' });
+      const path = uid + '/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + (lossless ? '.png' : '.jpg');
+      const up = await db.storage.from('photos').upload(path, blob, { contentType: mime, cacheControl: '31536000' });
       if (up.error) throw up.error;
       const status = isStaff() ? 'approved' : 'pending';
       const ins = await db.from('photos').insert({ ...fields, owner_id: uid, owner_name: me.name || '', path, status });
