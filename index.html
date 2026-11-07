@@ -3202,6 +3202,8 @@ html[data-theme="dark"] .up-inl input { color: #e8e8e8; }
       <p class="pending-text">Ми надіслали лист на <b id="pendEmail"></b>. Відкрий його й натисни на посилання, сайт сам це зрозуміє.</p>
       <div class="waiting"><div class="spinner"></div><span>Очікуємо підтвердження...</span></div>
       <p id="pendMsg" class="msg" style="text-align:center"></p>
+      <p class="pending-text">Листа немає? Перевір папку «Спам».</p>
+      <button class="btn light" id="pendResend" type="button" disabled>Надіслати лист ще раз</button>
       <button class="btn dark" id="pendCheck" type="button">Я підтвердив</button>
       <button class="btn light" id="pendCancel" type="button">Скасувати</button>
     </div>
@@ -3380,7 +3382,7 @@ async function render(session) {
 
 function startPolling() {
   stopPolling();
-  pollTimer = setInterval(() => checkPending(false), 12000);
+  pollTimer = setInterval(() => checkPending(false), 20000);
 }
 
 function stopPolling() {
@@ -3440,6 +3442,43 @@ document.addEventListener('keydown', e => {
 });
 
 $('pendCheck').addEventListener('click', () => checkPending(true));
+
+let resendAt = 0;
+let resendTick = null;
+
+function drawResend() {
+  const left = Math.ceil((resendAt - Date.now()) / 1000);
+  const b = $('pendResend');
+  if (left > 0) {
+    b.disabled = true;
+    b.textContent = 'Надіслати лист ще раз (' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0') + ')';
+    return;
+  }
+  clearInterval(resendTick);
+  resendTick = null;
+  b.disabled = false;
+  b.textContent = 'Надіслати лист ще раз';
+}
+
+function startResendTimer() {
+  resendAt = Date.now() + 120000;
+  clearInterval(resendTick);
+  resendTick = setInterval(drawResend, 1000);
+  drawResend();
+}
+
+$('pendResend').addEventListener('click', async () => {
+  if (!pending || Date.now() < resendAt) return;
+  $('pendResend').disabled = true;
+  const { error } = await db.auth.resend({ type: 'signup', email: pending.email });
+  if (error) {
+    drawResend();
+    setMsg($('pendMsg'), /rate limit|seconds/i.test(error.message) ? 'Забагато листів, спробуй пізніше' : error.message);
+    return;
+  }
+  setMsg($('pendMsg'), 'Лист надіслано ще раз', true);
+  startResendTimer();
+});
 $('pendCancel').addEventListener('click', () => {
   stopPolling();
   pending = null;
@@ -3530,6 +3569,7 @@ $('registerForm').addEventListener('submit', async e => {
     return;
   }
   pending = { email, password, file };
+  startResendTimer();
   $('pendEmail').textContent = email;
   setMsg($('pendMsg'), '');
   showView('pending');
@@ -4993,6 +5033,10 @@ function applyAccountPrefs(p) {
 const DICT = Object.create(null);
 [
   ['Муніципалітет, регіон, країна', 'Муниципалитет, регион, страна', 'Municipality, region, country'],
+  ['Листа немає? Перевір папку «Спам».', 'Письма нет? Проверь папку «Спам».', 'No email? Check your Spam folder.'],
+  ['Надіслати лист ще раз', 'Отправить письмо ещё раз', 'Resend email'],
+  ['Надіслати лист ще раз (', 'Отправить письмо ещё раз (', 'Resend email ('],
+  ['Лист надіслано ще раз', 'Письмо отправлено ещё раз', 'Email sent again'],
   ['Акаунт заблоковано', 'Аккаунт заблокирован', 'Account banned'],
   ['Дублювати', 'Дублировать', 'Duplicate'],
   ['Дублювати ТС', 'Дублировать ТС', 'Duplicate vehicle'],
