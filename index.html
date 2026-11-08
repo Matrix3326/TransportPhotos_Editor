@@ -5397,8 +5397,13 @@ const PATS = [
 function trCore(c) {
   const d = DICT[c];
   if (d) return d[lang];
+  if (c.startsWith('Готово.\n')) return c.split('\n').map(trCore).join('\n');
   for (const p of PREFIX) {
-    if (c.startsWith(p[0])) return p[lang === 'ru' ? 1 : 2] + c.slice(p[0].length);
+    if (c.startsWith(p[0])) {
+      const rest = c.slice(p[0].length);
+      const rd = DICT[rest];
+      return p[lang === 'ru' ? 1 : 2] + (rd ? rd[lang] : rest);
+    }
   }
   for (const p of PATS) {
     const m = c.match(p.re);
@@ -6353,6 +6358,11 @@ DICT['Видалити акаунт'] = { ru: 'Удалить аккаунт', e
 const phUrl = p => db.storage.from('photos').getPublicUrl(p.path).data.publicUrl;
 
 /* --- галерея --- */
+function phTime(s) {
+  const v = String(s || '');
+  return new Date(/[zZ]|[+-]\d\d(:?\d\d)?$/.test(v) ? v : v.replace(' ', 'T') + 'Z').getTime();
+}
+
 function phCard(p) {
   const card = document.createElement('div');
   card.className = 'ph-card';
@@ -6368,11 +6378,15 @@ function phCard(p) {
     bd.className = 'ph-badge';
     bd.textContent = '⏳ На модерації';
     pic.appendChild(bd);
-  } else if (Date.now() - new Date(p.created_at).getTime() < 86400000) {
-    const nw = document.createElement('span');
-    nw.className = 'ph-new';
-    nw.textContent = 'НОВЕ';
-    pic.appendChild(nw);
+  } else {
+    const left = 86400000 - (Date.now() - phTime(p.created_at));
+    if (left > 0) {
+      const nw = document.createElement('span');
+      nw.className = 'ph-new';
+      nw.textContent = 'НОВЕ';
+      pic.appendChild(nw);
+      setTimeout(() => nw.remove(), left);
+    }
   }
   const info = document.createElement('div');
   info.className = 'ph-info';
@@ -7217,10 +7231,34 @@ $('photoUp').addEventListener('submit', async ev => {
   }
   const typedFleet = $('phFleet').value.trim();
   if (!phVehSel && typedFleet) {
+    const q = supClean(typedFleet);
     const { data: vm } = await db.from('vehicles')
       .select('id, enterprise_id, fleet_no, extra_no, plate_no, model, vehicle_type, status')
-      .eq('city_id', city.id).eq('fleet_no', typedFleet).limit(1);
-    if (vm && vm[0]) phPickVeh(vm[0]);
+      .eq('city_id', city.id)
+      .or('fleet_no.eq."' + q + '",plate_no.eq."' + q + '"')
+      .limit(1);
+    if (vm && vm[0]) {
+      phPickVeh(vm[0]);
+    } else {
+      setMsg($('phMsg'), 'ТС «' + typedFleet + '» немає в базі. Оберіть ТС зі списку');
+      return;
+    }
+  }
+  const typedRoute = $('phRoute').value.trim();
+  if (!phRouteSel && typedRoute) {
+    const { data: rm } = await db.from('routes')
+      .select('id, enterprise_id, line, name, status, transport, period')
+      .eq('city_id', city.id)
+      .ilike('line', supClean(typedRoute))
+      .limit(20);
+    const same = (rm || []).filter(r => String(r.line).toLowerCase() === typedRoute.toLowerCase());
+    const found = same.find(x => phVehSel && x.enterprise_id === phVehSel.enterprise_id) || same[0];
+    if (found) {
+      phPickRoute(found);
+    } else {
+      setMsg($('phMsg'), 'Маршруту «' + typedRoute + '» немає в базі. Оберіть маршрут зі списку');
+      return;
+    }
   }
   const entId = (phVehSel && phVehSel.enterprise_id) || (phRouteSel && phRouteSel.enterprise_id) || null;
   const ent = entId ? phEnts.find(e => e.id === entId) : null;
@@ -7486,8 +7524,8 @@ function ppDate(p) {
   const m = a.pop();
   const d = a.pop();
   let s = String(p.shot_date);
-  if (d && m >= 1 && m <= 12 && y) s = PP_W[new Date(y, m - 1, d).getDay()] + ', ' + d + ' ' + PP_M[m - 1] + ' ' + y;
-  else if (m >= 1 && m <= 12 && y) s = PP_MN[m - 1] + ' ' + y;
+  if (d && m >= 1 && m <= 12 && y) s = ppL().W[new Date(y, m - 1, d).getDay()] + ', ' + d + ' ' + ppL().M[m - 1] + ' ' + y;
+  else if (m >= 1 && m <= 12 && y) s = ppL().MN[m - 1] + ' ' + y;
   const pre = { approx: 'Приблизно: ', before: 'Не пізніше: ', after: 'Не раніше: ' }[kind] || '';
   return pre + s;
 }
@@ -7622,7 +7660,7 @@ function openPhoto(p) {
   const pub = new Date(p.created_at);
   const vw = ppFact('Переглядів:', String(p.views || 0));
   const side = [
-    ppFact('Опубліковано:', pub.getDate() + ' ' + PP_M[pub.getMonth()] + ' ' + pub.getFullYear()),
+    ppFact('Опубліковано:', pub.getDate() + ' ' + ppL().M[pub.getMonth()] + ' ' + pub.getFullYear()),
     ...(p.category ? [ppFact('Категорія:', p.category)] : []),
     vw
   ];
@@ -7839,6 +7877,140 @@ $('confirmedClose').addEventListener('click', closeModal);
 $('confirmedLogin').addEventListener('click', () => openModal('login'));
 
 $('ppBack').addEventListener('click', closePhoto);
+
+/* ---------- Доп. переводы ---------- */
+const PP_LOC = {
+  ru: {
+    M: ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'],
+    MN: ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'],
+    W: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота']
+  },
+  en: {
+    M: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    MN: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    W: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  }
+};
+function ppL() {
+  return PP_LOC[lang] || { M: PP_M, MN: PP_MN, W: PP_W };
+}
+
+[
+  ['+ Опублікувати фото', '+ Опубликовать фото', '+ Publish photo'],
+  ['У вас ще немає фото', 'У вас ещё нет фото', 'You have no photos yet'],
+  ['Ви можете опублікувати необмежену кількість фотографій.', 'Вы можете опубликовать неограниченное количество фотографий.', 'You can publish an unlimited number of photos.'],
+  ['📷 Оберіть фотографію', '📷 Выберите фотографию', '📷 Choose a photo'],
+  ['Вимоги до фото:', 'Требования к фото:', 'Photo requirements:'],
+  ['• Формат JPEG, PNG або WEBP;', '• Формат JPEG, PNG или WEBP;', '• JPEG, PNG or WEBP format;'],
+  ['• Файл до 25 МБ, стискається автоматично;', '• Файл до 25 МБ, сжимается автоматически;', '• File up to 25 MB, compressed automatically;'],
+  ['• Кадр 4:3 — перетягніть фото, щоб обрати кадр', '• Кадр 4:3 — перетащите фото, чтобы выбрать кадр', '• 4:3 frame — drag the photo to choose the crop'],
+  ['Вибрати файл', 'Выбрать файл', 'Choose file'],
+  ['Очистити форму', 'Очистить форму', 'Clear form'],
+  ['Місто/регіон *', 'Город/регион *', 'City/region *'],
+  ['вулиця, зупинка', 'улица, остановка', 'street, stop'],
+  ['Дата зйомки', 'Дата съёмки', 'Shooting date'],
+  ['ДД', 'ДД', 'DD'],
+  ['ММ', 'ММ', 'MM'],
+  ['РРРР', 'ГГГГ', 'YYYY'],
+  ['Точна дата', 'Точная дата', 'Exact date'],
+  ['Приблизна дата', 'Приблизительная дата', 'Approximate date'],
+  ['Не пізніше', 'Не позднее', 'No later than'],
+  ['Не раніше', 'Не раньше', 'No earlier than'],
+  ['Невідома дата', 'Неизвестная дата', 'Unknown date'],
+  ["Об'єкт(и) зйомки", 'Объект(ы) съёмки', 'Subject(s)'],
+  ['У полі «Маршрут №» зазначайте лише номер (зокрема, 27к чи N208) і обирайте маршрут зі списку.', 'В поле «Маршрут №» указывайте только номер (в том числе 27к или N208) и выбирайте маршрут из списка.', 'In the “Route no.” field enter only the number (e.g. 27k or N208) and pick the route from the list.'],
+  ['Супровідну інформацію (в депо, службовий) зазначайте в полі «Примітка».', 'Сопроводительную информацию (в депо, служебный) указывайте в поле «Примечание».', 'Put accompanying info (to depot, service) in the “Note” field.'],
+  ['Додаткові параметри', 'Дополнительные параметры', 'Additional options'],
+  ['Примітка (опційно)', 'Примечание (необязательно)', 'Note (optional)'],
+  ['Введіть текст', 'Введите текст', 'Enter text'],
+  ['Теги', 'Теги', 'Tags'],
+  ['захід сонця, дощ, бруківка (через кому)', 'закат, дождь, брусчатка (через запятую)', 'sunset, rain, cobblestones (comma-separated)'],
+  ['Фотографія зроблена мною', 'Фотография сделана мной', 'I took this photo'],
+  ['Завантажити фотографію', 'Загрузить фотографию', 'Upload photo'],
+  ['Редагувати фото', 'Редактировать фото', 'Edit photo'],
+  ['Реорганізація (група)', 'Реорганизация (группа)', 'Reorganization (group)'],
+  ['Напр. Hisl. Однакова назва об’єднує підприємства в групу', 'Напр. Hisl. Одинаковое название объединяет предприятия в группу', 'E.g. Hisl. The same name groups enterprises together'],
+  ['Номер без цифр в кінці: копії матимуть той самий номер', 'Номер без цифр в конце: копии будут иметь тот же номер', 'Number has no trailing digits: copies will have the same number'],
+  ['Немає номерів для створення', 'Нет номеров для создания', 'No numbers to create'],
+  ['Імпорт бази', 'Импорт базы', 'Database import'],
+  ['Читаю файл...', 'Читаю файл...', 'Reading file...'],
+  ['Готово.', 'Готово.', 'Done.'],
+  ['Фото з файлу не імпортуються.', 'Фото из файла не импортируются.', 'Photos from the file are not imported.'],
+  ['Невірний формат файлу', 'Неверный формат файла', 'Invalid file format'],
+  ['Увійди в акаунт', 'Войди в аккаунт', 'Log in to your account'],
+  ['Ранг', 'Ранг', 'Rank'],
+  ['Користувач', 'Пользователь', 'User'],
+  ['Не можна оцінювати власне фото', 'Нельзя оценивать собственное фото', 'You cannot rate your own photo'],
+  ['Фото ще на модерації', 'Фото ещё на модерации', 'The photo is still under review'],
+  ['Увійди, щоб опублікувати фото', 'Войди, чтобы опубликовать фото', 'Log in to publish a photo'],
+  ['Обери фото', 'Выбери фото', 'Choose a photo'],
+  ['Дата: ДД, ММ — числа, рік — 4 цифри', 'Дата: ДД, ММ — числа, год — 4 цифры', 'Date: DD, MM are numbers, year is 4 digits'],
+  ['Стискаю і завантажую...', 'Сжимаю и загружаю...', 'Compressing and uploading...'],
+  ['Не вдалося стиснути фото', 'Не удалось сжать фото', 'Could not compress the photo'],
+  ['Не вдалося прочитати фото', 'Не удалось прочитать фото', 'Could not read the photo'],
+  ['Файл більший за 25 МБ', 'Файл больше 25 МБ', 'File is larger than 25 MB'],
+  ['Поки немає міст', 'Пока нет городов', 'There are no cities yet'],
+  ['Оберіть фото', 'Выберите фото', 'Choose a photo']
+].forEach(r => { DICT[r[0]] = { ru: r[1], en: r[2] }; });
+
+// підписи категорій з малої літери (на картках фото)
+PH_CATS.forEach(c => {
+  const d = DICT[c];
+  if (d) DICT[c.toLowerCase()] = { ru: d.ru.toLowerCase(), en: d.en.toLowerCase() };
+});
+
+PREFIX.push(
+  ['Приблизно: ', 'Приблизительно: ', 'Approximately: '],
+  ['Не пізніше: ', 'Не позднее: ', 'No later than: '],
+  ['Не раніше: ', 'Не раньше: ', 'No earlier than: '],
+  ['Помилка: ', 'Ошибка: ', 'Error: '],
+  ['Ранг: ', 'Ранг: ', 'Rank: '],
+  ['Ваш ранг змінено: ', 'Ваш ранг изменён: ', 'Your rank was changed: '],
+  ['Акаунт видалено, але лист не надіслано: ', 'Аккаунт удалён, но письмо не отправлено: ', 'Account deleted, but the email was not sent: '],
+  ['Міста: ', 'Города: ', 'Cities: '],
+  ['Підприємства: ', 'Предприятия: ', 'Enterprises: '],
+  ['ТС: імпортовано ', 'ТС: импортировано ', 'Vehicles: imported '],
+  ['Міст пропущено через ліміт 5: ', 'Городов пропущено из-за лимита 5: ', 'Cities skipped due to the limit of 5: '],
+  ['Підприємств без міста у файлі: ', 'Предприятий без города в файле: ', 'Enterprises without a city in the file: '],
+  ['ТС без підприємства: ', 'ТС без предприятия: ', 'Vehicles without an enterprise: '],
+  ['Пропущено (вже є): ', 'Пропущено (уже есть): ', 'Skipped (already exist): '],
+  ['Міст: ', 'Городов: ', 'Cities: '],
+  ['Підприємств: ', 'Предприятий: ', 'Enterprises: '],
+  ['ТС: ', 'ТС: ', 'Vehicles: ']
+);
+
+PATS.push(
+  {
+    re: /^Ваше фото \(([\s\S]*)\) у місті «([\s\S]*)» (прийнято і опубліковано|відхилено)(?:\. Причина: ([\s\S]*))?$/,
+    f: (m, L) => {
+      const rej = m[3] === 'відхилено';
+      if (L === 'ru') return 'Ваше фото (' + m[1] + ') в городе «' + m[2] + '» ' + (rej ? 'отклонено' : 'принято и опубликовано') + (m[4] != null ? '. Причина: ' + m[4] : '');
+      return 'Your photo (' + m[1] + ') in “' + m[2] + '” ' + (rej ? 'was rejected' : 'was approved and published') + (m[4] != null ? '. Reason: ' + m[4] : '');
+    }
+  },
+  {
+    re: /^(Фото опубліковано|Фото надіслано на модерацію) \((\d+) КБ\)$/,
+    f: (m, L) => {
+      const pub = m[1] === 'Фото опубліковано';
+      if (L === 'ru') return (pub ? 'Фото опубликовано' : 'Фото отправлено на модерацию') + ' (' + m[2] + ' КБ)';
+      return (pub ? 'Photo published' : 'Photo sent for review') + ' (' + m[2] + ' KB)';
+    }
+  },
+  {
+    re: /^ТС «([\s\S]*)» немає в базі\. Оберіть ТС зі списку$/,
+    f: (m, L) => (L === 'ru' ? 'ТС «' + m[1] + '» нет в базе. Выберите ТС из списка' : 'Vehicle “' + m[1] + '” is not in the database. Pick a vehicle from the list')
+  },
+  {
+    re: /^Маршруту «([\s\S]*)» немає в базі\. Оберіть маршрут зі списку$/,
+    f: (m, L) => (L === 'ru' ? 'Маршрута «' + m[1] + '» нет в базе. Выберите маршрут из списка' : 'Route “' + m[1] + '” is not in the database. Pick a route from the list')
+  },
+  {
+    re: /^Причина видалення «([\s\S]*)» \(піде на пошту\)$/,
+    f: (m, L) => (L === 'ru' ? 'Причина удаления «' + m[1] + '» (уйдёт на почту)' : 'Reason for deleting “' + m[1] + '” (will be emailed)')
+  }
+);
+
+setLang(lang, false);
 
 $('logout').addEventListener('click', async () => {
   await db.auth.signOut();
