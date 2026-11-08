@@ -6379,7 +6379,7 @@ function phCard(p) {
     bd.textContent = '⏳ На модерації';
     pic.appendChild(bd);
   } else {
-    const left = 86400000 - (Date.now() - phTime(p.created_at));
+    const left = 20 * 3600000 - (Date.now() - phTime(p.created_at));
     if (left > 0) {
       const nw = document.createElement('span');
       nw.className = 'ph-new';
