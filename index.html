@@ -3219,6 +3219,9 @@ html[data-theme="dark"] .up-inl input { color: #e8e8e8; }
   </div>
 </div>
 
+<script src="lang/uk.js"></script>
+<script src="lang/ru.js"></script>
+<script src="lang/en.js"></script>
 <script>
 const SUPABASE_URL = 'https://pmncybtnpeumpdytakyc.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Zra57qRt0JGVB9zIrhhXxw_2sGyDlPT';
@@ -3276,7 +3279,7 @@ const maxSize = 2 * 1024 * 1024;
 const views = { login: $('loginForm'), register: $('registerForm'), pending: $('pendingView'), city: $('cityForm'), pick: $('pickView'), reason: $('reasonView'), notif: $('notifView'), ent: $('entForm'), veh: $('vehForm'), route: $('routeForm'), routeInfo: $('routeInfo'), settings: $('settingsView'), dup: $('dupForm'), ban: $('banView'), vehInfo: $('vehInfo'), import: $('importView'), photoUp: $('photoUp'), photoView: $('photoView'), confirmed: $('confirmedView') };
 
 let me = { uid: null, role: null };
-const LANGS = ['uk', 'ru', 'en'];
+const LANGS = Object.keys(window.LANG || {});   // мови беруться з файлів lang/*.js
 let lang = 'uk';
 let theme = 'light';
 let pendingPrefs = null;
@@ -5076,344 +5079,57 @@ function applyAccountPrefs(p) {
   safeStorage.setItem('lang', lang);
 }
 
-const DICT = Object.create(null);
-[
-  ['Пошту підтверджено ✅', 'Почта подтверждена ✅', 'Email confirmed ✅'],
-  ['Готово! Тепер можна повернутися на сторінку сайту, де ви реєструвалися, вона увійде в акаунт сама. Якщо ту сторінку закрито, просто увійдіть зі своїм email і паролем.', 'Готово! Теперь можно вернуться на страницу сайта, где вы регистрировались, она войдёт в аккаунт сама. Если ту страницу закрыли, просто войдите со своим email и паролем.', 'Done! You can go back to the page where you signed up, it will log you in automatically. If it was closed, just log in with your email and password.'],
-  ['Код з листа', 'Код из письма', 'Code from email'],
-  ['Підтвердити кодом', 'Подтвердить кодом', 'Confirm with code'],
-  ['Введи код з листа', 'Введи код из письма', 'Enter the code from the email'],
-  ['Невірний або прострочений код', 'Неверный или просроченный код', 'Invalid or expired code'],
-  ['Муніципалітет, регіон, країна', 'Муниципалитет, регион, страна', 'Municipality, region, country'],
-  ['Листа немає? Перевір папку «Спам».', 'Письма нет? Проверь папку «Спам».', 'No email? Check your Spam folder.'],
-  ['Надіслати лист ще раз', 'Отправить письмо ещё раз', 'Resend email'],
-  ['Надіслати лист ще раз (', 'Отправить письмо ещё раз (', 'Resend email ('],
-  ['Лист надіслано ще раз', 'Письмо отправлено ещё раз', 'Email sent again'],
-  ['Акаунт заблоковано', 'Аккаунт заблокирован', 'Account banned'],
-  ['Дублювати', 'Дублировать', 'Duplicate'],
-  ['Дублювати ТС', 'Дублировать ТС', 'Duplicate vehicle'],
-  ['= той же', '= тот же', '= same'],
-  ['Кількість копій (1–50)', 'Количество копий (1–50)', 'Number of copies (1–50)'],
-  ['Підсумкові номери', 'Итоговые номера', 'Resulting numbers'],
-  ['Створити', 'Создать', 'Create'],
-  ['Тип номера', 'Тип номера', 'Plate type'],
-  ['Ліміт: не більше 5 власних міст', 'Лимит: не более 5 собственных городов', 'Limit: no more than 5 own cities'],
-  ['Не більше 5 видів транспорту', 'Не более 5 видов транспорта', 'No more than 5 transport types'],
-  ['Види транспорту (макс. 5)', 'Виды транспорта (макс. 5)', 'Transport types (max 5)'],
-  ['Оберіть види транспорту', 'Выберите виды транспорта', 'Select transport types'],
-  ['Кожна реорганізація з нового рядка', 'Каждая реорганизация с новой строки', 'Each reorganization on a new line'],
-  ['Меню', 'Меню', 'Menu'],
-  ['Налаштування', 'Настройки', 'Settings'],
-  ['Тема', 'Тема', 'Theme'],
-  ['Мова', 'Язык', 'Language'],
-  ['Світла', 'Светлая', 'Light'],
-  ['Темна', 'Тёмная', 'Dark'],
-  ['Увійти', 'Войти', 'Log in'],
-  ['Вхід', 'Вход', 'Log in'],
-  ['Реєстрація', 'Регистрация', 'Sign up'],
-  ['Вийти', 'Выйти', 'Log out'],
-  ['Змінити аватар', 'Сменить аватар', 'Change avatar'],
-  ['Закрити', 'Закрыть', 'Close'],
-  ['Скасувати', 'Отмена', 'Cancel'],
-  ['Зберегти', 'Сохранить', 'Save'],
-  ['Видалити', 'Удалить', 'Delete'],
-  ['Точно видалити?', 'Точно удалить?', 'Really delete?'],
-  ['Редагувати', 'Редактировать', 'Edit'],
-  ['Готово', 'Готово', 'Done'],
-  ['Підтвердити', 'Подтвердить', 'Confirm'],
-  ['Очистити', 'Очистить', 'Clear'],
-  ['Заявки на публікацію', 'Заявки на публикацию', 'Publication requests'],
-  ['Опубліковані міста', 'Опубликованные города', 'Published cities'],
-  ['Неопубліковані', 'Неопубликованные', 'Unpublished'],
-  ['Повідомлення всім', 'Сообщение всем', 'Message to all'],
-  ['Журнал', 'Журнал', 'Log'],
-  ['Акаунти', 'Аккаунты', 'Accounts'],
-  ['Заявок немає', 'Заявок нет', 'No requests'],
-  ['Міст немає', 'Городов нет', 'No cities'],
-  ['Текст повідомлення для всіх користувачів', 'Текст сообщения для всех пользователей', 'Message text for all users'],
-  ['Надіслати всім', 'Отправить всем', 'Send to all'],
-  ['Пошук за ніком...', 'Поиск по нику...', 'Search by username...'],
-  ['Акаунтів немає', 'Аккаунтов нет', 'No accounts'],
-  ['Записів поки немає', 'Записей пока нет', 'No entries yet'],
-  ['Невідомий', 'Неизвестный', 'Unknown'],
-  ['Введи текст', 'Введи текст', 'Enter text'],
-  ['Прийняти', 'Принять', 'Approve'],
-  ['Відхилити', 'Отклонить', 'Reject'],
-  ['Зняти з публікації', 'Снять с публикации', 'Unpublish'],
-  ['Забанити', 'Забанить', 'Ban'],
-  ['Розбанити', 'Разбанить', 'Unban'],
-  ['· ЗАБАНЕНО', '· ЗАБАНЕНО', '· BANNED'],
-  ['Причина', 'Причина', 'Reason'],
-  ['Причина видалення', 'Причина удаления', 'Reason for deletion'],
-  ['Причина відмови', 'Причина отказа', 'Reason for rejection'],
-  ['Причина зняття з публікації', 'Причина снятия с публикации', 'Reason for unpublishing'],
-  ['Вкажи причину', 'Укажи причину', 'Enter a reason'],
-  ['Сповіщення', 'Уведомления', 'Notifications'],
-  ['Сповіщень немає', 'Уведомлений нет', 'No notifications'],
-  ['Муніципалітет', 'Муниципалитет', 'Municipality'],
-  ['Локальні редактори:', 'Локальные редакторы:', 'Local editors:'],
-  ['Бортовий/держ. №', 'Бортовой/гос. №', 'Fleet/plate no.'],
-  ['Фото міста', 'Фото города', 'City photo'],
-  ['Інформаційні джерела', 'Информационные источники', 'Information sources'],
-  ['Фотографії', 'Фотографии', 'Photos'],
-  ['Підприємства', 'Предприятия', 'Enterprises'],
-  ['Маршрути', 'Маршруты', 'Routes'],
-  ['Схеми', 'Схемы', 'Schemes'],
-  ['Опис', 'Описание', 'Description'],
-  ['Підприємство', 'Предприятие', 'Enterprise'],
-  ['Всі види транспорту', 'Все виды транспорта', 'All transport types'],
-  ['Маршрут', 'Маршрут', 'Route'],
-  ['Всі категорії', 'Все категории', 'All categories'],
-  ['Фотографій поки немає', 'Фотографий пока нет', 'No photos yet'],
-  ['Підприємства міста', 'Предприятия города', 'City enterprises'],
-  ['Назва', 'Название', 'Name'],
-  ['Статус', 'Статус', 'Status'],
-  ['Види транспорту', 'Виды транспорта', 'Transport types'],
-  ['Підприємств поки немає', 'Предприятий пока нет', 'No enterprises yet'],
-  ['Скоро...', 'Скоро...', 'Coming soon...'],
-  ['Про місто', 'О городе', 'About the city'],
-  ['Опис поки відсутній', 'Описание пока отсутствует', 'No description yet'],
-  ['⏳ На модерації', '⏳ На модерации', '⏳ Under review'],
-  ['Пункти', 'Пункты', 'Sections'],
-  ['Фотогалерея', 'Фотогалерея', 'Photo gallery'],
-  ['Створити місто', 'Создать город', 'Create city'],
-  ['Редагувати місто', 'Редактировать город', 'Edit city'],
-  ['Мої міста', 'Мои города', 'My cities'],
-  ['Міста', 'Города', 'Cities'],
-  ['Місто', 'Город', 'City'],
-  ['← До міста', '← К городу', '← Back to city'],
-  ['Час діяльності', 'Время деятельности', 'Period of operation'],
-  ['Флот', 'Флот', 'Fleet'],
-  ['Працює', 'Работает', 'In service'],
-  ['На балансі', 'На балансе', 'On balance'],
-  ['+ Додати ТС', '+ Добавить ТС', '+ Add vehicle'],
-  ['+ Додати маршрут', '+ Добавить маршрут', '+ Add route'],
-  ['+ Додати підприємство', '+ Добавить предприятие', '+ Add enterprise'],
-  ['ТС поки немає', 'ТС пока нет', 'No vehicles yet'],
-  ['Завантаження...', 'Загрузка...', 'Loading...'],
-  ['Нічого не знайдено', 'Ничего не найдено', 'Nothing found'],
-  ['Показати', 'Показать', 'Show'],
-  ['легенду кольорів', 'легенду цветов', 'color legend'],
-  ['Сховати', 'Скрыть', 'Hide'],
-  ['Маршрутів поки немає', 'Маршрутов пока нет', 'No routes yet'],
-  ['Усі типи маршрутів', 'Все типы маршрутов', 'All route types'],
-  ['Поки порожньо', 'Пока пусто', 'Empty for now'],
-  ['Пароль', 'Пароль', 'Password'],
-  ['Немає акаунта?', 'Нет аккаунта?', 'No account?'],
-  ['Нік (3–20, a-z, 0-9, _)', 'Ник (3–20, a-z, 0-9, _)', 'Username (3–20, a-z, 0-9, _)'],
-  ['Пароль (8–64, a-z, 0-9)', 'Пароль (8–64, a-z, 0-9)', 'Password (8–64, a-z, 0-9)'],
-  ["Аватар (необов'язково, до 2 МБ)", 'Аватар (необязательно, до 2 МБ)', 'Avatar (optional, up to 2 MB)'],
-  ['Створити акаунт', 'Создать аккаунт', 'Create account'],
-  ['Вже є акаунт?', 'Уже есть аккаунт?', 'Already have an account?'],
-  ['Підтвердь пошту', 'Подтверди почту', 'Confirm your email'],
-  ['Ми надіслали лист на', 'Мы отправили письмо на', 'We sent an email to'],
-  ['. Відкрий його й натисни на посилання, сайт сам це зрозуміє.', '. Открой его и нажми на ссылку, сайт сам это поймёт.', '. Open it and click the link, the site will detect it automatically.'],
-  ['Очікуємо підтвердження...', 'Ожидаем подтверждение...', 'Waiting for confirmation...'],
-  ['Я підтвердив', 'Я подтвердил', 'I confirmed'],
-  ['Ще не підтверджено', 'Ещё не подтверждено', 'Not confirmed yet'],
-  ['Підтверди email за листом', 'Подтверди email по письму', 'Confirm your email via the link we sent'],
-  ['Невірний email або пароль', 'Неверный email или пароль', 'Invalid email or password'],
-  ['Дозволені лише JPG, PNG, WEBP', 'Разрешены только JPG, PNG, WEBP', 'Only JPG, PNG, WEBP allowed'],
-  ['Файл більший за 2 МБ', 'Файл больше 2 МБ', 'File is larger than 2 MB'],
-  ['Нік: 3–20 символів, лише латиниця, цифри та _', 'Ник: 3–20 символов, только латиница, цифры и _', 'Username: 3–20 characters, Latin letters, digits and _ only'],
-  ['Нік: лише один _, не на початку і не в кінці', 'Ник: только один _, не в начале и не в конце', 'Username: only one _, not at the start or end'],
-  ['Пароль: 8–64 символи, лише латиниця, цифри та знаки, без пробілів', 'Пароль: 8–64 символа, только латиница, цифры и знаки, без пробелов', 'Password: 8–64 characters, Latin letters, digits and symbols, no spaces'],
-  ['Пароль має містити літеру і цифру', 'Пароль должен содержать букву и цифру', 'Password must contain a letter and a digit'],
-  ['Пароль не може збігатися з ніком', 'Пароль не может совпадать с ником', 'Password cannot match the username'],
-  ['Цей нік зайнятий', 'Этот ник занят', 'This username is taken'],
-  ['Цей email вже зареєстрований', 'Этот email уже зарегистрирован', 'This email is already registered'],
-  ['Забагато листів, спробуй пізніше', 'Слишком много писем, попробуй позже', 'Too many emails, try again later'],
-  ['Створити місто', 'Создать город', 'Create city'],
-  ['Назва *', 'Название *', 'Name *'],
-  ['Країна *', 'Страна *', 'Country *'],
-  ['Регіон', 'Регион', 'Region'],
-  ['Населення', 'Население', 'Population'],
-  ['Рік заснування', 'Год основания', 'Year founded'],
-  ['Площа (км²)', 'Площадь (км²)', 'Area (km²)'],
-  ['Контакти автора', 'Контакты автора', 'Author contacts'],
-  ['Публікувати 🌐', 'Опубликовать 🌐', 'Publish 🌐'],
-  ['Увійти, щоб створити місто', 'Войди, чтобы создать город', 'Log in to create a city'],
-  ['Заповни назву і країну', 'Заполни название и страну', 'Fill in the name and country'],
-  ['Додати підприємство', 'Добавить предприятие', 'Add enterprise'],
-  ['Редагувати підприємство', 'Редактировать предприятие', 'Edit enterprise'],
-  ['Реорганізації', 'Реорганизации', 'Reorganizations'],
-  ['Примітка', 'Примечание', 'Note'],
-  ['Вкажи назву', 'Укажи название', 'Enter a name'],
-  ['Увійти, щоб додати підприємство', 'Войди, чтобы добавить предприятие', 'Log in to add an enterprise'],
-  ['Діюче', 'Действующее', 'Active'],
-  ['Без пасажирів', 'Без пассажиров', 'No passengers'],
-  ['Завод', 'Завод', 'Factory'],
-  ['Музей', 'Музей', 'Museum'],
-  ['Будується', 'Строится', 'Under construction'],
-  ['Нереалізоване', 'Нереализованное', 'Unrealized'],
-  ['Закрите', 'Закрыто', 'Closed'],
-  ['Автобус', 'Автобус', 'Bus'],
-  ['Тролейбус', 'Троллейбус', 'Trolleybus'],
-  ['Трамвай', 'Трамвай', 'Tram'],
-  ['Метро', 'Метро', 'Metro'],
-  ['(Інше)', '(Другое)', '(Other)'],
-  ['Монорельс', 'Монорельс', 'Monorail'],
-  ['Фунікулер', 'Фуникулёр', 'Funicular'],
-  ['Додати ТС', 'Добавить ТС', 'Add vehicle'],
-  ['Редагувати ТС', 'Редактировать ТС', 'Edit vehicle'],
-  ['Борт. № *', 'Борт. № *', 'Fleet no. *'],
-  ['Дод. №', 'Доп. №', 'Extra no.'],
-  ['Держ. №', 'Гос. №', 'Plate no.'],
-  ['Тип ТС', 'Тип ТС', 'Vehicle type'],
-  ['Модель *', 'Модель *', 'Model *'],
-  ['Заводський №', 'Заводской №', 'Factory no.'],
-  ['Рік побудови', 'Год постройки', 'Year built'],
-  ['Початок роботи', 'Начало работы', 'Start of service'],
-  ['Надійшов (мм.рррр)', 'Поступил (мм.гггг)', 'Arrived (mm.yyyy)'],
-  ['Списаний (мм.рррр)', 'Списан (мм.гггг)', 'Written off (mm.yyyy)'],
-  ['Тип', 'Тип', 'Type'],
-  ['Модель', 'Модель', 'Model'],
-  ['Зав. №', 'Зав. №', 'Factory no.'],
-  ['Побуд.', 'Постр.', 'Built'],
-  ['Надійшов', 'Поступил', 'Arrived'],
-  ['Поч. роб.', 'Нач. раб.', 'Start'],
-  ['Заповни борт. № і модель', 'Заполни борт. № и модель', 'Fill in fleet no. and model'],
-  ['Увійти, щоб додати ТС', 'Войди, чтобы добавить ТС', 'Log in to add a vehicle'],
-  ['Експлуатується', 'Эксплуатируется', 'In service'],
-  ['Не експлуатувався у цьому місті', 'Не эксплуатировался в этом городе', 'Not operated in this city'],
-  ['Не експлуатується', 'Не эксплуатируется', 'Not in service'],
-  ['Виведений з експлуатації / очікує на списання', 'Выведен из эксплуатации / ожидает списания', 'Withdrawn / awaiting write-off'],
-  ['Списаний', 'Списанный', 'Written off'],
-  ['Місцезнаходження і доля невідомі', 'Местонахождение и судьба неизвестны', 'Whereabouts and fate unknown'],
-  ['КВР/модернізація (зміна моделі)', 'КВР/модернизация (смена модели)', 'Rebuild/modernization (model change)'],
-  ['Перенумеровано/передано в межах міста', 'Перенумеровано/передано в пределах города', 'Renumbered/transferred within the city'],
-  ['Зміна держномера (в межах підприємства)', 'Смена госномера (в пределах предприятия)', 'Plate change (within the enterprise)'],
-  ['Додати маршрут', 'Добавить маршрут', 'Add route'],
-  ['Редагувати маршрут', 'Редактировать маршрут', 'Edit route'],
-  ['Лінія маршруту *', 'Линия маршрута *', 'Route line *'],
-  ['Період експлуатації', 'Период эксплуатации', 'Period of operation'],
-  ['Початок експлуатації', 'Начало эксплуатации', 'Start of operation'],
-  ['Режим роботи', 'Режим работы', 'Operating mode'],
-  ['Назва маршруту', 'Название маршрута', 'Route name'],
-  ['Статус маршруту', 'Статус маршрута', 'Route status'],
-  ['Вкажи лінію маршруту', 'Укажи линию маршрута', 'Enter the route line'],
-  ['Увійти, щоб додати маршрут', 'Войди, чтобы добавить маршрут', 'Log in to add a route'],
-  ['Діючий', 'Действующий', 'Active'],
-  ['Тимчасово недіючий', 'Временно не действует', 'Temporarily inactive'],
-  ['Перенумерований', 'Перенумерован', 'Renumbered'],
-  ['Об’єднаний', 'Объединён', 'Merged'],
-  ['Закритий', 'Закрыт', 'Closed'],
-  ['Змінено вид транспорту', 'Изменён вид транспорта', 'Transport type changed'],
-  ['Регулярний', 'Регулярный', 'Regular'],
-  ['Сезонний', 'Сезонный', 'Seasonal'],
-  ['Тимчасовий', 'Временный', 'Temporary'],
-  ['Замінник', 'Замена', 'Replacement'],
-  ['Нічний', 'Ночной', 'Night'],
-  ['Спеціальний', 'Специальный', 'Special'],
-  ['Експрес', 'Экспресс', 'Express'],
-  ['Вид транспорту', 'Вид транспорта', 'Transport type'],
-  ['Категорія', 'Категория', 'Category'],
-  ['Введіть вид транспорту', 'Введите вид транспорта', 'Enter transport type'],
-  ['Зовнішнє фото', 'Внешнее фото', 'Exterior photo'],
-  ['Салон', 'Салон', 'Interior'],
-  ['Кабіна', 'Кабина', 'Cab'],
-  ['Обладнання', 'Оборудование', 'Equipment'],
-  ['Детальна зйомка', 'Детальная съёмка', 'Detail shots'],
-  ['Заводська табличка', 'Заводская табличка', 'Factory plate'],
-  ['Інфраструктура', 'Инфраструктура', 'Infrastructure'],
-  ['Неідентифікований транспорт', 'Неопознанный транспорт', 'Unidentified vehicle'],
-  ['Додаткова спецтехніка', 'Дополнительная спецтехника', 'Additional special equipment'],
-  ['Списані, передані і модернізовані ТЗ', 'Списанные, переданные и модернизированные ТС', 'Written-off, transferred and modernized vehicles'],
-  ['Опублікувати фото', 'Опубликовать фото', 'Publish photo'],
-  ['Заявки на фото', 'Заявки на фото', 'Photo requests'],
-  ['Заявок на фото немає', 'Заявок на фото нет', 'No photo requests'],
-  ['Місто *', 'Город *', 'City *'],
-  ['Підприємство *', 'Предприятие *', 'Enterprise *'],
-  ['Вид транспорту *', 'Вид транспорта *', 'Transport type *'],
-  ['Категорія *', 'Категория *', 'Category *'],
-  ['Фото *', 'Фото *', 'Photo *'],
-  ['Підпис', 'Подпись', 'Caption'],
-  ['Надіслати', 'Отправить', 'Send'],
-  ['⏳ На модерації', '⏳ На модерации', '⏳ Under review']
-].forEach(r => { DICT[r[0]] = { ru: r[1], en: r[2] }; });
 
-const PREFIX = [
-  ['Населення: ', 'Население: ', 'Population: '],
-  ['Засновано: ', 'Основано: ', 'Founded: '],
-  ['Реорганізації: ', 'Реорганизации: ', 'Reorganizations: '],
-  ['Причина: ', 'Причина: ', 'Reason: '],
-  ['Причина бану: ', 'Причина бана: ', 'Ban reason: '],
-  ['Текст: ', 'Текст: ', 'Text: '],
-  ['Реєстрація: ', 'Регистрация: ', 'Registered: '],
-  ['Вибрано: ', 'Выбрано: ', 'Selected: '],
-  ['Надіслано користувачам: ', 'Отправлено пользователям: ', 'Sent to users: '],
-  ['Оголошення: ', 'Объявление: ', 'Announcement: '],
-  ['Сповіщення не надіслано: ', 'Уведомление не отправлено: ', 'Notification not sent: '],
-  ['прийняв місто', 'принял город', 'approved the city'],
-  ['відхилив місто', 'отклонил город', 'rejected the city'],
-  ['зняв з публікації місто', 'снял с публикации город', 'unpublished the city'],
-  ['видалив місто', 'удалил город', 'deleted the city'],
-  ['надіслав оголошення', 'отправил объявление', 'sent an announcement'],
-  ['заблокував акаунт', 'заблокировал аккаунт', 'banned an account'],
-  ['розблокував акаунт', 'разблокировал аккаунт', 'unbanned an account']
-].sort((a, b) => b[0].length - a[0].length);
+// ---------- Переклади: дані лежать у lang/uk.js, lang/ru.js, lang/en.js ----------
+const SRC = LANG.uk || { subs: {}, patterns: [] };
+for (const l in LANG) {
+  const T = LANG[l];
+  T.dict = Object.assign(Object.create(null), T.dict);
+  T.prefixList = Object.entries(T.prefix || {}).sort((x, y) => y[0].length - x[0].length);
+}
 
-const SUBS = [
-  [/засновано (-?\d+)/g, 'основан $1', 'founded $1'],
-  [/(\d) км²/g, '$1 км²', '$1 km²']
-];
-
-const NOTE_WORDS = {
-  'прийнято і опубліковано': ['принят и опубликован', 'was approved and published'],
-  'відхилено': ['отклонён', 'was rejected'],
-  'знято з публікації': ['снят с публикации', 'was unpublished'],
-  'видалено': ['удалён', 'was deleted']
-};
-
-const PATS = [
-  {
-    re: /^Показано записів: (\d+) з (\d+)$/,
-    f: (m, L) => (L === 'ru' ? 'Показано записей: ' + m[1] + ' из ' + m[2] : 'Showing entries: ' + m[1] + ' of ' + m[2])
-  },
-  {
-    re: /^Ваше місто «([\s\S]*)» (прийнято і опубліковано|відхилено|знято з публікації|видалено)(?:\. Причина: ([\s\S]*))?$/,
-    f: (m, L) => {
-      const w = NOTE_WORDS[m[2]];
-      const base = L === 'ru' ? 'Ваш город «' + m[1] + '» ' + w[0] : 'Your city “' + m[1] + '” ' + w[1];
-      return m[3] != null ? base + (L === 'ru' ? '. Причина: ' : '. Reason: ') + m[3] : base;
+function fillTpl(spec, m, T) {
+  if (spec == null) return null;
+  const tpl = typeof spec === 'string' ? spec : spec.t;
+  const w = typeof spec === 'string' ? {} : (spec.w || {});
+  let ok = true;
+  const out = tpl.replace(/\{(t?)(\d)\}/g, (_, t, n) => {
+    const v = m[n];
+    if (v == null) return '';
+    if (t) {
+      const x = T.dict[v];
+      if (x == null) ok = false;
+      return x;
     }
-  },
-  {
-    re: /^Ваш акаунт заблоковано\.(?: Причина: ([\s\S]*))?$/,
-    f: (m, L) => (L === 'ru' ? 'Ваш аккаунт заблокирован.' + (m[1] ? ' Причина: ' + m[1] : '') : 'Your account has been banned.' + (m[1] ? ' Reason: ' + m[1] : ''))
-  },
-  {
-    re: /^Вашу заявку відхилено за причиною: ([\s\S]*)\. Ви поки не можете знову опублікувати, можливість з’явиться через (\d+) год\.$/,
-    f: (m, L) => (L === 'ru'
-      ? 'Вашу заявку отклонили по причине: ' + m[1] + '. Вы пока не можете снова опубликовать, возможность появится через ' + m[2] + ' ч.'
-      : 'Your request was rejected: ' + m[1] + '. You cannot publish again yet, available in ' + m[2] + ' h.')
-  },
-  {
-    re: /^(\S{1,3}) — ([\s\S]+)$/,
-    f: (m, L) => (DICT[m[2]] ? m[1] + ' — ' + DICT[m[2]][L] : null)
-  }
-];
+    return w[v] != null ? w[v] : v;
+  });
+  return ok ? out : null;
+}
 
 function trCore(c) {
-  const d = DICT[c];
-  if (d) return d[lang];
+  const T = LANG[lang];
+  if (!T) return c;
+  const d = T.dict[c];
+  if (d != null) return d;
   if (c.startsWith('Готово.\n')) return c.split('\n').map(trCore).join('\n');
-  for (const p of PREFIX) {
+  for (const p of T.prefixList) {
     if (c.startsWith(p[0])) {
       const rest = c.slice(p[0].length);
-      const rd = DICT[rest];
-      return p[lang === 'ru' ? 1 : 2] + (rd ? rd[lang] : rest);
+      const rd = T.dict[rest];
+      return p[1] + (rd != null ? rd : rest);
     }
   }
-  for (const p of PATS) {
+  for (const p of SRC.patterns) {
     const m = c.match(p.re);
     if (m) {
-      const r = p.f(m, lang);
+      const r = fillTpl(T.patterns && T.patterns[p.id], m, T);
       if (r != null) return r;
     }
   }
   let out = c;
-  for (const s of SUBS) out = out.replace(s[0], s[lang === 'ru' ? 1 : 2]);
+  for (const id in SRC.subs) {
+    if (T.subs && T.subs[id] != null) out = out.replace(SRC.subs[id], T.subs[id]);
+  }
   return out;
 }
 
@@ -6345,15 +6061,6 @@ let pvCur = null;
 let pvTimer = null;
 
 Object.assign(logLabels, { photo_approve: 'прийняв фото', photo_reject: 'відхилив фото', delete_account: 'видалив акаунт', set_role: 'змінив ранг акаунта' });
-PREFIX.push(['видалив акаунт', 'удалил аккаунт', 'deleted an account'], ['змінив ранг акаунта', 'изменил ранг аккаунта', 'changed account rank'], ['прийняв фото', 'принял фото', 'approved a photo'], ['відхилив фото', 'отклонил фото', 'rejected a photo']);
-DICT['НОВЕ'] = { ru: 'НОВОЕ', en: 'NEW' };
-DICT['Місце зйомки'] = { ru: 'Место съёмки', en: 'Shooting location' };
-DICT['Борт. №'] = { ru: 'Борт. №', en: 'Fleet no.' };
-DICT['Весь світ'] = { ru: 'Весь мир', en: 'Worldwide' };
-DICT['Датою публікації (найновіші)'] = { ru: 'По дате публикации (новые)', en: 'By date (newest)' };
-DICT['Датою публікації (найстаріші)'] = { ru: 'По дате публикации (старые)', en: 'By date (oldest)' };
-DICT['Опис фотографій'] = { ru: 'Описание фотографий', en: 'Photo descriptions' };
-DICT['Видалити акаунт'] = { ru: 'Удалить аккаунт', en: 'Delete account' };
 
 const phUrl = p => db.storage.from('photos').getPublicUrl(p.path).data.publicUrl;
 
@@ -6850,7 +6557,6 @@ function phShowVeh() {
   l2.append(m, fl, rm);
   card.replaceChildren(l1, l2);
 }
-DICT['Прибрати прив’язку ТЗ'] = { ru: 'Убрать привязку ТС', en: 'Remove vehicle link' };
 
 function phPickVeh(v) {
   const pe = phEnts.find(e => e.id === v.enterprise_id);
@@ -7157,14 +6863,6 @@ function openCityTree() {
 }
 
 $('phCityBtn').addEventListener('click', openCityTree);
-DICT['Введіть назву міста'] = { ru: 'Введите название города', en: 'Enter city name' };
-DICT['Прибрати фото'] = { ru: 'Убрать фото', en: 'Remove photo' };
-DICT['Оберіть місто'] = { ru: 'Выберите город', en: 'Select a city' };
-DICT['Спершу оберіть місто'] = { ru: 'Сначала выберите город', en: 'Select a city first' };
-DICT['Обери місто'] = { ru: 'Выбери город', en: 'Select a city' };
-DICT['Бортовий/державний №'] = { ru: 'Бортовой/государственный №', en: 'Fleet/plate no.' };
-DICT['Маршрут №'] = { ru: 'Маршрут №', en: 'Route no.' };
-DICT['Примітка до маршруту'] = { ru: 'Примечание к маршруту', en: 'Route note' };
 
 $('phCatBtn').addEventListener('click', () => openList('Категорія', PH_CATS.map(c => ({ key: c, name: c })), phCatName, it => {
   phCatName = it.key;
@@ -7174,7 +6872,6 @@ $('phCatBtn').addEventListener('click', () => openList('Категорія', PH_
 $('openPhotoUp').addEventListener('click', () => openPhotoForm());
 $('openMy').addEventListener('click', () => openMyPhotos());
 $('openMyNav').addEventListener('click', () => openMyPhotos());
-DICT['Мої фото'] = { ru: 'Мои фото', en: 'My photos' };
 $('myUpload').addEventListener('click', () => openPhotoForm());
 $('pvEdit').addEventListener('click', () => { const p = pvCur; closeModal(); if (p) openPhotoForm(p); });
 $('phPick').addEventListener('click', () => $('phFile').click());
@@ -7507,14 +7204,7 @@ $('openGallery').addEventListener('click', openGallery);
 /* ---------- Сторінка фото ---------- */
 let ppCur = null;
 let ppPrev = null;
-const PP_M = ['січня', 'лютого', 'березня', 'квітня', 'травня', 'червня', 'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня'];
-const PP_MN = ['січень', 'лютий', 'березень', 'квітень', 'травень', 'червень', 'липень', 'серпень', 'вересень', 'жовтень', 'листопад', 'грудень'];
-const PP_W = ['Неділя', 'Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П’ятниця', 'Субота'];
 const PP_ICON = { tram: '🚋', trolleybus: '🚎', bus: '🚌', metro: '🚇', monorail: '🚝', funicular: '🚠', other: '🚉' };
-['Назад', 'Опубліковано:', 'Категорія:', 'Переглядів:', 'Статус:', 'Поділитись фотографією', 'Посилання скопійовано', 'поза маршрутом', 'Дата невідома'].forEach((u, i) => {
-  DICT[u] = [{ ru: 'Назад', en: 'Back' }, { ru: 'Опубликовано:', en: 'Published:' }, { ru: 'Категория:', en: 'Category:' }, { ru: 'Просмотров:', en: 'Views:' }, { ru: 'Статус:', en: 'Status:' }, { ru: 'Поделиться фотографией', en: 'Share photo' }, { ru: 'Ссылка скопирована', en: 'Link copied' }, { ru: 'вне маршрута', en: 'off route' }, { ru: 'Дата неизвестна', en: 'Date unknown' }][i];
-});
-DICT['← Назад'] = { ru: '← Назад', en: '← Back' };
 
 function ppDate(p) {
   const kind = p.date_kind || 'exact';
@@ -7865,9 +7555,6 @@ db.channel('live_pp')
   })
   .subscribe();
 
-DICT['Увійдіть, щоб залишити коментар'] = { ru: 'Войдите, чтобы оставить комментарий', en: 'Log in to leave a comment' };
-DICT['Ваш коментар'] = { ru: 'Ваш комментарий', en: 'Your comment' };
-DICT['Коментарі'] = { ru: 'Комментарии', en: 'Comments' };
 
 if (/type=signup/.test(location.hash) || /type=signup/.test(location.search)) {
   history.replaceState(null, '', location.pathname);
@@ -7878,137 +7565,21 @@ $('confirmedLogin').addEventListener('click', () => openModal('login'));
 
 $('ppBack').addEventListener('click', closePhoto);
 
-/* ---------- Доп. переводы ---------- */
-const PP_LOC = {
-  ru: {
-    M: ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'],
-    MN: ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'],
-    W: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота']
-  },
-  en: {
-    M: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    MN: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    W: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  }
-};
 function ppL() {
-  return PP_LOC[lang] || { M: PP_M, MN: PP_MN, W: PP_W };
+  const T = LANG[lang] || LANG.uk;
+  return { M: T.months, MN: T.monthsNom, W: T.weekdays };
 }
 
-[
-  ['+ Опублікувати фото', '+ Опубликовать фото', '+ Publish photo'],
-  ['У вас ще немає фото', 'У вас ещё нет фото', 'You have no photos yet'],
-  ['Ви можете опублікувати необмежену кількість фотографій.', 'Вы можете опубликовать неограниченное количество фотографий.', 'You can publish an unlimited number of photos.'],
-  ['📷 Оберіть фотографію', '📷 Выберите фотографию', '📷 Choose a photo'],
-  ['Вимоги до фото:', 'Требования к фото:', 'Photo requirements:'],
-  ['• Формат JPEG, PNG або WEBP;', '• Формат JPEG, PNG или WEBP;', '• JPEG, PNG or WEBP format;'],
-  ['• Файл до 25 МБ, стискається автоматично;', '• Файл до 25 МБ, сжимается автоматически;', '• File up to 25 MB, compressed automatically;'],
-  ['• Кадр 4:3 — перетягніть фото, щоб обрати кадр', '• Кадр 4:3 — перетащите фото, чтобы выбрать кадр', '• 4:3 frame — drag the photo to choose the crop'],
-  ['Вибрати файл', 'Выбрать файл', 'Choose file'],
-  ['Очистити форму', 'Очистить форму', 'Clear form'],
-  ['Місто/регіон *', 'Город/регион *', 'City/region *'],
-  ['вулиця, зупинка', 'улица, остановка', 'street, stop'],
-  ['Дата зйомки', 'Дата съёмки', 'Shooting date'],
-  ['ДД', 'ДД', 'DD'],
-  ['ММ', 'ММ', 'MM'],
-  ['РРРР', 'ГГГГ', 'YYYY'],
-  ['Точна дата', 'Точная дата', 'Exact date'],
-  ['Приблизна дата', 'Приблизительная дата', 'Approximate date'],
-  ['Не пізніше', 'Не позднее', 'No later than'],
-  ['Не раніше', 'Не раньше', 'No earlier than'],
-  ['Невідома дата', 'Неизвестная дата', 'Unknown date'],
-  ["Об'єкт(и) зйомки", 'Объект(ы) съёмки', 'Subject(s)'],
-  ['У полі «Маршрут №» зазначайте лише номер (зокрема, 27к чи N208) і обирайте маршрут зі списку.', 'В поле «Маршрут №» указывайте только номер (в том числе 27к или N208) и выбирайте маршрут из списка.', 'In the “Route no.” field enter only the number (e.g. 27k or N208) and pick the route from the list.'],
-  ['Супровідну інформацію (в депо, службовий) зазначайте в полі «Примітка».', 'Сопроводительную информацию (в депо, служебный) указывайте в поле «Примечание».', 'Put accompanying info (to depot, service) in the “Note” field.'],
-  ['Додаткові параметри', 'Дополнительные параметры', 'Additional options'],
-  ['Примітка (опційно)', 'Примечание (необязательно)', 'Note (optional)'],
-  ['Введіть текст', 'Введите текст', 'Enter text'],
-  ['Теги', 'Теги', 'Tags'],
-  ['захід сонця, дощ, бруківка (через кому)', 'закат, дождь, брусчатка (через запятую)', 'sunset, rain, cobblestones (comma-separated)'],
-  ['Фотографія зроблена мною', 'Фотография сделана мной', 'I took this photo'],
-  ['Завантажити фотографію', 'Загрузить фотографию', 'Upload photo'],
-  ['Редагувати фото', 'Редактировать фото', 'Edit photo'],
-  ['Реорганізація (група)', 'Реорганизация (группа)', 'Reorganization (group)'],
-  ['Напр. Hisl. Однакова назва об’єднує підприємства в групу', 'Напр. Hisl. Одинаковое название объединяет предприятия в группу', 'E.g. Hisl. The same name groups enterprises together'],
-  ['Номер без цифр в кінці: копії матимуть той самий номер', 'Номер без цифр в конце: копии будут иметь тот же номер', 'Number has no trailing digits: copies will have the same number'],
-  ['Немає номерів для створення', 'Нет номеров для создания', 'No numbers to create'],
-  ['Імпорт бази', 'Импорт базы', 'Database import'],
-  ['Читаю файл...', 'Читаю файл...', 'Reading file...'],
-  ['Готово.', 'Готово.', 'Done.'],
-  ['Фото з файлу не імпортуються.', 'Фото из файла не импортируются.', 'Photos from the file are not imported.'],
-  ['Невірний формат файлу', 'Неверный формат файла', 'Invalid file format'],
-  ['Увійди в акаунт', 'Войди в аккаунт', 'Log in to your account'],
-  ['Ранг', 'Ранг', 'Rank'],
-  ['Користувач', 'Пользователь', 'User'],
-  ['Не можна оцінювати власне фото', 'Нельзя оценивать собственное фото', 'You cannot rate your own photo'],
-  ['Фото ще на модерації', 'Фото ещё на модерации', 'The photo is still under review'],
-  ['Увійди, щоб опублікувати фото', 'Войди, чтобы опубликовать фото', 'Log in to publish a photo'],
-  ['Обери фото', 'Выбери фото', 'Choose a photo'],
-  ['Дата: ДД, ММ — числа, рік — 4 цифри', 'Дата: ДД, ММ — числа, год — 4 цифры', 'Date: DD, MM are numbers, year is 4 digits'],
-  ['Стискаю і завантажую...', 'Сжимаю и загружаю...', 'Compressing and uploading...'],
-  ['Не вдалося стиснути фото', 'Не удалось сжать фото', 'Could not compress the photo'],
-  ['Не вдалося прочитати фото', 'Не удалось прочитать фото', 'Could not read the photo'],
-  ['Файл більший за 25 МБ', 'Файл больше 25 МБ', 'File is larger than 25 MB'],
-  ['Поки немає міст', 'Пока нет городов', 'There are no cities yet'],
-  ['Оберіть фото', 'Выберите фото', 'Choose a photo']
-].forEach(r => { DICT[r[0]] = { ru: r[1], en: r[2] }; });
 
 // підписи категорій з малої літери (на картках фото)
 PH_CATS.forEach(c => {
-  const d = DICT[c];
-  if (d) DICT[c.toLowerCase()] = { ru: d.ru.toLowerCase(), en: d.en.toLowerCase() };
+  for (const l in LANG) {
+    const dd = LANG[l].dict;
+    if (dd[c]) dd[c.toLowerCase()] = dd[c].toLowerCase();
+  }
 });
 
-PREFIX.push(
-  ['Приблизно: ', 'Приблизительно: ', 'Approximately: '],
-  ['Не пізніше: ', 'Не позднее: ', 'No later than: '],
-  ['Не раніше: ', 'Не раньше: ', 'No earlier than: '],
-  ['Помилка: ', 'Ошибка: ', 'Error: '],
-  ['Ранг: ', 'Ранг: ', 'Rank: '],
-  ['Ваш ранг змінено: ', 'Ваш ранг изменён: ', 'Your rank was changed: '],
-  ['Акаунт видалено, але лист не надіслано: ', 'Аккаунт удалён, но письмо не отправлено: ', 'Account deleted, but the email was not sent: '],
-  ['Міста: ', 'Города: ', 'Cities: '],
-  ['Підприємства: ', 'Предприятия: ', 'Enterprises: '],
-  ['ТС: імпортовано ', 'ТС: импортировано ', 'Vehicles: imported '],
-  ['Міст пропущено через ліміт 5: ', 'Городов пропущено из-за лимита 5: ', 'Cities skipped due to the limit of 5: '],
-  ['Підприємств без міста у файлі: ', 'Предприятий без города в файле: ', 'Enterprises without a city in the file: '],
-  ['ТС без підприємства: ', 'ТС без предприятия: ', 'Vehicles without an enterprise: '],
-  ['Пропущено (вже є): ', 'Пропущено (уже есть): ', 'Skipped (already exist): '],
-  ['Міст: ', 'Городов: ', 'Cities: '],
-  ['Підприємств: ', 'Предприятий: ', 'Enterprises: '],
-  ['ТС: ', 'ТС: ', 'Vehicles: ']
-);
 
-PATS.push(
-  {
-    re: /^Ваше фото \(([\s\S]*)\) у місті «([\s\S]*)» (прийнято і опубліковано|відхилено)(?:\. Причина: ([\s\S]*))?$/,
-    f: (m, L) => {
-      const rej = m[3] === 'відхилено';
-      if (L === 'ru') return 'Ваше фото (' + m[1] + ') в городе «' + m[2] + '» ' + (rej ? 'отклонено' : 'принято и опубликовано') + (m[4] != null ? '. Причина: ' + m[4] : '');
-      return 'Your photo (' + m[1] + ') in “' + m[2] + '” ' + (rej ? 'was rejected' : 'was approved and published') + (m[4] != null ? '. Reason: ' + m[4] : '');
-    }
-  },
-  {
-    re: /^(Фото опубліковано|Фото надіслано на модерацію) \((\d+) КБ\)$/,
-    f: (m, L) => {
-      const pub = m[1] === 'Фото опубліковано';
-      if (L === 'ru') return (pub ? 'Фото опубликовано' : 'Фото отправлено на модерацию') + ' (' + m[2] + ' КБ)';
-      return (pub ? 'Photo published' : 'Photo sent for review') + ' (' + m[2] + ' KB)';
-    }
-  },
-  {
-    re: /^ТС «([\s\S]*)» немає в базі\. Оберіть ТС зі списку$/,
-    f: (m, L) => (L === 'ru' ? 'ТС «' + m[1] + '» нет в базе. Выберите ТС из списка' : 'Vehicle “' + m[1] + '” is not in the database. Pick a vehicle from the list')
-  },
-  {
-    re: /^Маршруту «([\s\S]*)» немає в базі\. Оберіть маршрут зі списку$/,
-    f: (m, L) => (L === 'ru' ? 'Маршрута «' + m[1] + '» нет в базе. Выберите маршрут из списка' : 'Route “' + m[1] + '” is not in the database. Pick a route from the list')
-  },
-  {
-    re: /^Причина видалення «([\s\S]*)» \(піде на пошту\)$/,
-    f: (m, L) => (L === 'ru' ? 'Причина удаления «' + m[1] + '» (уйдёт на почту)' : 'Reason for deleting “' + m[1] + '” (will be emailed)')
-  }
-);
 
 setLang(lang, false);
 
