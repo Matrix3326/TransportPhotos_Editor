@@ -14,6 +14,16 @@
 
   // Plain phrases: "Ukrainian text": "translation"
   dict: {
+    "Редактори": "Editors",
+    "Локальні редактори міста": "Local editors of the city",
+    "Нік користувача": "Username",
+    "+ Додати": "+ Add",
+    "Редакторів поки немає": "No editors yet",
+    "Введи нік користувача": "Enter a username",
+    "Користувача не знайдено": "User not found",
+    "Це власник міста": "This is the city owner",
+    "Цей користувач уже редактор": "This user is already an editor",
+    "Ліміт: не більше 10 редакторів": "Limit: no more than 10 editors",
     "Пошту підтверджено ✅": "Email confirmed ✅",
     "Готово! Тепер можна повернутися на сторінку сайту, де ви реєструвалися, вона увійде в акаунт сама. Якщо ту сторінку закрито, просто увійдіть зі своїм email і паролем.": "Done! You can go back to the page where you signed up, it will log you in automatically. If it was closed, just log in with your email and password.",
     "Код з листа": "Code from email",
@@ -354,6 +364,7 @@
 
   // Beginnings of phrases ("Населення: 5") — only the beginning is translated
   prefix: {
+    "Додано: ": "Added: ",
     "Сповіщення не надіслано: ": "Notification not sent: ",
     "Надіслано користувачам: ": "Sent to users: ",
     "зняв з публікації місто": "unpublished the city",
@@ -401,6 +412,7 @@
   // Phrases with variable parts. {1} {2}... are the groups of the regex with the same id in lang/uk.js;
   // {t2} = group 2 translated via dict; "w" = translations of group values.
   patterns: {
+    editor_added: "You have been added as an editor of the city «{1}»",
     shown: "Showing entries: {1} of {2}",
     city_note: { t: "Your city “{1}” {2}", w: { "прийнято і опубліковано": "was approved and published", "відхилено": "was rejected", "знято з публікації": "was unpublished", "видалено": "was deleted" } },
     city_note_reason: { t: "Your city “{1}” {2}. Reason: {3}", w: { "прийнято і опубліковано": "was approved and published", "відхилено": "was rejected", "знято з публікації": "was unpublished", "видалено": "was deleted" } },

@@ -2623,6 +2623,20 @@ html[data-theme="dark"] .up-inl input { color: #e8e8e8; }
 .cm-item { padding: 14px 16px; }
 .pp-vote.blocked .pp-vbtn { opacity: .35; cursor: not-allowed; }
 .pp-vote.blocked .pp-vbtn:hover { background: none; }
+
+.city-eds { display: none; padding: 20px 24px 8px 24px; }
+#cityForm.eds-mode .city-eds { display: block; }
+#cityForm.eds-mode .city-grid { display: none; }
+#cityForm.eds-mode > .city-foot { display: none; }
+.city-eds .city-foot { padding: 14px 0 6px 0; border-top: none; }
+.eds-add { display: flex; gap: 8px; margin-bottom: 10px; }
+.eds-add input { flex: 1; min-width: 0; }
+.eds-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; margin-bottom: 6px; background: #f4f4f4; border-radius: 6px; }
+.eds-row b { font-size: 15px; word-break: break-all; }
+.eds-row .btn { height: 30px; padding: 0 14px; font-size: 13px; }
+.up-f > .msg:empty { display: none; }
+html[data-theme="dark"] .eds-row { background: #2a2a2a; }
+html[data-theme="dark"] .eds-row b { color: #e8e8e8; }
 </style>
 </head>
 <body>
@@ -2856,11 +2870,13 @@ html[data-theme="dark"] .up-inl input { color: #e8e8e8; }
         <div class="up-f">
           <label class="up-inl"><span>Бортовий/державний №</span><input id="phFleet" type="text" maxlength="30" autocomplete="off"></label>
           <div class="up-sug hidden" id="phFleetSug"></div>
+          <p class="msg" id="phFleetHint"></p>
         </div>
         <div class="up-vsel hidden" id="phVehCard"></div>
         <div class="up-f">
           <label class="up-inl" style="max-width:220px"><span>Маршрут №</span><input id="phRoute" type="text" maxlength="20" autocomplete="off"></label>
           <div class="up-sug hidden" id="phRouteSug"></div>
+          <p class="msg" id="phRouteHint"></p>
         </div>
         <p class="up-note">У полі «Маршрут №» зазначайте лише номер (зокрема, 27к чи N208) і обирайте маршрут зі списку.</p>
         <label class="up-inl"><span>Примітка до маршруту</span><input id="phRouteNote" type="text" maxlength="500"></label>
@@ -2991,6 +3007,7 @@ html[data-theme="dark"] .up-inl input { color: #e8e8e8; }
       <div class="city-tabs hidden" id="cityTabs">
         <button class="city-tab active" data-ctab="city" type="button">Місто</button>
         <button class="city-tab" data-ctab="ent" type="button">Підприємства</button>
+        <button class="city-tab hidden" id="cityTabEds" data-ctab="eds" type="button">Редактори</button>
       </div>
       <div class="city-ent" id="cityEnt">
         <div class="ent-bar">
@@ -3006,6 +3023,21 @@ html[data-theme="dark"] .up-inl input { color: #e8e8e8; }
         <p id="entEmptyEdit" class="cv-empty">Підприємств поки немає</p>
         <div class="city-foot">
           <button class="btn light" id="entClose" type="button">Закрити</button>
+        </div>
+      </div>
+      <div class="city-eds" id="cityEds">
+        <div class="ent-bar">
+          <h3 class="ent-title">Локальні редактори міста</h3>
+        </div>
+        <div class="eds-add">
+          <input id="edName" type="text" maxlength="20" placeholder="Нік користувача" autocomplete="off">
+          <button class="btn dark" id="edAdd" type="button">+ Додати</button>
+        </div>
+        <p id="edMsg" class="msg"></p>
+        <div id="edList"></div>
+        <p id="edEmpty" class="cv-empty">Редакторів поки немає</p>
+        <div class="city-foot">
+          <button class="btn light" id="edClose" type="button">Закрити</button>
         </div>
       </div>
       <div class="city-grid">
@@ -3643,6 +3675,11 @@ let editingId = null;
 let delTimer = null;
 let shownId = null;
 let owners = {};
+let editorsByCity = {};
+
+function isCityEditor(id) {
+  return !!me.uid && (editorsByCity[id] || []).some(x => x.user_id === me.uid);
+}
 
 function renderSources(text) {
   const parts = (text || '').split(/[\s,;]+/).filter(Boolean);
@@ -3738,10 +3775,10 @@ function renderCity() {
   $('viDesc').textContent = c.description || '';
   $('viDesc').classList.toggle('hidden', !c.description);
   $('viAbout').textContent = c.description || 'Опис поки відсутній';
-  $('viEditor').textContent = owners[c.owner_id] || '';
+  $('viEditor').textContent = [owners[c.owner_id], ...(editorsByCity[c.id] || []).map(x => owners[x.user_id])].filter(Boolean).join(', ');
   $('viMod').classList.toggle('hidden', !(c.submitted && !c.is_published));
   const isOwn = !!me.uid && c.owner_id === me.uid;
-  $('viActions').classList.toggle('hidden', !(isOwn || isStaff()));
+  $('viActions').classList.toggle('hidden', !(isOwn || isStaff() || isCityEditor(c.id)));
   renderSources(c.author_contacts);
   if (entCity !== currentId) {
     entCity = currentId;
@@ -3767,7 +3804,10 @@ function showCity(id) {
 async function loadCities() {
   const { data } = await db.from('cities').select('*').order('name');
   cities = data || [];
-  const ids = [...new Set(cities.map(c => c.owner_id))];
+  const { data: ce } = await db.from('city_editors').select('id, city_id, user_id');
+  editorsByCity = {};
+  (ce || []).forEach(x => { (editorsByCity[x.city_id] = editorsByCity[x.city_id] || []).push(x); });
+  const ids = [...new Set([...cities.map(c => c.owner_id), ...(ce || []).map(x => x.user_id)])];
   owners = {};
   if (ids.length) {
     const { data: p } = await db.from('profiles').select('id, username').in('id', ids);
@@ -3775,7 +3815,7 @@ async function loadCities() {
   }
   const { data: s } = await db.auth.getSession();
   const uid = s.session ? s.session.user.id : null;
-  const mine = uid ? cities.filter(c => c.owner_id === uid) : [];
+  const mine = uid ? cities.filter(c => c.owner_id === uid || (editorsByCity[c.id] || []).some(x => x.user_id === uid)) : [];
   fillList($('myCities'), mine);
   drawTree();
   if (!cities.some(c => c.id === currentId)) currentId = null;
@@ -3909,6 +3949,95 @@ $('cityForm').addEventListener('submit', async e => {
   closeCityPanel();
   await loadCities();
 });
+
+function drawEditors() {
+  const c = cities.find(x => x.id === editingId);
+  const list = c ? editorsByCity[c.id] || [] : [];
+  const rows = list.map(x => {
+    const d = document.createElement('div');
+    d.className = 'eds-row';
+    const b = document.createElement('b');
+    b.textContent = owners[x.user_id] || '—';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn danger';
+    btn.textContent = 'Видалити';
+    let t = null;
+    btn.addEventListener('click', async () => {
+      if (!btn.dataset.sure) {
+        btn.dataset.sure = '1';
+        btn.textContent = 'Точно видалити?';
+        t = setTimeout(() => { delete btn.dataset.sure; btn.textContent = 'Видалити'; }, 3000);
+        return;
+      }
+      clearTimeout(t);
+      btn.disabled = true;
+      const { error } = await db.from('city_editors').delete().eq('id', x.id);
+      if (error) {
+        btn.disabled = false;
+        setMsg($('edMsg'), error.message);
+        return;
+      }
+      await loadCities();
+      drawEditors();
+    });
+    d.append(b, btn);
+    return d;
+  });
+  $('edList').replaceChildren(...rows);
+  $('edEmpty').classList.toggle('hidden', rows.length > 0);
+}
+
+$('edAdd').addEventListener('click', async () => {
+  const c = cities.find(x => x.id === editingId);
+  if (!c) return;
+  setMsg($('edMsg'), '');
+  const name = $('edName').value.trim();
+  if (!name) {
+    setMsg($('edMsg'), 'Введи нік користувача');
+    return;
+  }
+  if ((editorsByCity[c.id] || []).length >= 10) {
+    setMsg($('edMsg'), 'Ліміт: не більше 10 редакторів');
+    return;
+  }
+  $('edAdd').disabled = true;
+  try {
+    const { data: found, error: fe } = await db.from('profiles').select('id, username').ilike('username', name).limit(10);
+    if (fe) throw fe;
+    const u = (found || []).find(x => String(x.username).toLowerCase() === name.toLowerCase());
+    if (!u) {
+      setMsg($('edMsg'), 'Користувача не знайдено');
+      return;
+    }
+    if (u.id === c.owner_id) {
+      setMsg($('edMsg'), 'Це власник міста');
+      return;
+    }
+    if ((editorsByCity[c.id] || []).some(x => x.user_id === u.id)) {
+      setMsg($('edMsg'), 'Цей користувач уже редактор');
+      return;
+    }
+    const { error } = await db.from('city_editors').insert({ city_id: c.id, user_id: u.id });
+    if (error) throw error;
+    await db.from('notifications').insert({ user_id: u.id, message: 'Вас додано редактором міста «' + c.name + '»' });
+    $('edName').value = '';
+    await loadCities();
+    drawEditors();
+    setMsg($('edMsg'), 'Додано: ' + u.username, true);
+  } catch (err) {
+    setMsg($('edMsg'), err.message || String(err));
+  } finally {
+    $('edAdd').disabled = false;
+  }
+});
+$('edName').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    $('edAdd').click();
+  }
+});
+$('edClose').addEventListener('click', closeCityPanel);
 
 let pickDraw = null;
 
@@ -4058,12 +4187,14 @@ $('entStatus').replaceChildren(...ENT_STATUSES.map(s => new Option(s.sym + ' —
 
 function canEditEnt() {
   const c = cities.find(x => x.id === currentId);
-  return !!c && !!me.uid && (c.owner_id === me.uid || isStaff());
+  return !!c && !!me.uid && (c.owner_id === me.uid || isStaff() || isCityEditor(c.id));
 }
 
 function setCityTab(tab) {
   $('cityForm').classList.toggle('ent-mode', tab === 'ent');
   $('cityForm').classList.toggle('veh-mode', tab === 'veh');
+  $('cityForm').classList.toggle('eds-mode', tab === 'eds');
+  if (tab === 'eds') { setMsg($('edMsg'), ''); drawEditors(); }
   document.querySelectorAll('.city-tab').forEach(x => x.classList.toggle('active', x.dataset.ctab === tab));
 }
 
@@ -5550,6 +5681,7 @@ function cooldownLeft(c) {
 function setCityButtons() {
   const c = editingId ? cities.find(x => x.id === editingId) : null;
   $('cityTabs').classList.toggle('hidden', !editingId);
+  $('cityTabEds').classList.toggle('hidden', !(c && ((!!me.uid && c.owner_id === me.uid) || isStaff())));
   if (!editingId) setCityTab('city');
   const isOwn = !!c && c.owner_id === me.uid;
   const locked = !!(c && c.submitted) || cooldownLeft(c) > 0;
@@ -6384,6 +6516,10 @@ let phVehSel = null;
 let phRouteSel = null;
 let phKind = 'exact';
 let phSugTimer = null;
+let phFleetTimer = null;
+let phRouteTimer = null;
+let phFleetBad = false;
+let phRouteBad = false;
 let phEditId = null;
 let myPhotos = [];
 const UP_FIELDS = ['phFleet', 'phRoute', 'phRouteNote', 'phNote', 'phTags', 'phDD', 'phMM', 'phYYYY', 'phPlace'];
@@ -6559,7 +6695,51 @@ function phShowVeh() {
   card.replaceChildren(l1, l2);
 }
 
+function phUpdateSubmit() {
+  $('phSubmit').disabled = phFleetBad || phRouteBad;
+}
+
+function phSetBad(kind, bad, text) {
+  if (kind === 'fleet') {
+    phFleetBad = bad;
+    $('phFleetHint').textContent = bad ? 'ТС «' + text + '» немає в базі. Оберіть ТС зі списку' : '';
+  } else {
+    phRouteBad = bad;
+    $('phRouteHint').textContent = bad ? 'Маршруту «' + text + '» немає в базі. Оберіть маршрут зі списку' : '';
+  }
+  phUpdateSubmit();
+}
+
+async function phCheckFleet() {
+  const raw = $('phFleet').value.trim();
+  const q = supClean(raw);
+  if (!q || phVehSel || !phCityId) {
+    phSetBad('fleet', false);
+    return;
+  }
+  const city = phCityId;
+  const { data, error } = await db.from('vehicles').select('id').eq('city_id', city)
+    .or('fleet_no.eq."' + q + '",plate_no.eq."' + q + '"').limit(1);
+  if (error || city !== phCityId || phVehSel || $('phFleet').value.trim() !== raw) return;
+  phSetBad('fleet', !(data && data[0]), raw);
+}
+
+async function phCheckRoute() {
+  const raw = $('phRoute').value.trim();
+  const q = supClean(raw);
+  if (!q || phRouteSel || !phCityId) {
+    phSetBad('route', false);
+    return;
+  }
+  const city = phCityId;
+  const { data, error } = await db.from('routes').select('id, line').eq('city_id', city).ilike('line', q).limit(20);
+  if (error || city !== phCityId || phRouteSel || $('phRoute').value.trim() !== raw) return;
+  const ok = (data || []).some(r => String(r.line).toLowerCase() === raw.toLowerCase());
+  phSetBad('route', !ok, raw);
+}
+
 function phPickVeh(v) {
+  phSetBad('fleet', false);
   const pe = phEnts.find(e => e.id === v.enterprise_id);
   phVehSel = { ...v, ent_name: pe ? pe.name : '' };
   $('phFleet').value = v.fleet_no;
@@ -6597,6 +6777,7 @@ async function phSearchVeh() {
 }
 
 function phPickRoute(r) {
+  phSetBad('route', false);
   phRouteSel = r;
   $('phRoute').value = r.line;
   if (!phVehSel) {
@@ -6639,13 +6820,15 @@ async function phSearchRoute() {
 $('phFleet').addEventListener('input', () => {
   phVehSel = null;
   phShowVeh();
-  clearTimeout(phSugTimer);
-  phSugTimer = setTimeout(phSearchVeh, 250);
+  if (!$('phFleet').value.trim()) phSetBad('fleet', false);
+  clearTimeout(phFleetTimer);
+  phFleetTimer = setTimeout(() => { phSearchVeh(); phCheckFleet(); }, 250);
 });
 $('phRoute').addEventListener('input', () => {
   phRouteSel = null;
-  clearTimeout(phSugTimer);
-  phSugTimer = setTimeout(phSearchRoute, 250);
+  if (!$('phRoute').value.trim()) phSetBad('route', false);
+  clearTimeout(phRouteTimer);
+  phRouteTimer = setTimeout(() => { phSearchRoute(); phCheckRoute(); }, 250);
 });
 
 /* --- сторінки --- */
@@ -6682,6 +6865,8 @@ function upReset() {
   phRouteSel = null;
   phShowVeh();
   hideSug();
+  phSetBad('fleet', false);
+  phSetBad('route', false);
   phImg = null;
   phFx = 0.5;
   phFy = 0.5;
@@ -6763,7 +6948,9 @@ function pickCity(c) {
   phVehSel = null;
   phRouteSel = null;
   phShowVeh();
-  phFillEnts(null);
+  phSetBad('fleet', false);
+  phSetBad('route', false);
+  phFillEnts(null).then(() => { phCheckFleet(); phCheckRoute(); });
   closeModal();
 }
 
@@ -7052,7 +7239,7 @@ $('photoUp').addEventListener('submit', async ev => {
   } catch (err) {
     setMsg($('phMsg'), err.message || String(err));
   }
-  $('phSubmit').disabled = false;
+  phUpdateSubmit();
 });
 
 /* --- Staff: заявки на фото --- */
