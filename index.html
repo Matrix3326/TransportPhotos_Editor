@@ -2637,6 +2637,90 @@ html[data-theme="dark"] .up-inl input { color: #e8e8e8; }
 .up-f > .msg:empty { display: none; }
 html[data-theme="dark"] .eds-row { background: #2a2a2a; }
 html[data-theme="dark"] .eds-row b { color: #e8e8e8; }
+
+/* ===== Мобільні виправлення ===== */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+img, canvas, video { max-width: 100%; }
+.modal { max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); }
+.side { max-height: calc(100vh - 124px); max-height: calc(100dvh - 124px); }
+.ph-grid { grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); }
+.ent-row, .ent-name, .ent-tags, .ev-box, .rc-top > div { min-width: 0; }
+
+/* рядки підприємств: пізніше правило з 300px перебивало мобільну розкладку */
+@media (max-width: 700px) {
+  .ent-head { display: none !important; }
+  .ent-row { grid-template-columns: 1fr !important; gap: 8px; }
+}
+
+@media (max-width: 800px) {
+  nav { overflow-x: auto; scrollbar-width: none; }
+  nav::-webkit-scrollbar { display: none; }
+  .up-sec { padding: 16px; gap: 14px; }
+  .up-head { padding: 16px 16px 0; }
+  .pp-cols { gap: 20px; }
+}
+
+@media (max-width: 600px) {
+  /* iOS збільшує сторінку, якщо шрифт поля менший за 16px */
+  .up-in, .up-inl input, .eds-add input, .city-grid select, .cv-filters select, .field input,
+  .field textarea, #gSort, #cmText, .dd-btn, .up-dd .dd-btn, .plate-row input { font-size: 16px !important; }
+
+  /* довгі підписи в полях не стискають саме поле */
+  .up-inl { flex-wrap: wrap; height: auto; min-height: 40px; padding: 6px 14px; row-gap: 2px; }
+  .up-inl > span { white-space: normal; font-size: 13px; }
+  .up-inl input { flex: 1 1 140px; height: 28px; }
+  .up-inl[style] { max-width: none !important; }
+
+  .ev-actions .cv-search, .ev-actions .btn { width: 100%; }
+  .ev-actions .btn { height: 40px; }
+  .ev-card { padding: 14px 12px 8px; }
+  .ev-stats { gap: 12px 24px; }
+  .ev-box b { font-size: 26px !important; }
+  .ev-fleet { gap: 8px; }
+  .ev-box { flex: 1 1 calc(50% - 8px); min-width: 0; padding: 10px 12px; }
+
+  .city-head h2, .up-head h2 { font-size: 20px; }
+  .modal.wide { width: 100%; }
+  .city-ent, .city-eds, .city-veh { padding-left: 16px; padding-right: 16px; }
+  .ent-bar { flex-wrap: wrap; }
+  .ent-bar .btn { width: 100%; }
+  .cv-about-title { font-size: 20px; }
+
+  .rc-top { gap: 12px 24px; padding: 14px 16px; }
+  .rc-body { padding: 14px 16px; }
+  #rcLine { font-size: 24px; }
+
+  .pp-wrap { padding: 10px; }
+  .pp-meta { padding: 12px 0; gap: 6px 16px; }
+  .pp-info { gap: 12px 16px; padding: 4px 0 16px; }
+  .pp-fleet { font-size: 22px; height: 44px; padding: 0 12px; }
+  .pp-fleet.plate { font-size: 18px; }
+  .pp-route .rt-chip { font-size: 18px; }
+  .pp-cm-head h3, .pp-cm-head .pp-cm-n { font-size: 22px; }
+  .pp-vbtn { flex: 1; justify-content: center; }
+
+  .up-date { grid-template-columns: 1fr 1fr 1.4fr; }
+  .veh-wrap { margin: 0; }
+  .veh-sub { font-size: 17px; }
+  .rn-chips .rt-chip { font-size: 16px; }
+  .acc-row .btn, .req-row .btn { flex: 1 1 auto; }
+  .dd-item, .side-item { min-height: 40px; }
+}
+
+/* зручні області натискання на сенсорних екранах */
+@media (pointer: coarse) {
+  .req-row .btn, .acc-row .btn, .eds-row .btn, .ph-req .btn, .cm-del, .up-x, .pv-foot .btn { min-height: 38px; }
+  .up-x { min-width: 38px; }
+  .cm-del { padding: 6px 8px; }
+  .tree-head { min-height: 40px; }
+}
+
+@media (max-width: 360px) {
+  nav .btn, nav .btn:hover, nav .btn:active { padding: 0 7px !important; font-size: 12px !important; }
+  .ev-box { flex-basis: 100%; }
+  .up-date { grid-template-columns: 1fr 1fr; }
+  .up-date .up-dd { grid-column: 1 / -1; }
+}
 </style>
 </head>
 <body>
@@ -2646,7 +2730,7 @@ html[data-theme="dark"] .eds-row b { color: #e8e8e8; }
   <div class="spacer"></div>
   <button class="btn" id="openPhotoUp" type="button">📷<span class="nav-lbl">Опублікувати фото</span></button>
   <button class="btn" id="openMyNav" type="button">🖼<span class="nav-lbl">Мої фото</span></button>
-  <button class="btn" id="openImport" type="button">📂database</button>
+  <button class="btn" id="openImport" type="button">📂<span class="nav-lbl">database</span></button>
   <input id="importFile" type="file" accept=".sttst,.json" hidden>
   <button class="btn" id="openSettings" type="button" aria-label="Налаштування">⚙️</button>
   <div id="guest" class="group">
