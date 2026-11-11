@@ -3279,7 +3279,8 @@ const maxSize = 2 * 1024 * 1024;
 const views = { login: $('loginForm'), register: $('registerForm'), pending: $('pendingView'), city: $('cityForm'), pick: $('pickView'), reason: $('reasonView'), notif: $('notifView'), ent: $('entForm'), veh: $('vehForm'), route: $('routeForm'), routeInfo: $('routeInfo'), settings: $('settingsView'), dup: $('dupForm'), ban: $('banView'), vehInfo: $('vehInfo'), import: $('importView'), photoUp: $('photoUp'), photoView: $('photoView'), confirmed: $('confirmedView') };
 
 let me = { uid: null, role: null };
-const LANGS = Object.keys(window.LANG || {});   // мови беруться з файлів lang/*.js
+window.LANG = window.LANG || {};
+const LANGS = ['uk', 'ru', 'en'];
 let lang = 'uk';
 let theme = 'light';
 let pendingPrefs = null;
@@ -7566,8 +7567,12 @@ $('confirmedLogin').addEventListener('click', () => openModal('login'));
 $('ppBack').addEventListener('click', closePhoto);
 
 function ppL() {
-  const T = LANG[lang] || LANG.uk;
-  return { M: T.months, MN: T.monthsNom, W: T.weekdays };
+  const T = LANG[lang] || LANG.uk || {};
+  return {
+    M: T.months || ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'],
+    MN: T.monthsNom || ['січень','лютий','березень','квітень','травень','червень','липень','серпень','вересень','жовтень','листопад','грудень'],
+    W: T.weekdays || ['Неділя','Понеділок','Вівторок','Середа','Четвер','П’ятниця','Субота']
+  };
 }
 
 
