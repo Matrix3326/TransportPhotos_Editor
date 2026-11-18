@@ -3271,11 +3271,7 @@ img, canvas, video { max-width: 100%; }
     <div id="settingsView" class="view">
       <h2>Налаштування</h2>
       <div class="set-label">Мова</div>
-      <div class="set-langs">
-        <button class="btn set-lang" data-lang="uk" type="button">Українська</button>
-        <button class="btn set-lang" data-lang="ru" type="button">Русский</button>
-        <button class="btn set-lang" data-lang="en" type="button">English</button>
-      </div>
+      <button class="dd-btn" id="langBtn" type="button"><span class="dd-label"></span><i class="dd-arrow"></i></button>
       <div class="set-label">Тема</div>
       <div class="set-themes">
         <button class="btn set-theme" data-theme="light" type="button">☀️ <span>Світла</span></button>
@@ -3335,9 +3331,10 @@ img, canvas, video { max-width: 100%; }
   </div>
 </div>
 
-<script src="lang/uk.js"></script>
-<script src="lang/ru.js"></script>
-<script src="lang/en.js"></script>
+<script src="uk.js"></script>
+<script src="ru.js"></script>
+<script src="en.js"></script>
+<script src="by.js"></script>
 <script>
 const SUPABASE_URL = 'https://pmncybtnpeumpdytakyc.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Zra57qRt0JGVB9zIrhhXxw_2sGyDlPT';
@@ -3396,7 +3393,7 @@ const views = { login: $('loginForm'), register: $('registerForm'), pending: $('
 
 let me = { uid: null, role: null };
 window.LANG = window.LANG || {};
-const LANGS = ['uk', 'ru', 'en'];
+const LANGS = ['uk', 'ru', 'by', 'en'];
 let lang = 'uk';
 let theme = 'light';
 let pendingPrefs = null;
@@ -5295,8 +5292,6 @@ function applyAccountPrefs(p) {
   safeStorage.setItem('lang', lang);
 }
 
-
-// ---------- Переклади: дані лежать у lang/uk.js, lang/ru.js, lang/en.js ----------
 const SRC = LANG.uk || { subs: {}, patterns: [] };
 for (const l in LANG) {
   const T = LANG[l];
@@ -5406,7 +5401,7 @@ function translateTree(root) {
 function setLang(l, save) {
   lang = LANGS.includes(l) ? l : 'uk';
   document.documentElement.lang = lang;
-  document.querySelectorAll('.set-lang').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+  $('langBtn').querySelector('.dd-label').textContent = LANG_NAMES[lang];
   translateTree(document.body);
   if (save) savePrefs();
 }
@@ -5424,7 +5419,8 @@ const nativeAlert = window.alert.bind(window);
 window.alert = m => nativeAlert(tr(String(m)));
 
 document.querySelectorAll('.set-theme').forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.theme, true)));
-document.querySelectorAll('.set-lang').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang, true)));
+const LANG_NAMES = { uk: 'Українська', ru: 'Русский', by: 'Беларуская', en: 'English' };
+$('langBtn').addEventListener('click', () => openList('Мова', LANGS.map(k => ({ key: k, name: LANG_NAMES[k] })), lang, it => setLang(it.key, true), 'settings'));
 
 applyTheme(safeStorage.getItem('theme') === 'dark' ? 'dark' : 'light', false);
 setLang(safeStorage.getItem('lang'), false);
