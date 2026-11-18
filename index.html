@@ -2721,6 +2721,32 @@ img, canvas, video { max-width: 100%; }
   .up-date { grid-template-columns: 1fr 1fr; }
   .up-date .up-dd { grid-column: 1 / -1; }
 }
+/* --- меню користувача в шапці --- */
+.user-wrap { position: relative; }
+.profile { cursor: pointer; }
+.um-caret { flex: none; width: 8px; height: 8px; margin: 0 2px 0 4px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform 0.3s ease; }
+.user-wrap.open .um-caret { transform: translateY(2px) rotate(-135deg); }
+.user-menu { position: absolute; right: 0; top: calc(100% + 12px); width: 294px; padding: 10px 0; display: flex; flex-direction: column; background: #ffffff; border-radius: 20px; box-shadow: 0 10px 32px rgba(0, 0, 0, 0.25); z-index: 30;
+  opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-10px) scale(0.95); transform-origin: top right;
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.2, 0.8, 0.3, 1), visibility 0s linear 0.25s; }
+.user-wrap.open .user-menu { opacity: 1; visibility: visible; pointer-events: auto; transform: none; transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.2, 0.8, 0.3, 1), visibility 0s; }
+.um-item { display: flex; align-items: center; gap: 16px; width: 100%; height: 50px; padding: 0 24px; border: 0; background: transparent; font: inherit; font-size: 15px; font-weight: 500; color: inherit; text-align: left; white-space: nowrap; cursor: pointer;
+  opacity: 0; transform: translateX(10px); transition: background 0.2s ease, padding 0.2s ease, font-size 0.2s ease, opacity 0.25s ease, transform 0.25s ease; }
+.user-wrap.open .um-item { opacity: 1; transform: none; }
+.user-wrap.open .um-item:nth-child(2) { transition-delay: 0.03s; }
+.user-wrap.open .um-item:nth-child(3) { transition-delay: 0.06s; }
+.user-wrap.open .um-item:nth-child(4) { transition-delay: 0.09s; }
+.user-wrap.open .um-item:nth-child(5) { transition-delay: 0.12s; }
+.user-wrap.open .um-item:nth-child(7) { transition-delay: 0.15s; }
+.um-item:hover { background: #f0f0f0; padding-left: 30px; font-size: 16px; transition-delay: 0s; }
+.um-item:active { background: #e6e6e6; padding-left: 26px; font-size: 15px; }
+.um-ic { width: 22px; text-align: center; flex: none; font-size: 16px; }
+.um-sep { height: 1px; margin: 6px 24px; background: rgba(0, 0, 0, 0.12); }
+html[data-theme="dark"] .user-menu { background: #2a2a2a; box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6); }
+html[data-theme="dark"] .um-item { color: #e8e8e8; }
+html[data-theme="dark"] .um-item:hover { background: #343434; }
+html[data-theme="dark"] .um-item:active { background: #3d3d3d; }
+html[data-theme="dark"] .um-sep { background: #444; }
 </style>
 </head>
 <body>
@@ -2728,27 +2754,34 @@ img, canvas, video { max-width: 100%; }
   <button class="burger" id="toggleSide" type="button" aria-label="Меню"><span></span><span></span><span></span></button>
   <span class="brand">TransportPhotos Editor</span>
   <div class="spacer"></div>
-  <button class="btn" id="openPhotoUp" type="button">📷<span class="nav-lbl">Опублікувати фото</span></button>
-  <button class="btn" id="openMyNav" type="button">🖼<span class="nav-lbl">Мої фото</span></button>
-  <button class="btn" id="openImport" type="button">📂<span class="nav-lbl">database</span></button>
   <input id="importFile" type="file" accept=".sttst,.json" hidden>
-  <button class="btn" id="openSettings" type="button" aria-label="Налаштування">⚙️</button>
   <div id="guest" class="group">
+    <button class="btn" id="openSettingsG" type="button" aria-label="Налаштування">⚙️</button>
     <button class="btn" id="openLogin" type="button">Увійти</button>
     <button class="btn" id="openRegister" type="button">Реєстрація</button>
   </div>
   <div id="user" class="group hidden">
-    <button class="btn hidden" id="openRequests" type="button">Staff</button>
     <button class="btn" id="bell" type="button">🔔<span id="bellCount" class="bell-count hidden"></span></button>
-    <div class="profile">   
-      <label class="avatar" title="Змінити аватар">
-        <img id="navAvatar" alt="">
-        <input id="avatarChange" type="file" accept="image/jpeg,image/png,image/webp" hidden>
-      </label>
-      <span id="navName"></span>
-      <span id="navBadge" class="badge hidden"></span>
+    <div class="user-wrap">
+      <div class="profile" id="profileBtn">
+        <label class="avatar" title="Змінити аватар">
+          <img id="navAvatar" alt="">
+          <input id="avatarChange" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+        </label>
+        <span id="navName"></span>
+        <span id="navBadge" class="badge hidden"></span>
+        <i class="um-caret"></i>
+      </div>
+      <div class="user-menu" id="userMenu">
+        <button class="um-item" id="openPhotoUp" type="button"><span class="um-ic">📷</span><span>Опублікувати фото</span></button>
+        <button class="um-item" id="openMyNav" type="button"><span class="um-ic">🖼</span><span>Мої фото</span></button>
+        <button class="um-item" id="openImport" type="button"><span class="um-ic">📂</span><span>database</span></button>
+        <button class="um-item hidden" id="openRequests" type="button"><span class="um-ic">🛡️</span><span>Staff</span></button>
+        <button class="um-item" id="openSettings" type="button"><span class="um-ic">⚙️</span><span>Налаштування</span></button>
+        <div class="um-sep"></div>
+        <button class="um-item" id="logout" type="button"><span class="um-ic">🚪</span><span>Вийти</span></button>
+      </div>
     </div>
-    <button class="btn" id="logout" type="button">Вийти</button>
   </div>
 </nav>
 <main class="layout">
@@ -3393,7 +3426,7 @@ const views = { login: $('loginForm'), register: $('registerForm'), pending: $('
 
 let me = { uid: null, role: null };
 window.LANG = window.LANG || {};
-const LANGS = ['uk', 'ru', 'by', 'en'];
+const LANGS = ['uk', 'ru', 'en', 'by'];
 let lang = 'uk';
 let theme = 'light';
 let pendingPrefs = null;
@@ -5292,6 +5325,8 @@ function applyAccountPrefs(p) {
   safeStorage.setItem('lang', lang);
 }
 
+
+// ---------- Переклади: дані лежать у lang/uk.js, lang/ru.js, lang/en.js ----------
 const SRC = LANG.uk || { subs: {}, patterns: [] };
 for (const l in LANG) {
   const T = LANG[l];
@@ -5419,12 +5454,21 @@ const nativeAlert = window.alert.bind(window);
 window.alert = m => nativeAlert(tr(String(m)));
 
 document.querySelectorAll('.set-theme').forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.theme, true)));
-const LANG_NAMES = { uk: 'Українська', ru: 'Русский', by: 'Беларуская', en: 'English' };
+const LANG_NAMES = { uk: 'Українська', ru: 'Русский', en: 'English', by: 'Беларуская' };
 $('langBtn').addEventListener('click', () => openList('Мова', LANGS.map(k => ({ key: k, name: LANG_NAMES[k] })), lang, it => setLang(it.key, true), 'settings'));
 
 applyTheme(safeStorage.getItem('theme') === 'dark' ? 'dark' : 'light', false);
 setLang(safeStorage.getItem('lang'), false);
 $('openSettings').addEventListener('click', () => openModal('settings'));
+$('openSettingsG').addEventListener('click', () => openModal('settings'));
+(() => {
+  const wrap = document.querySelector('.user-wrap'), menu = $('userMenu');
+  const setOpen = o => wrap.classList.toggle('open', o);
+  $('profileBtn').addEventListener('click', e => { if (e.target.closest('.avatar')) return; setOpen(!wrap.classList.contains('open')); });
+  menu.addEventListener('click', e => { if (e.target.closest('.um-item')) setOpen(false); });
+  document.addEventListener('click', e => { if (!wrap.contains(e.target)) setOpen(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') setOpen(false); });
+})();
 $('settingsClose').addEventListener('click', closeModal);
 $('banClose').addEventListener('click', closeModal);
 
@@ -5699,7 +5743,7 @@ async function loadLog() {
     d.appendChild(t);
     if (x.reason) {
       const r = document.createElement('p');
-      r.textContent = (x.action === 'broadcast' ? 'Текст: ' : 'Причина: ') + x.reason;
+      r.textContent = (x.action === 'broadcast' ? 'Текст: ' : x.action === 'photo_approve' ? 'Підприємство: ' : 'Причина: ') + x.reason;
       d.appendChild(r);
     }
     const s = document.createElement('small');
@@ -7324,9 +7368,13 @@ $('photoUp').addEventListener('submit', async ev => {
 
 /* --- Staff: заявки на фото --- */
 async function approvePhoto(p) {
-  const { error } = await db.from('photos').update({ status: 'approved' }).eq('id', p.id);
+  const { data, error } = await db.from('photos').update({ status: 'approved' }).eq('id', p.id).eq('status', 'pending').select('id');
   if (error) {
     alert(error.message);
+    return;
+  }
+  if (!data || !data.length) {
+    await loadPhotoReqs();
     return;
   }
   await logAction('photo_approve', p.city_name, p.enterprise_name);
@@ -7337,8 +7385,12 @@ async function approvePhoto(p) {
 
 function rejectPhoto(p) {
   askReason('Причина відмови', async reason => {
-    const { error } = await db.from('photos').delete().eq('id', p.id);
+    const { data, error } = await db.from('photos').delete().eq('id', p.id).select('id');
     if (error) return error.message;
+    if (!data || !data.length) {
+      await loadPhotoReqs();
+      return '';
+    }
     await db.storage.from('photos').remove([p.path]);
     await logAction('photo_reject', p.city_name, reason);
     await notify(p.owner_id, 'Ваше фото (' + (p.enterprise_name || '') + ') у місті «' + (p.city_name || '') + '» відхилено. Причина: ' + reason);
