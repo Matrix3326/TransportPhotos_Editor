@@ -2374,21 +2374,21 @@ html[data-theme="dark"] .rn-head b { color: var(--text); }
 .ph-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; padding-top: 14px; }
 .ph-card { position: relative; overflow: hidden; background: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.12); cursor: pointer; transition: box-shadow .2s ease; }
 .ph-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.25); }
-.ph-card img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #e4e4e4; }
+.ph-card img { display: block; width: 100%; height: auto; max-height: 320px; aspect-ratio: auto; object-fit: contain; background: #e4e4e4; }
 .ph-meta { padding: 8px 10px; font-size: 13px; color: #222222; }
 .ph-meta b { display: block; margin-bottom: 2px; font-size: 14px; word-break: break-word; }
 .ph-meta small { display: block; color: #777777; word-break: break-word; }
 .ph-badge { position: absolute; top: 8px; left: 8px; padding: 3px 8px; border-radius: 6px; background: #fff3cd; color: #8a6d00; font-size: 12px; font-weight: 700; }
 html[data-theme="dark"] .ph-card { background: var(--surface-2); }
 html[data-theme="dark"] .ph-meta { color: var(--text); }
-.ph-prev { display: block; width: 100%; aspect-ratio: 4 / 3; border-radius: 8px; background: #e4e4e4; cursor: grab; touch-action: none; }
+.ph-prev { display: block; width: 100%; height: auto; max-height: 420px; aspect-ratio: auto; object-fit: contain; border-radius: 8px; background: #e4e4e4; }
 html[data-theme="dark"] .ph-prev { background: var(--surface-2); }
 .ph-hint { font-size: 12px; font-weight: 400; font-style: normal; color: #888888; }
-.pv-img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: #111111; border-radius: 12px 12px 0 0; }
+.pv-img { display: block; width: auto; height: auto; max-width: 100%; max-height: 75vh; aspect-ratio: auto; object-fit: contain; margin: 0 auto; background: #111111; border-radius: 12px 12px 0 0; }
 .pv-body { display: flex; flex-direction: column; gap: 4px; padding: 16px 24px 20px 24px; }
 .pv-foot { display: flex; justify-content: flex-end; gap: 10px; padding-top: 12px; }
 .ph-req { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
-.ph-req img { flex: none; width: 120px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; cursor: pointer; }
+.ph-req img { flex: none; width: 120px; height: auto; max-height: 120px; aspect-ratio: auto; object-fit: contain; border-radius: 6px; cursor: pointer; }
 .ph-req .acc-info { flex: 1 1 200px; }
 .ph-req .btn { height: 30px; padding: 0 14px; font-size: 13px; }
 #phReqList { max-height: 560px; }
@@ -2396,7 +2396,7 @@ html[data-theme="dark"] .ph-prev { background: var(--surface-2); }
 .ph-card { background: transparent; box-shadow: none; border-radius: 0; overflow: visible; padding-bottom: 10px; border-bottom: 1px solid rgba(128,128,128,.45); }
 .ph-pic { position: relative; overflow: hidden; border-radius: 4px; }
 .ph-pic img { transition: transform .3s ease; }
-.ph-card:hover .ph-pic img { transform: scale(1.03); }
+.ph-card:hover .ph-pic img { transform: none; }
 .ph-new { position: absolute; right: 8px; bottom: 8px; padding: 3px 8px; background: var(--accent); color: #1a1a1a; font: 700 12px/1.2 "Courier New", monospace; letter-spacing: 1px; border-radius: 3px; }
 .ph-info { color: #222222; }
 .ph-loc { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; font-size: 15px; word-break: break-word; }
@@ -2502,8 +2502,8 @@ html[data-theme="dark"] .up-inl { background: var(--surface-2); border-color: va
 html[data-theme="dark"] .up-inl input { color: var(--text); }
 .pp-wrap { padding: 18px 24px 28px; }
 .pp-top { margin-bottom: 14px; }
-.pp-img { display: block; width: 100%; max-width: 960px; margin: 0 auto; aspect-ratio: 4 / 3; background: #111111; border-radius: 8px; overflow: hidden; }
-.pp-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pp-img { display: flex; align-items: center; justify-content: center; width: 100%; max-width: 960px; max-height: 70vh; margin: 0 auto; aspect-ratio: auto; background: var(--surface-2); border-radius: 8px; overflow: hidden; }
+.pp-img img { display: block; width: auto; height: auto; max-width: 100%; max-height: 70vh; object-fit: contain; }
 .pp-img img, .ph-pic img { image-rendering: auto; }
 .pp-meta, .pp-info { max-width: 960px; margin-left: auto; margin-right: auto; }
 .pp-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; padding: 16px 4px; font-size: 15px; }
@@ -2738,7 +2738,8 @@ html[data-theme="dark"] .um-sep { background: var(--border); }
   .up-col { max-width:none; }
   .up-drop { width:100%; box-sizing:border-box; }
   .pp-wrap { width:100%; max-width:100%; padding:10px; }
-  .pp-img { width:100%; aspect-ratio:4 / 3; }
+  .pp-img { width:100%; max-height:70dvh; aspect-ratio:auto; }
+  .pp-img img { max-height:70dvh; }
   .pp-info, .pp-meta { max-width:100%; min-width:0; }
   .pp-cols { grid-template-columns:minmax(0,1fr); gap:16px; }
   .pp-side { width:100%; }
@@ -2990,12 +2991,12 @@ body.maintenance-active{overflow:hidden}
         <p class="up-hint">Ви можете опублікувати необмежену кількість фотографій.</p>
         <div class="up-drop" id="phDrop">
           <b>📷 Оберіть фотографію</b>
-          <p>Вимоги до фото:<br>• Формат JPEG, PNG або WEBP;<br>• Файл до 25 МБ, стискається автоматично;<br>• Кадр 4:3 — перетягніть фото, щоб обрати кадр</p>
+          <p>Вимоги до фото:<br>• Формат JPEG, PNG або WEBP;<br>• Файл до 25 МБ, стискається автоматично;<br>• Фото завантажується повністю, без обрізання</p>
           <button class="btn dark" id="phPick" type="button">Вибрати файл</button>
         </div>
         <input id="phFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>
         <div class="up-prev hidden" id="phPrevBox">
-          <canvas id="phCanvas" class="ph-prev" width="960" height="720"></canvas>
+          <canvas id="phCanvas" class="ph-prev" width="960" height="540"></canvas>
           <div class="up-file">
             <button class="up-x" id="phRemove" type="button" aria-label="Прибрати фото">✕</button>
             <span id="phFileInfo"></span>
@@ -6659,11 +6660,8 @@ const PH_W = 1920;
 const PH_Q = 0.98;
 let photos = [];
 let phImg = null;
-let phFx = 0.5;
-let phFy = 0.5;
 let phEnts = [];
 let phTok = 0;
-let phDrag = null;
 let pvCur = null;
 let pvTimer = null;
 
@@ -6796,7 +6794,7 @@ $('pvDelete').addEventListener('click', async () => {
   await deletePhotoWithReason(p,async()=>{closeModal();await loadPhotos()});
 });
 
-/* --- стиснення і кадр 4:3 --- */
+
 async function phLoad(file) {
   try {
     return await createImageBitmap(file, { imageOrientation: 'from-image' });
@@ -6815,69 +6813,21 @@ function phSize() {
 }
 
 function phCrop() {
-  const [w, h] = phSize();
-  let sw = w;
-  let sh = w * 3 / 4;
-  if (sh > h) {
-    sh = h;
-    sw = h * 4 / 3;
-  }
-  return [Math.round((w - sw) * phFx), Math.round((h - sh) * phFy), Math.floor(sw), Math.floor(sh)];
+  const [w,h]=phSize();
+  return [0,0,w,h];
 }
 
 function phDraw() {
-  const c = $('phCanvas');
-  const ctx = c.getContext('2d');
-  c.width = 960;
-  c.height = 720;
-  if (!phImg) {
-    ctx.fillStyle = '#9a9a9a';
-    ctx.fillRect(0, 0, 960, 720);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '32px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Оберіть фото', 480, 365);
-    return;
-  }
-  const [sx, sy, sw, sh] = phCrop();
-  ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(phImg, sx, sy, sw, sh, 0, 0, 960, 720);
+  const c=$('phCanvas'),ctx=c.getContext('2d');
+  if(!phImg){c.width=960;c.height=540;ctx.fillStyle='#9a9a9a';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='#ffffff';ctx.font='32px Arial';ctx.textAlign='center';ctx.fillText('Оберіть фото',c.width/2,c.height/2);return}
+  const [w,h]=phSize(),scale=Math.min(960/w,540/h,1);
+  c.width=Math.max(1,Math.round(w*scale));c.height=Math.max(1,Math.round(h*scale));
+  ctx.imageSmoothingQuality='high';ctx.drawImage(phImg,0,0,c.width,c.height);
 }
-
-function phPan(dx, dy) {
-  const [w, h] = phSize();
-  const [sx, sy, sw, sh] = phCrop();
-  const k = sw / $('phCanvas').clientWidth;
-  const clamp = v => Math.max(0, Math.min(1, v));
-  phFx = w - sw > 0 ? clamp((sx - dx * k) / (w - sw)) : 0.5;
-  phFy = h - sh > 0 ? clamp((sy - dy * k) / (h - sh)) : 0.5;
-  phDraw();
-}
-
-const phCv = $('phCanvas');
-phCv.addEventListener('pointerdown', e => {
-  if (!phImg) return;
-  phDrag = { x: e.clientX, y: e.clientY };
-  phCv.setPointerCapture(e.pointerId);
-  phCv.style.cursor = 'grabbing';
-});
-phCv.addEventListener('pointermove', e => {
-  if (!phDrag || !phImg) return;
-  const dx = e.clientX - phDrag.x;
-  const dy = e.clientY - phDrag.y;
-  phDrag = { x: e.clientX, y: e.clientY };
-  phPan(dx, dy);
-});
-['pointerup', 'pointercancel'].forEach(n => phCv.addEventListener(n, () => {
-  phDrag = null;
-  phCv.style.cursor = '';
-}));
 
 $('phFile').addEventListener('change', async e => {
   const f = e.target.files[0];
   phImg = null;
-  phFx = 0.5;
-  phFy = 0.5;
   phDraw();
   phSyncFile(null);
   if (!f) return;
@@ -7333,8 +7283,6 @@ function upReset() {
   phSetBad('fleet', false);
   phSetBad('route', false);
   phImg = null;
-  phFx = 0.5;
-  phFy = 0.5;
   phDraw();
   phSyncFile(null);
 }
@@ -7553,8 +7501,6 @@ $('phPick').addEventListener('click', () => $('phFile').click());
 $('phRemove').addEventListener('click', () => {
   $('phFile').value = '';
   phImg = null;
-  phFx = 0.5;
-  phFy = 0.5;
   phDraw();
   phSyncFile(null);
 });
@@ -7648,41 +7594,10 @@ $('photoUp').addEventListener('submit', async ev => {
       await openMyPhotos();
     } else {
       setMsg($('phMsg'), 'Стискаю і завантажую...', true);
-      const [sx, sy, sw, sh] = phCrop();
-      const ow = Math.min(PH_W, Math.round(sw));
-      const oh = Math.round(ow * 3 / 4);
-      let cv = document.createElement('canvas');
-      let cw = Math.round(sw);
-      let ch = Math.round(sh);
-      cv.width = cw;
-      cv.height = ch;
-      const cx = cv.getContext('2d');
-      cx.fillStyle = '#ffffff';
-      cx.fillRect(0, 0, cw, ch);
-      cx.imageSmoothingEnabled = false;
-      cx.drawImage(phImg, sx, sy, sw, sh, 0, 0, cw, ch);
-      while (cw / 2 >= ow) {
-        const nw = Math.round(cw / 2);
-        const nh = Math.round(ch / 2);
-        const c2 = document.createElement('canvas');
-        c2.width = nw;
-        c2.height = nh;
-        const x2 = c2.getContext('2d');
-        x2.imageSmoothingQuality = 'high';
-        x2.drawImage(cv, 0, 0, cw, ch, 0, 0, nw, nh);
-        cv = c2;
-        cw = nw;
-        ch = nh;
-      }
-      if (cw !== ow || ch !== oh) {
-        const c3 = document.createElement('canvas');
-        c3.width = ow;
-        c3.height = oh;
-        const x3 = c3.getContext('2d');
-        x3.imageSmoothingQuality = 'high';
-        x3.drawImage(cv, 0, 0, cw, ch, 0, 0, ow, oh);
-        cv = c3;
-      }
+      const [sx,sy,sw,sh]=phCrop();
+      const scale=Math.min(PH_W/sw,PH_W/sh,1),ow=Math.max(1,Math.round(sw*scale)),oh=Math.max(1,Math.round(sh*scale));
+      const cv=document.createElement('canvas');cv.width=ow;cv.height=oh;
+      const cx=cv.getContext('2d');cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';cx.drawImage(phImg,sx,sy,sw,sh,0,0,ow,oh);
       const lossless = cv.width <= 1280;
       const mime = lossless ? 'image/png' : 'image/jpeg';
       const blob = await new Promise(r => cv.toBlob(r, mime, PH_Q));
