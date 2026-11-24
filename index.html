@@ -940,6 +940,13 @@ main {
   align-items: center;
   justify-content: center;
   font-size: 14px;
+  overflow: hidden;
+}
+.cv-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .cv-sources {
   padding: 4px 24px 18px 24px;
@@ -2541,6 +2548,9 @@ html[data-theme="dark"] .up-inl input { color: var(--text); }
 .people-profile-country { padding: 12px; border-radius: 6px; background: var(--surface-2); }
 .people-profile-country b { display: block; margin-bottom: 5px; }
 .people-profile-country span { color: var(--muted); font-size: 14px; line-height: 1.6; }
+.people-profile-city-links { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.people-profile-city-link { padding: 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+.people-profile-city-link:hover { color: var(--accent); text-decoration: underline; }
 .people-profile-comments { display: grid; gap: 10px; }
 .people-profile-comment { padding: 12px 14px; border-radius: 8px; background: var(--surface-2); }
 .people-profile-comment p { margin: 0 0 6px; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -2970,7 +2980,7 @@ body.maintenance-active{overflow:hidden}
           </div>
         </div>
         <div class="cv-side">
-          <div class="cv-photo">Фото міста</div>
+          <div class="cv-photo" id="viPhoto">Фото міста</div>
         </div>
       </div>
 
@@ -4120,6 +4130,21 @@ function resetDelete() {
   btn.textContent = 'Видалити';
 }
 
+function drawCityPhoto(cityId,list) {
+  const box=$('viPhoto');
+  if(!box)return;
+  const candidates=(list||[]).filter(photo=>photo.status==='approved'&&photo.path);
+  if(!candidates.length){box.replaceChildren(document.createTextNode('Фото міста'));return}
+  const photo=candidates[Math.floor(Math.random()*candidates.length)];
+  const image=document.createElement('img');
+  image.src=db.storage.from('photos').getPublicUrl(photo.path).data.publicUrl;
+  const city=cities.find(item=>item.id===cityId);
+  image.alt=city&&city.name?'Фото міста '+city.name:'Фото міста';
+  image.loading='lazy';
+  image.onerror=()=>{if(box.contains(image))box.replaceChildren(document.createTextNode('Фото міста'))};
+  box.replaceChildren(image);
+}
+
 function renderCity() {
   document.querySelectorAll('#myCities .side-item, #allCities .side-item').forEach(b => {
     b.classList.toggle('active', b.dataset.id === currentId);
@@ -4164,6 +4189,7 @@ function renderCity() {
     entCity = currentId;
     enterprises = [];
     vehicles = [];
+    drawCityPhoto(currentId, []);
     setTimeout(loadEnterprises, 0);
     cityRoutes = [];
     setTimeout(loadVehicles, 0);
@@ -6914,6 +6940,7 @@ async function loadPhotos() {
   photos = error ? [] : data || [];
   await enrichPhotos(photos);
   if (id !== currentId) return;
+  drawCityPhoto(id, photos);
   renderPhotos();
 }
 
@@ -7465,8 +7492,8 @@ function peopleProfileText(key){return (PEOPLE_PROFILE_TEXT[lang]||PEOPLE_PROFIL
 function showUserProfileError(error){$('userProfileName').textContent=peopleProfileText('notFound');$('userProfileMessage').textContent=error&&error.message||peopleProfileText('notFound');$('userProfileMessage').classList.remove('hidden')}
 function peopleProfileLink(uid,name){const label=String(name||'—').trim(),targetId=uid||null,clickable=!!targetId||label!=='—';const node=document.createElement(clickable?'button':'span');node.textContent=label;if(clickable){node.type='button';node.className='people-profile-link';node.addEventListener('click',async event=>{event.stopPropagation();try{let profileId=targetId;if(!profileId){const result=await db.from('profiles').select('id,username').ilike('username',escapeLikePattern(label)).limit(5);profileId=(result.data||[]).find(profile=>String(profile.username||'').toLocaleLowerCase()===label.toLocaleLowerCase())?.id;if(!profileId){const photoResult=await db.from('photos').select('owner_id,owner_name').eq('status','approved').ilike('owner_name',escapeLikePattern(label)).limit(20);profileId=(photoResult.data||[]).find(photo=>String(photo.owner_name||'').toLocaleLowerCase()===label.toLocaleLowerCase())?.owner_id}if(!profileId){alert(peopleProfileText('notFound'));return}}await openUserProfile(profileId,false,label)}catch(error){if($('userProfilePage').classList.contains('hidden'))alert(error&&error.message||peopleProfileText('notFound'));else showUserProfileError(error)}})}return node}
 function profileStat(label,value){const item=document.createElement('div');item.className='people-profile-stat';const count=document.createElement('b');count.textContent=Number(value||0).toLocaleString(lang==='by'?'be':lang);const caption=document.createElement('span');caption.textContent=label;item.append(count,caption);return item}
-function profilePhotoGeography(photos){const groups=new Map();photos.forEach(photo=>{const city=cities.find(item=>item.id===photo.city_id),country=city&&city.country||'—',name=city&&city.name||photo.city_name||'—';if(!groups.has(country))groups.set(country,new Map());const cityCounts=groups.get(country);cityCounts.set(name,(cityCounts.get(name)||0)+1)});return [...groups].sort((a,b)=>[...b[1].values()].reduce((s,n)=>s+n,0)-[...a[1].values()].reduce((s,n)=>s+n,0))}
-function drawProfileGeography(photos){const root=$('userProfileGeography'),groups=profilePhotoGeography(photos);root.replaceChildren();$('userProfileGeographyEmpty').classList.toggle('hidden',groups.length>0);groups.forEach(([country,cityCounts])=>{const row=document.createElement('div');row.className='people-profile-country';const title=document.createElement('b');title.textContent=country+' ('+[...cityCounts.values()].reduce((s,n)=>s+n,0)+')';const detail=document.createElement('span');detail.textContent=[...cityCounts].sort((a,b)=>b[1]-a[1]).map(([city,count])=>city+' ('+count+')').join(', ');row.append(title,detail);root.appendChild(row)})}
+function profilePhotoGeography(photos){const groups=new Map();photos.forEach(photo=>{const city=cities.find(item=>item.id===photo.city_id),country=city&&city.country||'—',name=city&&city.name||photo.city_name||'—',id=photo.city_id||city&&city.id||null;if(!groups.has(country))groups.set(country,new Map());const cityRows=groups.get(country),key=id||name,row=cityRows.get(key)||{id,name,count:0};row.count++;cityRows.set(key,row)});return [...groups].map(([country,cityRows])=>[country,[...cityRows.values()].sort((a,b)=>b.count-a.count)]).sort((a,b)=>b[1].reduce((s,city)=>s+city.count,0)-a[1].reduce((s,city)=>s+city.count,0))}
+function drawProfileGeography(photos){const root=$('userProfileGeography'),groups=profilePhotoGeography(photos);root.replaceChildren();$('userProfileGeographyEmpty').classList.toggle('hidden',groups.length>0);groups.forEach(([country,cityRows])=>{const row=document.createElement('div');row.className='people-profile-country';const title=document.createElement('b');title.textContent=country+' ('+cityRows.reduce((s,city)=>s+city.count,0)+')';const detail=document.createElement('div');detail.className='people-profile-city-links';cityRows.forEach(city=>{const item=document.createElement(city.id?'button':'span');item.textContent=city.name+' ('+city.count+')';if(city.id){item.type='button';item.className='people-profile-city-link';item.addEventListener('click',()=>showCity(city.id))}detail.appendChild(item)});row.append(title,detail);root.appendChild(row)})}
 function drawProfileComments(comments,photoMap){const root=$('userProfileComments');root.replaceChildren();$('userProfileCommentsEmpty').classList.toggle('hidden',comments.length>0);comments.forEach(comment=>{const row=document.createElement('article');row.className='people-profile-comment';const body=document.createElement('p');body.textContent=comment.body||'';const small=document.createElement('small');small.textContent=new Date(comment.created_at).toLocaleString(lang==='uk'?'uk-UA':lang==='ru'?'ru-RU':lang==='by'?'be-BY':'en-US');const photo=photoMap.get(comment.photo_id);row.append(body,small);if(photo){const link=document.createElement('button');link.type='button';link.textContent=(photo.city_name||'')+(photo.model?' · '+photo.model:'');link.addEventListener('click',()=>openPhoto(photo));row.append(document.createElement('br'),link)}root.appendChild(row)})}
 async function loadProfileVotes(ids){const batches=[];for(let i=0;i<ids.length;i+=80)batches.push(ids.slice(i,i+80));const results=await Promise.all(batches.map(batch=>db.from('photo_votes').select('photo_id,value').in('photo_id',batch).limit(10000)));return results.flatMap(result=>result.error?[]:result.data||[])}
 function closeUserProfile(){const state=userProfileReturnState;userProfileReturnState=null;userProfileRequest++;userProfileCurrent=null;currentId=state?state.currentId:null;curEnt=state?state.curEnt:null;renderCity();PAGES.forEach(id=>$(id).classList.toggle('hidden',!!(state&&state.pages.includes(id))));history.replaceState(null,'',state&&state.hash?state.hash:location.pathname+location.search);window.scrollTo({top:0})}
