@@ -3125,7 +3125,7 @@ body.maintenance-active{overflow:hidden!important}
 
 <div id="vehiclePage" class="panel hidden"><div class="veh-page-wrap">
   <div class="veh-page-back"><button class="btn light" id="vpBack" type="button">← Назад</button></div>
-  <div class="veh-page-heading"><div class="veh-page-id"><span id="vpFleet" class="veh-page-fleet hidden"></span><span id="vpPlate" class="veh-page-plate hidden"></span></div><div class="veh-page-name"><h1 id="vpModel">Транспортний засіб</h1><span id="vpYear"></span></div><button class="btn dark hidden" id="vpEdit" type="button">Редагувати ТЗ</button></div>
+  <div class="veh-page-heading"><div class="veh-page-id"><span id="vpFleet" class="veh-page-fleet hidden"></span><span id="vpPlate" class="veh-page-plate hidden"></span></div><div class="veh-page-name"><h1 id="vpModel">Транспортний засіб</h1><span id="vpYear"></span></div><button class="btn light hidden" id="vpTransfer" type="button">Передати в інше підприємство</button><button class="btn dark hidden" id="vpEdit" type="button">Редагувати ТЗ</button></div>
   <div class="veh-page-location" id="vpLocation"></div>
   <h2 class="veh-section-title">Історія транспортного засобу</h2><div class="veh-history-scroll"><table class="veh-history-table"><thead><tr><th>Місто/регіон</th><th>Підприємство</th><th>Державний номер</th><th>Від</th><th>До</th></tr></thead><tbody id="vpHistory"></tbody></table></div>
   <h2 class="veh-section-title">Характеристики</h2><div class="veh-facts" id="vpFacts"></div>
@@ -3309,6 +3309,23 @@ body.maintenance-active{overflow:hidden!important}
         <button class="btn light hidden" id="vehDup" type="button">Дублювати</button>
         <button class="btn light" id="vehCancel" type="button">Скасувати</button>
         <button class="btn dark" id="vehSubmit" type="submit">Зберегти</button>
+      </div>
+    </form>
+
+    <form id="transferForm" class="view">
+      <div class="city-head"><h2>Передати транспортний засіб</h2></div>
+      <p class="pending-text">Буде створено запис у новому підприємстві. Попередня історія зв’яжеться за VIN, заводським номером або держномером.</p>
+      <div class="city-grid">
+        <label>Місто призначення *<select id="transferCity" required></select></label>
+        <label>Підприємство призначення *<select id="transferEnterprise" required></select></label>
+        <label>Борт. №<input id="transferFleet" type="text" maxlength="30"></label>
+        <label>Держ. №<input id="transferPlate" type="text" maxlength="30"></label>
+        <label>Надійшов *<input id="transferArrived" type="text" maxlength="20" placeholder="дд.мм.рррр або мм.рррр" required></label>
+      </div>
+      <p id="transferMsg" class="msg"></p>
+      <div class="city-foot">
+        <button class="btn light" id="transferCancel" type="button">Скасувати</button>
+        <button class="btn dark" id="transferSubmit" type="submit">Передати</button>
       </div>
     </form>
 
@@ -3515,7 +3532,7 @@ const $ = id => document.getElementById(id);
 const placeholder = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"><rect width="44" height="44" fill="#d9d9d9"/><circle cx="22" cy="17" r="8" fill="#9a9a9a"/><path d="M6 44c0-10 7-16 16-16s16 6 16 16z" fill="#9a9a9a"/></svg>');
 const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
 const maxSize = 2 * 1024 * 1024;
-const views = { login: $('loginForm'), register: $('registerForm'), pending: $('pendingView'), city: $('cityForm'), pick: $('pickView'), reason: $('reasonView'), notif: $('notifView'), ent: $('entForm'), veh: $('vehForm'), route: $('routeForm'), routeInfo: $('routeInfo'), settings: $('settingsView'), dup: $('dupForm'), ban: $('banView'), vehInfo: $('vehInfo'), import: $('importView'), photoUp: $('photoUp'), photoView: $('photoView'), confirmed: $('confirmedView') };
+const views = { login: $('loginForm'), register: $('registerForm'), pending: $('pendingView'), city: $('cityForm'), pick: $('pickView'), reason: $('reasonView'), notif: $('notifView'), ent: $('entForm'), veh: $('vehForm'), route: $('routeForm'), routeInfo: $('routeInfo'), settings: $('settingsView'), dup: $('dupForm'), ban: $('banView'), vehInfo: $('vehInfo'), import: $('importView'), photoUp: $('photoUp'), photoView: $('photoView'), transfer: $('transferForm'), confirmed: $('confirmedView') };
 
 let me = { uid: null, role: null };
 window.LANG = window.LANG || {};
@@ -3539,7 +3556,7 @@ function showView(name) {
   if (name === 'photoUp' || name === 'upload') { pickBack = null; closeModal(); return; }
   if (name === 'pick') $('overlay').classList.add('open');
   Object.keys(views).forEach(k => views[k].classList.toggle('active', k === name));
-  $('modal').classList.toggle('wide', ['city', 'ent', 'veh', 'route', 'routeInfo', 'photoUp', 'photoView'].includes(name));
+  $('modal').classList.toggle('wide', ['city', 'ent', 'veh', 'route', 'routeInfo', 'photoUp', 'photoView', 'transfer'].includes(name));
   if (name === 'city') setCityButtons();
 }
 
@@ -5005,7 +5022,7 @@ function openVehicleProfile(v, editable=false, sourcePhoto=null) {
   if(!vehPageReturn)vehPageReturn={page:PAGES.find(id=>!$(id).classList.contains('hidden'))||null,cityId:currentId,ent:curEnt,photo:ppCur,hash:location.hash};
   vehPageCurrent=v;vehPageEditable=editable;vhCur=v;const fleet=String(v.fleet_no||'').trim(),plate=String(v.plate_no||'').trim();
   $('vpFleet').textContent=fleet;$('vpFleet').classList.toggle('hidden',!fleet);$('vpPlate').textContent=plate;$('vpPlate').classList.toggle('hidden',!plate);
-  $('vpModel').textContent=String(v.model||'Транспортний засіб').trim();$('vpYear').textContent=v.build_year?String(v.build_year):'';$('vpEdit').classList.toggle('hidden',!editable);
+  $('vpModel').textContent=String(v.model||'Транспортний засіб').trim();$('vpYear').textContent=v.build_year?String(v.build_year):'';$('vpEdit').classList.toggle('hidden',!editable);$('vpTransfer').classList.toggle('hidden',!editable||!v.id);
   const city=cities.find(c=>c.id===v.city_id), enterprise=enterprises.find(e=>e.id===v.enterprise_id)||curEnt;$('vpLocation').textContent=[city&&city.name,enterprise&&enterprise.name].filter(Boolean).join(' · ');
   const tp=ENT_TYPES.find(t=>t.key===v.vehicle_type),st=VEH_STATUSES.find(x=>x.key===v.status);$('vpFacts').replaceChildren();
   [['Виробник',v.manufacturer],['Тип транспорту',tp&&tp.name],['Модель',v.model],['Виготовлено',v.build_year],['Заводський номер',v.factory_no],['VIN-код',v.vin],['Призначення',v.purpose],['Поточний стан',st&&st.name],['Надійшов',v.arrived],['Початок роботи',v.start_date],['Списаний',v.written_off],['Примітка',v.note]].filter(x=>x[1]!=null&&String(x[1]).trim()!=='').forEach(([label,value])=>{const d=document.createElement('div');d.className='veh-fact';const sm=document.createElement('small');sm.textContent=label;const b=document.createElement('b');b.textContent=String(value);d.append(sm,b);$('vpFacts').appendChild(d)});
@@ -5029,7 +5046,8 @@ async function loadVehicleEnterpriseHistory(v){
   ]);
   if(vehPageCurrent!==v)return;
   const cityMap=new Map((cityResult.data||[]).map(x=>[x.id,x])),entMap=new Map((entResult.data||[]).map(x=>[x.id,x]));
-  list.sort((a,b)=>String(a.arrived||a.start_date||'').localeCompare(String(b.arrived||b.start_date||'')));
+  const historyDateValue=value=>{const s=String(value||'').trim();let m=/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(s);if(m)return Date.UTC(+m[3],+m[2]-1,+m[1]);m=/^(\d{1,2})\.(\d{4})$/.exec(s);if(m)return Date.UTC(+m[2],+m[1]-1,1);const n=Date.parse(s);return Number.isNaN(n)?0:n};
+  list.sort((a,b)=>historyDateValue(a.arrived||a.start_date)-historyDateValue(b.arrived||b.start_date));
   const rows=list.map((x,i)=>{
     const city=cityMap.get(x.city_id)||cities.find(c=>c.id===x.city_id),ent=entMap.get(x.enterprise_id)||enterprises.find(e=>e.id===x.enterprise_id);
     const next=list[i+1],from=x.arrived||x.start_date,to=x.written_off||(next&&(next.arrived||next.start_date))||'';
@@ -5041,9 +5059,53 @@ async function loadVehicleProfilePhotos(v,sourcePhoto){const plate=cleanVehicleN
 function closeVehicleProfile(){const prev=vehPageReturn;vehPageReturn=null;vehPageCurrent=null;vehPageEditable=false;PAGES.forEach(id=>$(id).classList.add('hidden'));if(!prev)return;currentId=prev.cityId;curEnt=prev.ent;ppCur=prev.photo;renderCity();if(prev.page)$(prev.page).classList.remove('hidden');history.replaceState(null,'',prev.hash||location.pathname+location.search);window.scrollTo({top:0})}
 function cleanVehicleNumber(value){const x=String(value==null?'':value).normalize('NFKC').replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u2800\u00A0]/g,' ').trim();return /[A-Za-z0-9\u00C0-\u024F\u0400-\u04FF]/.test(x)?x:''}
 async function openVehicleProfileFromPhoto(p){const plate=cleanVehicleNumber(p.plate_no),fleet=cleanVehicleNumber(p.fleet_no);let v=null;if(p.city_id&&(plate||fleet)){let q=db.from('vehicles').select('*').eq('city_id',p.city_id);q=plate?q.eq('plate_no',plate):q.eq('fleet_no',fleet);const r=await q.limit(20);v=(r.data||[]).find(x=>!fleet||String(x.fleet_no||'').trim()===fleet)||(r.data||[])[0]||null}if(!v)v={city_id:p.city_id,enterprise_id:p.enterprise_id,fleet_no:fleet,plate_no:plate,model:p.model,vehicle_type:p.transport};const ent=enterprises.find(e=>e.id===v.enterprise_id),editable=!!(curEnt&&canEditEnt());openVehicleProfile(v,editable,p);if(ent)$('vpLocation').textContent=[(cities.find(c=>c.id===v.city_id)||{}).name,ent.name].filter(Boolean).join(' · ')}
-$('vpBack').addEventListener('click',closeVehicleProfile);$('vpEdit').addEventListener('click',()=>{if(vehPageCurrent)openVehForm(vehPageCurrent)});
+$('vpBack').addEventListener('click',closeVehicleProfile);$('vpEdit').addEventListener('click',()=>{if(vehPageCurrent)openVehForm(vehPageCurrent)});$('vpTransfer').addEventListener('click',openVehicleTransfer);
 $('vhEdit').addEventListener('click', () => openVehForm(vhCur));
 $('vhClose').addEventListener('click', closeModal);
+
+let transferEnterpriseOptions=[],transferEnterpriseLoad=0;
+async function fillTransferEnterprises(cityId, source) {
+  const request=++transferEnterpriseLoad,select=$('transferEnterprise');select.replaceChildren(new Option('Завантаження…',''));
+  transferEnterpriseOptions=[];
+  if(!cityId){select.replaceChildren(new Option('Спочатку оберіть місто',''));return}
+  const {data,error}=await db.from('enterprises').select('id,name').eq('city_id',cityId).order('name');
+  if(request!==transferEnterpriseLoad||cityId!==$('transferCity').value)return;
+  if(error){select.replaceChildren(new Option('Не вдалося завантажити підприємства',''));setMsg($('transferMsg'),error.message);return}
+  const options=transferEnterpriseOptions=(data||[]).filter(e=>e.id!==source.enterprise_id);
+  select.replaceChildren(new Option(options.length?'Оберіть підприємство':'Немає інших підприємств',''),...options.map(e=>new Option(e.name,e.id)));
+}
+async function openVehicleTransfer(){
+  const source=vehPageCurrent;if(!source||!vehPageEditable)return;
+  setMsg($('transferMsg'),'');
+  const citySelect=$('transferCity');
+  const cityOptions=cities.filter(c=>c.owner_id===me.uid||isStaff()||isCityEditor(c.id)).sort((a,b)=>String(a.name).localeCompare(String(b.name),'uk')).map(c=>new Option([c.name,c.region].filter(Boolean).join(' — '),c.id));
+  citySelect.replaceChildren(new Option('Оберіть місто',''),...cityOptions);
+  citySelect.value=source.city_id||'';
+  $('transferFleet').value=source.fleet_no||'';$('transferPlate').value=source.plate_no||'';$('transferArrived').value='';
+  $('transferSubmit').disabled=false;
+  openModal('transfer');
+  await fillTransferEnterprises(citySelect.value,source);
+}
+$('transferCity').addEventListener('change',()=>{if(vehPageCurrent)fillTransferEnterprises($('transferCity').value,vehPageCurrent)});
+$('transferCancel').addEventListener('click',closeModal);
+$('transferForm').addEventListener('submit',async ev=>{
+  ev.preventDefault();const source=vehPageCurrent,cityId=$('transferCity').value,enterpriseId=$('transferEnterprise').value;
+  if(!source||!cityId||!enterpriseId){setMsg($('transferMsg'),'Оберіть місто та підприємство призначення');return}
+  const fleet=$('transferFleet').value.trim(),plate=cleanVehicleNumber($('transferPlate').value),vin=String(source.vin||'').trim(),factory=String(source.factory_no||'').trim();
+  const linkedBySerial=!!(vin||factory),linkedByPlate=!!(cleanVehicleNumber(source.plate_no)&&plate===cleanVehicleNumber(source.plate_no)),linkedByFleet=source.city_id===cityId&&cleanVehicleNumber(source.fleet_no)&&fleet===cleanVehicleNumber(source.fleet_no);
+  if(!linkedBySerial&&!linkedByPlate&&!linkedByFleet){setMsg($('transferMsg'),'Щоб зв’язати історію, збережіть VIN, заводський або держномер. Якщо ТС лишається в тому самому місті — можна зберегти бортовий номер.');return}
+  const {data:sessionData}=await db.auth.getSession(),user=sessionData&&sessionData.session&&sessionData.session.user;
+  if(!user){setMsg($('transferMsg'),'Увійдіть у свій акаунт, щоб передати ТС');return}
+  const target=transferEnterpriseOptions.find(e=>e.id===enterpriseId);
+  $('transferSubmit').disabled=true;
+  const row={fleet_no:fleet||'',extra_no:source.extra_no||null,plate_no:plate||null,vehicle_type:source.vehicle_type||'bus',model:source.model||'',factory_no:source.factory_no||null,build_year:source.build_year==null?null:source.build_year,vin:source.vin||null,start_date:null,arrived:$('transferArrived').value.trim()||null,written_off:null,status:'active',note:source.note||null,city_id:cityId,enterprise_id:enterpriseId,owner_id:user.id};
+  const {error}=await db.from('vehicles').insert(row);
+  $('transferSubmit').disabled=false;
+  if(error){setMsg($('transferMsg'),error.message);return}
+  closeModal();
+  const active=vehPageCurrent;if(active)openVehicleProfile(active,vehPageEditable);
+  if(target)$('vpLocation').textContent=[(cities.find(c=>c.id===cityId)||{}).name,target.name].filter(Boolean).join(' · ');
+});
 
 $('addVeh').addEventListener('click', () => openVehForm(null));
 $('vehCancel').addEventListener('click', closeModal);
