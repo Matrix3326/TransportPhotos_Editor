@@ -1632,6 +1632,16 @@ main {
   font-size: 11px;
   color: #777777;
 }
+.notif-photo-thumb {
+  display: block;
+  width: auto;
+  max-width: 132px;
+  max-height: 88px;
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  object-fit: contain;
+}
 @media (max-width: 600px) {
   .req-cols {
     grid-template-columns: 1fr;
@@ -5725,10 +5735,7 @@ async function deletePhotoWithReason(p, afterDelete) {
     const published=p.status==='approved';
     let photoUrl='';
     if(requiresReason){
-      const signed=await db.storage.from('photos').createSignedUrl(p.path,60*60*24*365);
-      if(signed.error)return signed.error.message;
-      photoUrl=signed.data&&signed.data.signedUrl||'';
-      if(!photoUrl)return 'Не вдалося підготувати посилання на фото';
+      photoUrl=p.path?db.storage.from('photos').getPublicUrl(p.path).data.publicUrl||'':'';
     }
     const {error}=await db.from('photos').delete().eq('id',p.id);
     if(error)return error.message;
@@ -5741,7 +5748,7 @@ async function deletePhotoWithReason(p, afterDelete) {
     if(published){
       try {
         if(isPhotoMod())await logAction('photo_delete',p.city_name,reason);
-        if(p.owner_id&&p.owner_id!==me.uid)await notify(p.owner_id,'Ваше опубліковане фото у місті «'+(p.city_name||'—')+'» видалено. Причина: '+reason+' [[OPEN_PHOTO_URL:'+encodeURIComponent(photoUrl)+']]');
+        if(p.owner_id&&p.owner_id!==me.uid)await notify(p.owner_id,'Ваше опубліковане фото у місті «'+(p.city_name||'—')+'» видалено. Причина: '+reason+(photoUrl?' [[OPEN_PHOTO_URL:'+encodeURIComponent(photoUrl)+']]':''));
       } catch(e) { console.error(e); }
     }
     if(afterDelete)await afterDelete();
@@ -6233,7 +6240,7 @@ function drawNotifs() {
     const s = document.createElement('small');
     s.textContent = new Date(x.created_at).toLocaleString('uk-UA');
     d.append(t, s);
-    if(photoLink){const link=document.createElement('a');link.className='btn light';link.href=decodeURIComponent(photoLink[1]);link.target='_blank';link.rel='noopener noreferrer';link.textContent='Відкрити фото';d.appendChild(link)}
+    if(photoLink){const img=document.createElement('img');img.className='notif-photo-thumb';img.src=decodeURIComponent(photoLink[1]);img.alt='Видалене фото';img.loading='lazy';img.decoding='async';img.addEventListener('error',()=>img.remove(),{once:true});d.appendChild(img)}
     return d;
   });
   if (!rows.length) {
