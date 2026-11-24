@@ -2761,7 +2761,8 @@ html[data-theme="dark"] .um-sep { background: #444; }
   #openRules { flex:none; }
   .layout { width:100%; min-width:0; flex-direction:column-reverse; align-items:stretch; gap:10px; }
   .content, .panel { width:100%; max-width:100%; min-width:0; }
-  .side:not(.collapsed) { position:fixed; top:72px; left:8px; right:8px; width:auto; max-height:calc(100dvh - 82px); z-index:9; box-shadow:0 12px 32px rgba(0,0,0,.28); }
+  /* На телефонах меню занимает место в потоке и не накрывает фотогалерею. */
+  .side:not(.collapsed) { position:relative; top:auto; left:auto; right:auto; width:100%; max-height:min(55dvh,460px); overflow-y:auto; z-index:auto; margin:0 0 10px; box-shadow:0 4px 16px rgba(0,0,0,.18); }
   .side.collapsed { display:none; }
   .cv-top { padding:14px; gap:12px; }
   .cv-info, .cv-side, .ent-card, .ent-row, .ev-card, .veh-page-wrap { min-width:0; max-width:100%; }
@@ -4609,6 +4610,20 @@ $('entDelete').addEventListener('click', async () => {
   const hidden = document.querySelector('.side').classList.toggle('collapsed');
   $('toggleSide').classList.toggle('open', !hidden);
 });
+const sideMenu = document.querySelector('.side');
+function closeSideMenu() {
+  if (window.matchMedia('(max-width: 800px)').matches) {
+    sideMenu.classList.add('collapsed');
+    $('toggleSide').classList.remove('open');
+  }
+}
+sideMenu.addEventListener('click', e => {
+  if (e.target.closest('.side-item')) closeSideMenu();
+});
+document.addEventListener('click', e => {
+  if (!sideMenu.classList.contains('collapsed') && !sideMenu.contains(e.target) && e.target !== $('toggleSide') && !$('toggleSide').contains(e.target)) closeSideMenu();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSideMenu(); });
 
 const VEH_STATUSES = [
   { key: 'active', name: 'Експлуатується', color: '#ffffff' },
@@ -5019,7 +5034,7 @@ $('vehForm').addEventListener('submit', async ev => {
     return;
   }
   const t = id => $(id).value.trim() || null;
-  const fleet = $('vehFleet').value.trim() || null;
+  const fleet = $('vehFleet').value.trim();
   const model = $('vehModel').value.trim();
   if (!model) {
     setMsg($('vehMsg'), 'Заповни модель');
@@ -5027,7 +5042,8 @@ $('vehForm').addEventListener('submit', async ev => {
   }
   const year = $('vehYear').value.trim();
   const row = {
-    fleet_no: fleet,
+    /* Порожній рядок сумісний зі схемою БД, де поле ще позначене NOT NULL. */
+    fleet_no: fleet || '',
     extra_no: t('vehExtra'),
     plate_no: t('vehPlate'),
     vehicle_type: vehType,
