@@ -2411,6 +2411,7 @@ html[data-theme="dark"] .ph-prev { background: var(--surface-2); }
 .ph-info { color: #222222; }
 .ph-loc { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; font-size: 15px; word-break: break-word; }
 .ph-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 8px; font-size: 16px; font-weight: 600; word-break: break-word; }
+.ph-note { display: -webkit-box; margin: 8px 0 0; overflow: hidden; color: var(--muted); font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .ph-box { padding: 1px 8px; border: 2px solid currentColor; border-radius: 5px; font-weight: 700; opacity: .85; }
 .ph-grid.nodesc .ph-info { display: none; }
 html[data-theme="dark"] .ph-info, html[data-theme="dark"] .cv-fav { color: var(--text); }
@@ -2518,6 +2519,8 @@ html[data-theme="dark"] .up-inl input { color: var(--text); }
 .pp-meta, .pp-info { max-width: 960px; margin-left: auto; margin-right: auto; }
 .pp-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; padding: 16px 4px; font-size: 15px; }
 .pp-info { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; padding: 4px 4px 22px; }
+.pp-note { flex: 1 1 100%; max-width: 960px; padding: 12px 14px; border-radius: 6px; background: rgba(128,128,128,.12); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.5; }
+.pp-note b { display: block; margin-bottom: 4px; }
 .pp-left { flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 8px; font-size: 15px; }
 .pp-ent { align-self: flex-start; padding: 6px 12px; border-radius: 6px; background: rgba(128,128,128,.18); font-weight: 600; }
 .pp-veh { display: flex; align-items: center; gap: 14px; }
@@ -5089,12 +5092,12 @@ async function loadVehicleEnterpriseHistory(v){
   });
   $('vpHistory').replaceChildren(...rows);
 }
-async function loadVehicleProfilePhotos(v,sourcePhoto){const plate=cleanVehicleNumber(v.plate_no),fleet=cleanVehicleNumber(v.fleet_no),queries=[];if(plate)queries.push(db.from('photos').select('*').eq('status','approved').eq('plate_no',plate).limit(300));else if(fleet)queries.push(db.from('photos').select('*').eq('status','approved').eq('city_id',v.city_id).eq('fleet_no',fleet).limit(300));const results=await Promise.all(queries);if(vehPageCurrent!==v)return;const map=new Map();results.forEach(r=>(r.data||[]).forEach(p=>map.set(p.id,p)));if(sourcePhoto&&sourcePhoto.id)map.set(sourcePhoto.id,sourcePhoto);const photos=[...map.values()].filter(p=>{const pf=String(p.fleet_no||'').trim(),pp=String(p.plate_no||'').trim();return plate?pp===plate:(!fleet||pf===fleet)}).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));await enrichPhotos(photos);if(vehPageCurrent!==v)return;$('vpPhotoGrid').replaceChildren(...photos.map(phCard));$('vpPhotoEmpty').classList.toggle('hidden',photos.length>0)}
+async function loadVehicleProfilePhotos(v,sourcePhoto){const plate=cleanVehicleNumber(v.plate_no),fleet=cleanVehicleNumber(v.fleet_no),queries=[];if(plate)queries.push(db.from('photos').select('*').eq('status','approved').eq('plate_no',plate).limit(300));else if(fleet)queries.push(db.from('photos').select('*').eq('status','approved').eq('fleet_no',fleet).limit(300));const results=await Promise.all(queries);if(vehPageCurrent!==v)return;const map=new Map();results.forEach(r=>(r.data||[]).forEach(p=>map.set(p.id,p)));if(sourcePhoto&&sourcePhoto.id)map.set(sourcePhoto.id,sourcePhoto);const photos=[...map.values()].filter(p=>{const pf=String(p.fleet_no||'').trim(),pp=String(p.plate_no||'').trim();if(sourcePhoto&&p.id===sourcePhoto.id)return true;const matches=plate?normalizeVehicleKey(pp)===normalizeVehicleKey(plate):(!fleet||normalizeVehicleKey(pf)===normalizeVehicleKey(fleet));return matches&&(!v.model||!p.model||normalizeVehicleModel(v.model)===normalizeVehicleModel(p.model))}).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));await enrichPhotos(photos);if(vehPageCurrent!==v)return;$('vpPhotoGrid').replaceChildren(...photos.map(phCard));$('vpPhotoEmpty').classList.toggle('hidden',photos.length>0)}
 function closeVehicleProfile(){const prev=vehPageReturn;vehPageReturn=null;vehPageCurrent=null;vehPageEditable=false;PAGES.forEach(id=>$(id).classList.add('hidden'));if(!prev)return;currentId=prev.cityId;curEnt=prev.ent;ppCur=prev.photo;renderCity();if(prev.page)$(prev.page).classList.remove('hidden');history.replaceState(null,'',prev.hash||location.pathname+location.search);window.scrollTo({top:0})}
 function cleanVehicleNumber(value){const x=String(value==null?'':value).normalize('NFKC').replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u2800\u00A0]/g,' ').trim();return /[A-Za-z0-9\u00C0-\u024F\u0400-\u04FF]/.test(x)?x:''}
 function normalizeVehicleKey(value){return String(value||'').normalize('NFKC').replace(/\s+/g,'').toLocaleUpperCase()}
 function normalizeVehicleModel(value){return String(value||'').normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase()}
-async function openVehicleProfileFromPhoto(p){const plate=cleanVehicleNumber(p.plate_no),fleet=cleanVehicleNumber(p.fleet_no);let v=null;if(p.city_id&&(plate||fleet)){let q=db.from('vehicles').select('*').eq('city_id',p.city_id);q=plate?q.eq('plate_no',plate):q.eq('fleet_no',fleet);const r=await q.limit(20),found=r.data||[];v=(p.enterprise_id&&found.find(x=>x.enterprise_id===p.enterprise_id&&(!p.model||normalizeVehicleModel(x.model)===normalizeVehicleModel(p.model))))||(plate&&p.model&&found.find(x=>normalizeVehicleModel(x.model)===normalizeVehicleModel(p.model)))||found.find(x=>fleet&&normalizeVehicleKey(x.fleet_no)===normalizeVehicleKey(fleet))||found[0]||null}if(!v)v={city_id:p.city_id,enterprise_id:p.enterprise_id,fleet_no:fleet,plate_no:plate,model:p.model,vehicle_type:p.transport};const ent=enterprises.find(e=>e.id===v.enterprise_id),editable=!!(curEnt&&canEditEnt());openVehicleProfile(v,editable,p);if(ent)$('vpLocation').textContent=[(cities.find(c=>c.id===v.city_id)||{}).name,ent.name].filter(Boolean).join(' · ')}
+async function openVehicleProfileFromPhoto(p){const plate=cleanVehicleNumber(p.plate_no),fleet=cleanVehicleNumber(p.fleet_no);let v=null;if(plate||fleet){let q=db.from('vehicles').select('*');q=plate?q.eq('plate_no',plate):q.eq('fleet_no',fleet);if(p.enterprise_id)q=q.eq('enterprise_id',p.enterprise_id);const r=await q.limit(100),found=r.data||[];v=(p.model&&found.find(x=>normalizeVehicleModel(x.model)===normalizeVehicleModel(p.model)))||found[0]||null}if(!v)v={city_id:p.city_id,enterprise_id:p.enterprise_id,fleet_no:fleet,plate_no:plate,model:p.model,vehicle_type:p.transport};const city=cities.find(c=>c.id===v.city_id),ent=enterprises.find(e=>e.id===v.enterprise_id);let entName=ent&&ent.name;if(v.enterprise_id&&!entName){const result=await db.from('enterprises').select('name').eq('id',v.enterprise_id).maybeSingle();entName=result.data&&result.data.name||''}const editable=!!(city&&me.uid&&(city.owner_id===me.uid||isStaff()||isCityEditor(city.id)));openVehicleProfile(v,editable,p);$('vpLocation').textContent=[city&&city.name,entName].filter(Boolean).join(' · ')}
 $('vpBack').addEventListener('click',closeVehicleProfile);$('vpEdit').addEventListener('click',()=>{if(vehPageCurrent)openVehForm(vehPageCurrent)});$('vpTransfer').addEventListener('click',openVehicleTransfer);$('vpSuggest').addEventListener('click',()=>{const v=vehPageCurrent;if(!v||!me.uid)return;askReason('Опишіть правку щодо цього ТС',text=>submitVehicleCorrection(v,text))});
 $('vhEdit').addEventListener('click', () => openVehForm(vhCur));
 $('vhClose').addEventListener('click', closeModal);
@@ -6704,23 +6707,23 @@ function phCard(p) {
   if(p.status!=='approved'){const bd=document.createElement('span');bd.className='ph-badge';bd.textContent='⏳ На модерації';pic.appendChild(bd)}else{const left=20*3600000-(Date.now()-phTime(p.created_at));if(left>0){const nw=document.createElement('span');nw.className='ph-new';nw.textContent='НОВЕ';pic.appendChild(nw);setTimeout(()=>nw.remove(),left)}}
   const info=document.createElement('div');info.className='ph-info';const loc=document.createElement('div');loc.className='ph-loc';const pin=document.createElement('span');pin.textContent='📍';const lt=document.createElement('span');const cb=document.createElement('b');cb.textContent=p.city_name||(cities.find(c=>c.id===p.city_id)||{}).name||'—';lt.append(cb,p.caption?', '+p.caption:'');loc.append(pin,lt);
   const row=document.createElement('div');row.className='ph-row';const fleet=cleanVehicleNumber(p.fleet_no),plate=cleanVehicleNumber(p.plate_no);if(p.model||fleet||plate){if(p.model){const m=document.createElement('span');m.className='ph-model';m.textContent=p.model;row.appendChild(m)}if(fleet){const bx=document.createElement('button');bx.type='button';bx.className='ph-box ph-vehicle-link';bx.textContent=fleet;if(p._vc)bx.style.color=p._vc;bx.title='Відкрити профіль транспортного засобу';bx.addEventListener('click',e=>{e.stopPropagation();openVehicleProfileFromPhoto(p)});row.appendChild(bx)}if(plate){const bx=document.createElement('button');bx.type='button';bx.className='ph-box ph-plate ph-vehicle-link';bx.textContent=plate;if(p._vc)bx.style.color=p._vc;bx.title='Відкрити профіль транспортного засобу';bx.addEventListener('click',e=>{e.stopPropagation();openVehicleProfileFromPhoto(p)});row.appendChild(bx)}}else if(p.category){const mu=document.createElement('span');mu.className='ph-muted';mu.textContent=p.category.toLowerCase();row.appendChild(mu)}
-  info.append(loc,row);card.append(pic,info);card.addEventListener('click',()=>openPhoto(p));return card;
+  info.append(loc,row);if(p.note){const note=document.createElement('p');note.className='ph-note';note.textContent=p.note;info.appendChild(note)}card.append(pic,info);card.addEventListener('click',()=>openPhoto(p));return card;
 }
 
 async function enrichPhotos(list) {
   const need=list.filter(p=>(p.fleet_no||p.plate_no)&&(!p.model||p._vc===undefined));
   if(!need.length)return;
-  const cityIds=[...new Set(need.map(p=>p.city_id).filter(Boolean))],fleets=[...new Set(need.map(p=>String(p.fleet_no||'').trim()).filter(Boolean))],plates=[...new Set(need.map(p=>String(p.plate_no||'').trim()).filter(Boolean))];
+  const fleets=[...new Set(need.map(p=>String(p.fleet_no||'').trim()).filter(Boolean))],plates=[...new Set(need.map(p=>String(p.plate_no||'').trim()).filter(Boolean))];
   const queries=[];
-  if(cityIds.length&&fleets.length)queries.push(db.from('vehicles').select('city_id, enterprise_id, fleet_no, model, plate_no, status').in('city_id',cityIds).in('fleet_no',fleets));
-  if(cityIds.length&&plates.length)queries.push(db.from('vehicles').select('city_id, enterprise_id, fleet_no, model, plate_no, status').in('city_id',cityIds).in('plate_no',plates));
+  if(fleets.length)queries.push(db.from('vehicles').select('city_id, enterprise_id, fleet_no, model, plate_no, status').in('fleet_no',fleets));
+  if(plates.length)queries.push(db.from('vehicles').select('city_id, enterprise_id, fleet_no, model, plate_no, status').in('plate_no',plates));
   const results=await Promise.all(queries);
   const data=results.flatMap(r=>r.data||[]);
   need.forEach(p=>{
     const plate=normalizeVehicleKey(cleanVehicleNumber(p.plate_no)),fleet=normalizeVehicleKey(cleanVehicleNumber(p.fleet_no)),model=normalizeVehicleModel(p.model);
-    const candidates=data.filter(v=>v.city_id===p.city_id&&((plate&&normalizeVehicleKey(v.plate_no)===plate)||(!plate&&fleet&&normalizeVehicleKey(v.fleet_no)===fleet)));
+    const candidates=data.filter(v=>(plate&&normalizeVehicleKey(v.plate_no)===plate)||(!plate&&fleet&&normalizeVehicleKey(v.fleet_no)===fleet));
     candidates.sort((a,b)=>{
-      const score=v=>(plate&&normalizeVehicleKey(v.plate_no)===plate?16:0)+(fleet&&normalizeVehicleKey(v.fleet_no)===fleet?8:0)+(model&&normalizeVehicleModel(v.model)===model?4:0)+(p.enterprise_id&&v.enterprise_id===p.enterprise_id?2:0);
+      const score=v=>(p.enterprise_id&&v.enterprise_id===p.enterprise_id?64:0)+(model&&normalizeVehicleModel(v.model)===model?32:0)+(plate&&normalizeVehicleKey(v.plate_no)===plate?16:0)+(fleet&&normalizeVehicleKey(v.fleet_no)===fleet?8:0)+(v.city_id===p.city_id?1:0);
       return score(b)-score(a);
     });
     const v=candidates[0];p._vc=v?statColor(VEH_STATUSES,v.status):'var(--text)';
@@ -6786,6 +6789,7 @@ function openPhotoOld(p) {
     ['Держ. №', p.plate_no],
     ['Маршрут', p.route],
     ['Місце зйомки', p.caption],
+    ['Примітка', p.note],
     ['Автор', p.owner_name],
     ['Статус', p.status === 'approved' ? '' : '⏳ На модерації']
   ].filter(r => r[1]).map(r => infoRow(r[0], r[1])));
@@ -7042,7 +7046,7 @@ function phShowVeh() {
     card.replaceChildren();
     return;
   }
-  const city = cities.find(c => c.id === phCityId);
+  const city = cities.find(c => c.id === v.city_id) || cities.find(c => c.id === phCityId);
   const l1 = document.createElement('div');
   const cb = document.createElement('b');
   cb.textContent = city ? city.name : '';
@@ -7097,10 +7101,8 @@ async function phCheckFleet() {
     phSetBad('fleet', false);
     return;
   }
-  const city = phCityId;
-  const { data, error } = await db.from('vehicles').select('id').eq('city_id', city)
-    .or('fleet_no.eq.' + postgrestLiteral(q) + ',plate_no.eq.' + postgrestLiteral(q)).limit(1);
-  if (error || city !== phCityId || phVehSel || $('phFleet').value.trim() !== raw) return;
+  const { data, error } = await db.from('vehicles').select('id').or('fleet_no.eq.' + postgrestLiteral(q) + ',plate_no.eq.' + postgrestLiteral(q) + ',extra_no.eq.' + postgrestLiteral(q)).limit(1);
+  if (error || phVehSel || $('phFleet').value.trim() !== raw) return;
   phSetBad('fleet', !(data && data[0]), raw);
 }
 
@@ -7118,11 +7120,22 @@ async function phCheckRoute() {
   phSetBad('route', !ok, raw);
 }
 
+async function phEnrichVeh(rows) {
+  const entIds=[...new Set(rows.map(v=>v.enterprise_id).filter(Boolean))],cityIds=[...new Set(rows.map(v=>v.city_id).filter(Boolean))];
+  const [entResult,cityResult]=await Promise.all([
+    entIds.length?db.from('enterprises').select('id,name').in('id',entIds):Promise.resolve({data:[]}),
+    cityIds.length?db.from('cities').select('id,name').in('id',cityIds):Promise.resolve({data:[]})
+  ]);
+  const entMap=new Map((entResult.data||[]).map(e=>[e.id,e.name])),cityMap=new Map(cities.map(c=>[c.id,c.name]));
+  (cityResult.data||[]).forEach(c=>cityMap.set(c.id,c.name));
+  return rows.map(v=>({...v,ent_name:entMap.get(v.enterprise_id)||'',city_name:cityMap.get(v.city_id)||''}));
+}
+
 function phPickVeh(v) {
   phSetBad('fleet', false);
   const pe = phEnts.find(e => e.id === v.enterprise_id);
-  phVehSel = { ...v, ent_name: pe ? pe.name : '' };
-  $('phFleet').value = v.fleet_no;
+  phVehSel = { ...v, ent_name: v.ent_name || (pe ? pe.name : ''), city_name: v.city_name || (cities.find(c => c.id === v.city_id) || {}).name || '' };
+  $('phFleet').value = v.fleet_no || v.plate_no || v.extra_no || '';
   phEntId = v.enterprise_id;
   phTypeKey = v.vehicle_type || null;
   phFillTypes();
@@ -7137,20 +7150,22 @@ async function phSearchVeh() {
     return;
   }
   const city = phCityId;
-  const { data } = await db.from('vehicles')
-    .select('id, enterprise_id, fleet_no, extra_no, plate_no, model, vehicle_type, status, arrived, written_off')
-    .eq('city_id', city)
+  const { data, error } = await db.from('vehicles')
+    .select('id, city_id, enterprise_id, fleet_no, extra_no, plate_no, model, vehicle_type, status, arrived, written_off')
     .or(['fleet_no','plate_no','extra_no'].map(column=>column+'.ilike.'+postgrestLiteral(q,true)).join(','))
-    .limit(8);
+    .limit(20);
+  if(error){hideSug();return}
   if (city !== phCityId || supClean($('phFleet').value) !== q) return;
-  sugShow('phFleetSug', (data || []).map(v => {
+  const vehicles=await phEnrichVeh(data||[]);
+  if (city !== phCityId || supClean($('phFleet').value) !== q) return;
+  sugShow('phFleetSug', vehicles.map(v => {
     const ent = phEnts.find(e => e.id === v.enterprise_id);
     const d = document.createElement('div');
     d.className = 'up-sug-item';
     const b = document.createElement('b');
     b.style.color = statColor(VEH_STATUSES, v.status);
     b.textContent = (v.model ? v.model + ', ' : '') + '#' + v.fleet_no + (v.plate_no ? ' #' + v.plate_no : '');
-    d.append((ent ? ent.name : '—') + ', ', b, ', ' + (v.arrived || '...') + ' - ' + (v.written_off || '...'));
+    d.append((v.city_name ? v.city_name + ' · ' : '') + (v.ent_name || (ent ? ent.name : '—')) + ', ', b, ', ' + (v.arrived || '...') + ' - ' + (v.written_off || '...'));
     d.addEventListener('click', () => phPickVeh(v));
     return d;
   }));
@@ -7353,6 +7368,14 @@ async function openPhotoForm(p) {
   setMsg($('phMsg'), '');
   showPage('uploadView', '#upload');
   await phFillEnts(pref);
+  if(p&&phVehSel&&(p.plate_no||p.fleet_no)){
+    let vehicleQuery=db.from('vehicles').select('id,city_id,enterprise_id,fleet_no,extra_no,plate_no,model,vehicle_type,status,arrived,written_off');
+    if(p.enterprise_id)vehicleQuery=vehicleQuery.eq('enterprise_id',p.enterprise_id);
+    vehicleQuery=p.plate_no?vehicleQuery.eq('plate_no',p.plate_no):vehicleQuery.eq('fleet_no',p.fleet_no);
+    const vehicleResult=await vehicleQuery.limit(50),match=(vehicleResult.data||[]).find(v=>p.model&&normalizeVehicleModel(v.model)===normalizeVehicleModel(p.model))||(vehicleResult.data||[])[0];
+    if(match)phVehSel=(await phEnrichVeh([match]))[0];
+    phShowVeh();
+  }
 }
 
 async function loadMy() {
@@ -7553,12 +7576,14 @@ $('photoUp').addEventListener('submit', async ev => {
   if (!phVehSel && typedFleet) {
     const q = supClean(typedFleet);
     const { data: vm } = await db.from('vehicles')
-      .select('id, enterprise_id, fleet_no, extra_no, plate_no, model, vehicle_type, status')
-      .eq('city_id', city.id)
-      .or('fleet_no.eq.' + postgrestLiteral(q) + ',plate_no.eq.' + postgrestLiteral(q))
-      .limit(1);
-    if (vm && vm[0]) {
-      phPickVeh(vm[0]);
+      .select('id, city_id, enterprise_id, fleet_no, extra_no, plate_no, model, vehicle_type, status, arrived, written_off')
+      .or('fleet_no.eq.' + postgrestLiteral(q) + ',plate_no.eq.' + postgrestLiteral(q) + ',extra_no.eq.' + postgrestLiteral(q))
+      .limit(20);
+    if (vm && vm.length) {
+      const vehicles=await phEnrichVeh(vm);
+      const normalized=normalizeVehicleKey(q);
+      const found=vehicles.find(v=>[v.fleet_no,v.plate_no,v.extra_no].some(value=>normalizeVehicleKey(value)===normalized))||vehicles[0];
+      phPickVeh(found);
     } else {
       setMsg($('phMsg'), 'ТС «' + typedFleet + '» немає в базі. Оберіть ТС зі списку');
       return;
@@ -7593,8 +7618,8 @@ $('photoUp').addEventListener('submit', async ev => {
   const fields = {
     city_id: city.id,
     city_name: city.name,
-    enterprise_id: ent ? ent.id : null,
-    enterprise_name: ent ? ent.name : null,
+    enterprise_id: entId,
+    enterprise_name: ent ? ent.name : (phVehSel && phVehSel.ent_name) || null,
     transport: phTypeKey || 'bus',
     category: phCatName,
     caption: tv('phPlace'),
@@ -7905,7 +7930,7 @@ function openPhoto(p) {
     if(fleetNo){const f=document.createElement('button');f.type='button';f.className='pp-fleet pp-veh-link';f.textContent=fleetNo;f.title='Відкрити профіль транспортного засобу';f.addEventListener('click',e=>{e.stopPropagation();openVehicleProfileFromPhoto(p)});v.appendChild(f)}
     if(plateNo){const pl=document.createElement('button');pl.type='button';pl.className='pp-fleet plate pp-veh-link';pl.textContent=plateNo;pl.title='Відкрити профіль транспортного засобу';pl.addEventListener('click',e=>{e.stopPropagation();openVehicleProfileFromPhoto(p)});v.appendChild(pl)}
     const vm=document.createElement('div');vm.className='pp-vm';const mt=document.createElement('span');mt.textContent=p.model||'';const sm=document.createElement('small');vm.append(mt,sm);v.appendChild(vm);info.push(v);
-    if(fleetNo||plateNo){const identity=plateNo?'plate_no':'fleet_no',value=plateNo||fleetNo;db.from('vehicles').select('build_year,status,enterprise_id,model,plate_no,fleet_no').eq('city_id',p.city_id).eq(identity,value).limit(100).then(r=>{if(ppCur!==p)return;const rows=r.data||[],x=(p.enterprise_id&&rows.find(v=>v.enterprise_id===p.enterprise_id&&(!p.model||normalizeVehicleModel(v.model)===normalizeVehicleModel(p.model))))||(p.model&&rows.find(v=>normalizeVehicleModel(v.model)===normalizeVehicleModel(p.model)))||rows[0];if(!x)return;if(x.build_year)sm.textContent=String(x.build_year);$('photoPage').style.setProperty('--vc',statColor(VEH_STATUSES,x.status))})}
+    if(fleetNo||plateNo){const identity=plateNo?'plate_no':'fleet_no',value=plateNo||fleetNo;let vehicleQuery=db.from('vehicles').select('build_year,status,enterprise_id,model,plate_no,fleet_no').eq(identity,value);if(p.enterprise_id)vehicleQuery=vehicleQuery.eq('enterprise_id',p.enterprise_id);else if(p.city_id)vehicleQuery=vehicleQuery.eq('city_id',p.city_id);vehicleQuery.limit(100).then(r=>{if(ppCur!==p)return;const rows=r.data||[],x=(p.enterprise_id&&rows.find(v=>v.enterprise_id===p.enterprise_id&&(!p.model||normalizeVehicleModel(v.model)===normalizeVehicleModel(p.model))))||(p.model&&rows.find(v=>normalizeVehicleModel(v.model)===normalizeVehicleModel(p.model)))||rows[0];if(!x)return;if(x.build_year)sm.textContent=String(x.build_year);$('photoPage').style.setProperty('--vc',statColor(VEH_STATUSES,x.status))})}
   }
 
   const rt = document.createElement('div');
@@ -7936,6 +7961,7 @@ function openPhoto(p) {
     rt.appendChild(none);
   }
   info.push(rt);
+  if(p.note){const note=document.createElement('div');note.className='pp-note';const label=document.createElement('b');label.textContent='Примітка';const text=document.createElement('span');text.textContent=p.note;note.append(label,text);info.push(note)}
   $('ppInfo').replaceChildren(...info);
 
   const pub = new Date(p.created_at);
