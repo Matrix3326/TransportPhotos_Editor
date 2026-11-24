@@ -2827,6 +2827,7 @@ html[data-theme="dark"] .um-sep { background: #444; }
 }
 
 
+.maint-switch{display:flex;align-items:center;gap:10px;margin:14px 0;padding:14px;border-radius:8px;background:rgba(128,128,128,.1);font-weight:700}.maint-switch input{width:20px;height:20px;accent-color:#e0b500}.maint-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.maint-actions .msg{margin:0}
 .maintenance-screen{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:#1b1d24;color:#f5f5f5;text-align:center}
 .maintenance-card{width:min(620px,100%);padding:38px 30px;border:1px solid rgba(255,255,255,.14);border-radius:16px;background:#252833;box-shadow:0 18px 60px rgba(0,0,0,.35)}
 .maintenance-brand{display:block;margin-bottom:22px;color:#ffcf27;font-size:14px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
@@ -2889,6 +2890,7 @@ body.maintenance-active{overflow:hidden!important}
     <button class="staff-tab" data-staff="log" type="button">Журнал</button>
     <button class="staff-tab" data-staff="accounts" type="button">Акаунти</button>
     <button class="staff-tab" data-staff="photos" type="button">Заявки на фото</button>
+    <button class="staff-tab" data-staff="maintenance" type="button">Технічні роботи</button>
   </div>
   <div class="staff-pane" id="staffPending">
     <div id="reqPending"></div>
@@ -2918,6 +2920,14 @@ body.maintenance-active{overflow:hidden!important}
     <input class="cv-search acc-search" id="accSearch" type="text" placeholder="Пошук за ніком...">
     <p id="accMsg" class="msg"></p>
     <div id="accList" class="notif-list acc-list"></div>
+  </div>
+  <div class="staff-pane hidden" id="staffMaintenance">
+    <h3>Режим технічних робіт</h3>
+    <p>Коли режим увімкнено, відвідувачі побачать сторінку технічних робіт. Адміністратори зможуть залишитися на сайті й вимкнути режим.</p>
+    <label class="maint-switch"><input id="maintenanceEnabled" type="checkbox"><span>Закрити сайт для відвідувачів</span></label>
+    <label class="field"><span>Заголовок</span><input id="maintenanceTitleInput" maxlength="120" type="text" value="Технічні роботи"></label>
+    <label class="field"><span>Повідомлення</span><textarea id="maintenanceMessageInput" rows="4" maxlength="1000">Сайт тимчасово недоступний. Будь ласка, зайдіть трохи пізніше.</textarea></label>
+    <div class="maint-actions"><button class="btn dark" id="saveMaintenance" type="button">Зберегти</button><p id="maintenanceAdminMsg" class="msg"></p></div>
   </div>
 </div>
 
@@ -3287,7 +3297,7 @@ body.maintenance-active{overflow:hidden!important}
     <form id="vehForm" class="view">
       <div class="city-head"><h2 id="vehTitle">Додати ТС</h2></div>
       <div class="city-grid veh-grid">
-        <label>Борт. № *<input id="vehFleet" type="text" maxlength="30" required></label>
+        <label>Борт. №<input id="vehFleet" type="text" maxlength="30"></label>
         <label>Дод. №<input id="vehExtra" type="text" maxlength="30"></label>
         <div class="veh-pick"><span>Держ. №</span><div class="plate-row"><input id="vehPlate" type="text" maxlength="30"><button class="plate-gen" id="plateGen" type="button" title="Тип номера"><i class="dd-arrow"></i></button></div></div>
         <div class="veh-pick"><span>Тип ТС</span><button class="dd-btn" id="vehTypeBtn" type="button"><span class="dd-label"></span><i class="dd-arrow"></i></button></div>
@@ -4836,7 +4846,7 @@ function buildVehTable(list, editable) {
       tr.addEventListener('click', () => openVehInfo(v, editable));
       const num = tr.insertCell();
       const b = document.createElement('b');
-      b.textContent = v.fleet_no;
+      b.textContent = v.fleet_no || '—';
       num.appendChild(b);
       if (v.extra_no) {
         const s = document.createElement('small');
@@ -4974,7 +4984,7 @@ function openVehForm(v) {
   setVehType(v ? v.vehicle_type : null);
   setVehStatus(v ? v.status : 'active');
   $('vehDelete').classList.toggle('hidden', !v);
-  $('vehDup').classList.toggle('hidden', !v);
+  $('vehDup').classList.toggle('hidden', !v || !String(v.fleet_no || '').trim());
   setMsg($('vehMsg'), '');
   resetVehDelete();
   openModal('veh');
@@ -4999,7 +5009,7 @@ function openVehicleProfile(v, editable=false, sourcePhoto=null) {
 }
 async function loadVehicleProfilePhotos(v,sourcePhoto){const plate=cleanVehicleNumber(v.plate_no),fleet=cleanVehicleNumber(v.fleet_no),queries=[];if(plate)queries.push(db.from('photos').select('*').eq('status','approved').eq('plate_no',plate).limit(300));else if(fleet)queries.push(db.from('photos').select('*').eq('status','approved').eq('city_id',v.city_id).eq('fleet_no',fleet).limit(300));const results=await Promise.all(queries);if(vehPageCurrent!==v)return;const map=new Map();results.forEach(r=>(r.data||[]).forEach(p=>map.set(p.id,p)));if(sourcePhoto&&sourcePhoto.id)map.set(sourcePhoto.id,sourcePhoto);const photos=[...map.values()].filter(p=>{const pf=String(p.fleet_no||'').trim(),pp=String(p.plate_no||'').trim();return plate?pp===plate:(!fleet||pf===fleet)}).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));await enrichPhotos(photos);if(vehPageCurrent!==v)return;$('vpPhotoGrid').replaceChildren(...photos.map(phCard));$('vpPhotoEmpty').classList.toggle('hidden',photos.length>0);const sightings=photos.map(p=>{const tr=document.createElement('tr'),city=cities.find(c=>c.id===p.city_id),dt=p.shot_date||p.created_at&&new Date(p.created_at).toLocaleDateString('uk-UA');[p.city_name||(city&&city.name)||'—',p.enterprise_name||'—',String(p.plate_no||plate||'—'),dt||'—'].forEach(x=>{const td=document.createElement('td');td.textContent=x;tr.appendChild(td)});return tr});if(sightings.length){const old=[...$('vpHistory').querySelectorAll('tr')].filter(r=>/Надійшов:|Почав працювати:|Списаний:/.test(r.textContent));$('vpHistory').replaceChildren(...sightings,...old)}}
 function closeVehicleProfile(){const prev=vehPageReturn;vehPageReturn=null;vehPageCurrent=null;vehPageEditable=false;PAGES.forEach(id=>$(id).classList.add('hidden'));if(!prev)return;currentId=prev.cityId;curEnt=prev.ent;ppCur=prev.photo;renderCity();if(prev.page)$(prev.page).classList.remove('hidden');history.replaceState(null,'',prev.hash||location.pathname+location.search);window.scrollTo({top:0})}
-function cleanVehicleNumber(value){const x=String(value==null?'':value).replace(/[\u200B-\u200D\uFEFF\u2800\u00A0]/g,' ').trim();return /^(?:-|—|null|undefined|n\/?a)$/i.test(x)?'':x}
+function cleanVehicleNumber(value){const x=String(value==null?'':value).normalize('NFKC').replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u2800\u00A0]/g,' ').trim();return /[A-Za-z0-9\u00C0-\u024F\u0400-\u04FF]/.test(x)?x:''}
 async function openVehicleProfileFromPhoto(p){const plate=cleanVehicleNumber(p.plate_no),fleet=cleanVehicleNumber(p.fleet_no);let v=null;if(p.city_id&&(plate||fleet)){let q=db.from('vehicles').select('*').eq('city_id',p.city_id);q=plate?q.eq('plate_no',plate):q.eq('fleet_no',fleet);const r=await q.limit(20);v=(r.data||[]).find(x=>!fleet||String(x.fleet_no||'').trim()===fleet)||(r.data||[])[0]||null}if(!v)v={city_id:p.city_id,enterprise_id:p.enterprise_id,fleet_no:fleet,plate_no:plate,model:p.model,vehicle_type:p.transport};const ent=enterprises.find(e=>e.id===v.enterprise_id),editable=!!(curEnt&&canEditEnt());openVehicleProfile(v,editable,p);if(ent)$('vpLocation').textContent=[(cities.find(c=>c.id===v.city_id)||{}).name,ent.name].filter(Boolean).join(' · ')}
 $('vpBack').addEventListener('click',closeVehicleProfile);$('vpEdit').addEventListener('click',()=>{if(vehPageCurrent)openVehForm(vehPageCurrent)});
 $('vhEdit').addEventListener('click', () => openVehForm(vhCur));
@@ -5018,10 +5028,10 @@ $('vehForm').addEventListener('submit', async ev => {
     return;
   }
   const t = id => $(id).value.trim() || null;
-  const fleet = $('vehFleet').value.trim();
+  const fleet = $('vehFleet').value.trim() || null;
   const model = $('vehModel').value.trim();
-  if (!fleet || !model) {
-    setMsg($('vehMsg'), 'Заповни борт. № і модель');
+  if (!model) {
+    setMsg($('vehMsg'), 'Заповни модель');
     return;
   }
   const year = $('vehYear').value.trim();
@@ -5652,6 +5662,8 @@ document.querySelectorAll('.staff-tab').forEach(t => {
     $('staffLog').classList.toggle('hidden', t.dataset.staff !== 'log');
     $('staffAccounts').classList.toggle('hidden', t.dataset.staff !== 'accounts');
     $('staffPhotos').classList.toggle('hidden', t.dataset.staff !== 'photos');
+    $('staffMaintenance').classList.toggle('hidden', t.dataset.staff !== 'maintenance');
+    if (t.dataset.staff === 'maintenance') loadMaintenanceSettings();
     if (t.dataset.staff === 'photos') loadPhotoReqs();
     if (t.dataset.staff === 'log') loadLog();
     if (t.dataset.staff === 'accounts') loadAccounts();
@@ -7952,21 +7964,34 @@ $('logout').addEventListener('click', async () => {
   await db.auth.signOut();
 });
 
+async function currentSessionIsStaff(){
+  try{const {data:s}=await db.auth.getSession();if(!s.session)return false;const {data:p}=await db.from('profiles').select('role').eq('id',s.session.user.id).maybeSingle();return !!p&&['owner','admin'].includes(p.role)}catch(e){return false}
+}
+async function loadMaintenanceSettings(){
+  if(!isStaff())return;setMsg($('maintenanceAdminMsg'),'');
+  const {data,error}=await db.from('site_maintenance').select('enabled,title,message').eq('id',true).maybeSingle();
+  if(error){setMsg($('maintenanceAdminMsg'),'Налаштуйте таблицю site_maintenance у Supabase за файлом site_maintenance.sql.');return}
+  $('maintenanceEnabled').checked=!!(data&&data.enabled);
+  $('maintenanceTitleInput').value=data&&data.title||'Технічні роботи';
+  $('maintenanceMessageInput').value=data&&data.message||'Сайт тимчасово недоступний. Будь ласка, зайдіть трохи пізніше.';
+}
+$('saveMaintenance').addEventListener('click',async()=>{
+  if(!isStaff())return;const b=$('saveMaintenance');b.disabled=true;setMsg($('maintenanceAdminMsg'),'');
+  const row={id:true,enabled:$('maintenanceEnabled').checked,title:$('maintenanceTitleInput').value.trim()||'Технічні роботи',message:$('maintenanceMessageInput').value.trim()||'Сайт тимчасово недоступний. Будь ласка, зайдіть трохи пізніше.',updated_at:new Date().toISOString()};
+  const {error}=await db.from('site_maintenance').update(row).eq('id',true);b.disabled=false;
+  if(error){setMsg($('maintenanceAdminMsg'),error.message);return}
+  setMsg($('maintenanceAdminMsg'),row.enabled?'Режим технічних робіт увімкнено. Адміністратори можуть залишитися на сайті.':'Режим технічних робіт вимкнено.',true);
+});
 async function loadMaintenanceMode(){
-  try{
-    const response=await fetch('./maintenance.json',{cache:'no-store'});
-    if(!response.ok)return;
-    const config=await response.json();
-    if(config.enabled!==true)return;
-    if(typeof config.title==='string'&&config.title.trim())$('maintenanceTitle').textContent=config.title.trim();
-    if(typeof config.message==='string'&&config.message.trim())$('maintenanceMessage').textContent=config.message.trim();
-    $('maintenanceScreen').classList.remove('hidden');
-    $('maintenanceScreen').setAttribute('aria-hidden','false');
-    document.body.classList.add('maintenance-active');
-    document.querySelector('nav').setAttribute('aria-hidden','true');
-    document.querySelector('main').setAttribute('aria-hidden','true');
-    $('overlay').setAttribute('aria-hidden','true');
-  }catch(e){/* Keep the regular site available if the optional config cannot load. */}
+  let config=null;
+  try{const {data,error}=await db.from('site_maintenance').select('enabled,title,message').eq('id',true).maybeSingle();if(!error&&data)config=data}catch(e){}
+  if(!config){try{const response=await fetch('./maintenance.json',{cache:'no-store'});if(response.ok)config=await response.json()}catch(e){}}
+  if(!config||config.enabled!==true)return;
+  if(await currentSessionIsStaff())return;
+  if(typeof config.title==='string'&&config.title.trim())$('maintenanceTitle').textContent=config.title.trim();
+  if(typeof config.message==='string'&&config.message.trim())$('maintenanceMessage').textContent=config.message.trim();
+  $('maintenanceScreen').classList.remove('hidden');$('maintenanceScreen').setAttribute('aria-hidden','false');document.body.classList.add('maintenance-active');
+  document.querySelector('nav').setAttribute('aria-hidden','true');document.querySelector('main').setAttribute('aria-hidden','true');$('overlay').setAttribute('aria-hidden','true');
 }
 loadMaintenanceMode();
 </script>
