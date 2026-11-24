@@ -2131,9 +2131,9 @@ button {
 .ov { border-color: var(--sc); }
 .ov-temp { --sc: #f59e0b; } .ov-renum { --sc: #60a5fa; } .ov-merged { --sc: #d946ef; } .ov-closed { --sc: #ef4444; } .ov-vehicle { --sc: #6d6bf7; }
 
-.rc { background: #171717; color: #fff; overflow: hidden; }
-.rc-top { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; padding: 16px 24px; background: #262626; }
-.rc small { display: block; margin-bottom: 3px; font-size: 12px; color: #9a9aa0; }
+.rc { background: var(--surface); color: var(--text); border: 1px solid var(--border); overflow: hidden; }
+.rc-top { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; padding: 16px 24px; background: var(--surface-2); }
+.rc small { display: block; margin-bottom: 3px; font-size: 12px; color: var(--muted); }
 .rc-top b { font-weight: 600; }
 .rc-body { display: flex; flex-direction: column; gap: 14px; padding: 18px 24px; }
 .rc-body b { font-size: 20px; }
@@ -5426,7 +5426,7 @@ function openRouteInfo(r) {
   $('rcPerLbl').textContent = per && !/[-–—]/.test(per) ? 'Початок експлуатації' : 'Період експлуатації';
   $('rcPeriod').textContent = per || '—';
   const re = enterprises.find(x => x.id === r.enterprise_id) || curEnt;
-  $('rcEnt').textContent = re ? re.name : '';
+  $('rcEnt').textContent = re ? re.name : r.enterprise_name || '—';
   $('rcNote').textContent = r.note || '';
   $('rcNoteBox').classList.toggle('hidden', !r.note);
   $('rcEdit').classList.toggle('hidden', !canEditEnt() || !curEnt);
@@ -7972,17 +7972,23 @@ function openPhoto(p) {
   const rt = document.createElement('div');
   rt.className = 'pp-route';
   if (p.route) {
-    const chip = document.createElement('span');
+    const chip = document.createElement('button');
+    chip.type = 'button';
     chip.className = 'rt-chip';
     chip.textContent = p.route;
-    chip.title = p.route_name || '';
+    chip.title = p.route_name || 'Відкрити інформацію про маршрут';
+    chip.disabled = true;
     rt.appendChild(chip);
-    db.from('routes').select('status, mode, line, name').eq('city_id', p.city_id).eq('line', p.route).limit(1).then(r => {
-      const x = r.data && r.data[0];
-      if (ppCur === p && x) {
-        chip.className = rtClass(x);
-        chip.title = x.name || '';
-      }
+    let routeQuery=db.from('routes').select('*').eq('city_id',p.city_id).eq('line',p.route);
+    if(p.enterprise_id)routeQuery=routeQuery.eq('enterprise_id',p.enterprise_id);
+    routeQuery.limit(20).then(result=>{
+      if(ppCur!==p)return;
+      const rows=result.data||[],routeRecord=(p.enterprise_id&&rows.find(x=>x.enterprise_id===p.enterprise_id))||(p.route_name&&rows.find(x=>x.name===p.route_name))||(rows.length===1?rows[0]:null);
+      if(!routeRecord)return;
+      chip.disabled=false;
+      chip.className=rtClass(routeRecord);
+      chip.title=routeRecord.name||'Відкрити інформацію про маршрут';
+      chip.addEventListener('click',event=>{event.stopPropagation();openRouteInfo({...routeRecord,enterprise_name:routeRecord.enterprise_name||p.enterprise_name||''})});
     });
   } else {
     const none = document.createElement('span');
