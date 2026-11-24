@@ -3123,7 +3123,7 @@ body.maintenance-active{overflow:hidden}
 
 <div id="photoPage" class="panel hidden">
   <div class="pp-wrap">
-    <div class="pp-top"><button class="btn light" id="ppBack" type="button">← Назад</button></div>
+    <div class="pp-top"><button class="btn light" id="ppBack" type="button">Назад</button></div>
     <div class="pp-img"><img id="ppImg" alt=""></div>
     <div class="pp-photo-note hidden" id="ppPhotoNote"></div>
     <div class="pp-meta" id="ppMeta"></div>
@@ -3147,7 +3147,7 @@ body.maintenance-active{overflow:hidden}
 </div>
 
 <div id="vehiclePage" class="panel hidden"><div class="veh-page-wrap">
-  <div class="veh-page-back"><button class="btn light" id="vpBack" type="button">← Назад</button></div>
+  <div class="veh-page-back"><button class="btn light" id="vpBack" type="button">Назад</button></div>
   <div class="veh-page-heading"><div class="veh-page-id"><span id="vpFleet" class="veh-page-fleet hidden"></span><span id="vpPlate" class="veh-page-plate hidden"></span></div><div class="veh-page-name"><h1 id="vpModel">Транспортний засіб</h1><span id="vpYear"></span></div><button class="btn light hidden" id="vpTransfer" type="button">Передати в інше підприємство</button><button class="btn dark hidden" id="vpEdit" type="button">Редагувати ТЗ</button><button class="btn light hidden" id="vpSuggest" type="button">Запропонувати правку</button></div>
   <div class="veh-page-location" id="vpLocation"></div>
   <h2 class="veh-section-title">Історія транспортного засобу</h2><div class="veh-history-scroll"><table class="veh-history-table"><thead><tr><th>Місто / регіон</th><th>Підприємство</th><th>Держномер</th><th>Статус запису</th><th>Надійшов</th><th>Початок роботи</th><th>Списаний</th></tr></thead><tbody id="vpHistory"></tbody></table></div>
@@ -3157,7 +3157,7 @@ body.maintenance-active{overflow:hidden}
 
 <div id="userProfilePage" class="panel hidden">
   <div class="people-profile-wrap">
-    <button class="btn light" id="userProfileBack" type="button">← Назад</button>
+    <button class="btn light" id="userProfileBack" type="button">Назад</button>
     <div class="people-profile-hero">
       <img class="people-profile-avatar" id="userProfileAvatar" alt="">
       <div class="people-profile-main">
@@ -3591,7 +3591,7 @@ const UI_ICON_RULES = [
   [/^Історія транспортного засобу$/i, 'history'], [/^Характеристики$/i, 'list-details'], [/^Дублювати(?: ТС)?$/i, 'copy'],
   [/^(?:\+\s*)?(?:Додати ТС|Додати маршрут|Додати)$/i, 'plus'], [/^Зберегти(?:\s.*)?$/i, 'device-floppy'],
   [/^(?:Скасувати|Закрити)$/i, 'x'], [/^Завантажити фотографію$/i, 'upload'], [/^(?:Вибрати|Обрати) файл$/i, 'photo-plus'],
-  [/^Очистити форму$/i, 'eraser'], [/^←\s*(?:Назад|До міста)$/i, 'arrow-left'], [/^Місце зйомки$/i, 'map-pin'],
+  [/^Очистити форму$/i, 'eraser'], [/^(?:←\s*)?(?:Назад|Back|До міста)$/i, 'arrow-left'], [/^Місце зйомки$/i, 'map-pin'],
   [/^Дата зйомки$/i, 'calendar'], [/^Теги$/i, 'tag'], [/^Коментарі$/i, 'message-circle'], [/^Показати легенду кольорів$/i, 'palette'],
   [/^Імпорт бази$/i, 'file-import'], [/^Увійти$/i, 'login'], [/^Реєстрація$/i, 'user-plus'], [/^Мова$/i, 'language'], [/^Акаунт заблоковано$/i, 'lock'], [/^Додати маршрут$/i, 'plus'], [/^Видалити(?:\s.*)?$/i, 'trash'],
   [/^Заявки на (?:публікацію|фото)$/i, 'inbox'], [/^Журнал$/i, 'clipboard-list'], [/^Акаунти$/i, 'users'],
@@ -7446,7 +7446,7 @@ function route(fromPop) {
 }
 window.addEventListener('popstate', () => route(true));
 $('openRules').addEventListener('click', () => openRules(true));
-$('openMyProfile').addEventListener('click', () => { if (me.uid) openUserProfile(me.uid); else openModal('login'); });
+$('openMyProfile').addEventListener('click', async () => { const {data}=await db.auth.getSession();const uid=me.uid||(data&&data.session&&data.session.user.id);if(uid)openUserProfile(uid).catch(showUserProfileError);else openModal('login'); });
 $('userProfileBack').addEventListener('click', closeUserProfile);
 document.querySelectorAll('[data-profile-tab]').forEach(button => button.addEventListener('click', () => {
   const key=button.dataset.profileTab;
@@ -7455,14 +7455,15 @@ document.querySelectorAll('[data-profile-tab]').forEach(button => button.addEven
 }));
 
 const PEOPLE_PROFILE_TEXT={
-  uk:{photos:'Усі фотографії',best:'Найкращі',comments:'Коментарі автора',geography:'Географія',photoCount:'Фотографії',monthCount:'За місяць',likes:'Лайки',back:'← Назад',allPhotos:'Усі фотографії автора',bestPhotos:'Найкращі фотографії',commentsTitle:'Коментарі автора',photoGeography:'Географія фотографій',mainLocation:'Найчастіше фотографує у',noPhotos:'У користувача ще немає опублікованих фотографій',noComments:'Користувач ще не залишав коментарів',noGeography:'Немає даних про географію фотографій',noLocation:'Місце не вказано',loading:'Завантаження профілю…',notFound:'Не вдалося знайти профіль'},
-  ru:{photos:'Все фотографии',best:'Лучшие',comments:'Комментарии автора',geography:'География',photoCount:'Фотографии',monthCount:'За месяц',likes:'Лайки',back:'← Назад',allPhotos:'Все фотографии автора',bestPhotos:'Лучшие фотографии',commentsTitle:'Комментарии автора',photoGeography:'География фотографий',mainLocation:'Чаще всего фотографирует в',noPhotos:'У пользователя пока нет опубликованных фотографий',noComments:'Пользователь ещё не оставлял комментариев',noGeography:'Нет данных о географии фотографий',noLocation:'Место не указано',loading:'Загрузка профиля…',notFound:'Не удалось найти профиль'},
-  en:{photos:'All photos',best:'Best',comments:'Author comments',geography:'Geography',photoCount:'Photos',monthCount:'This month',likes:'Likes',back:'← Back',allPhotos:'All photos by this user',bestPhotos:'Best photos',commentsTitle:'Author comments',photoGeography:'Photo geography',mainLocation:'Most often photographs in',noPhotos:'This user has no published photos yet',noComments:'This user has not posted comments yet',noGeography:'No photo geography data',noLocation:'Location not set',loading:'Loading profile…',notFound:'Profile not found'},
-  by:{photos:'Усе фатаграфіі',best:'Найлепшыя',comments:'Каментары аўтара',geography:'Геаграфія',photoCount:'Фатаграфіі',monthCount:'За месяц',likes:'Падабайкі',back:'← Назад',allPhotos:'Усе фатаграфіі аўтара',bestPhotos:'Найлепшыя фатаграфіі',commentsTitle:'Каментары аўтара',photoGeography:'Геаграфія фатаграфій',mainLocation:'Часцей за ўсё фатаграфуе ў',noPhotos:'У карыстальніка пакуль няма апублікаваных фатаграфій',noComments:'Карыстальнік яшчэ не пакідаў каментарыяў',noGeography:'Няма даных пра геаграфію фатаграфій',noLocation:'Месца не пазначана',loading:'Загрузка профілю…',notFound:'Не ўдалося знайсці профіль'}
+  uk:{photos:'Усі фотографії',best:'Найкращі',comments:'Коментарі автора',geography:'Географія',photoCount:'Фотографії',monthCount:'За місяць',likes:'Лайки',back:'Назад',allPhotos:'Усі фотографії автора',bestPhotos:'Найкращі фотографії',commentsTitle:'Коментарі автора',photoGeography:'Географія фотографій',mainLocation:'Найчастіше фотографує у',noPhotos:'У користувача ще немає опублікованих фотографій',noComments:'Користувач ще не залишав коментарів',noGeography:'Немає даних про географію фотографій',noLocation:'Місце не вказано',loading:'Завантаження профілю…',notFound:'Не вдалося знайти профіль'},
+  ru:{photos:'Все фотографии',best:'Лучшие',comments:'Комментарии автора',geography:'География',photoCount:'Фотографии',monthCount:'За месяц',likes:'Лайки',back:'Назад',allPhotos:'Все фотографии автора',bestPhotos:'Лучшие фотографии',commentsTitle:'Комментарии автора',photoGeography:'География фотографий',mainLocation:'Чаще всего фотографирует в',noPhotos:'У пользователя пока нет опубликованных фотографий',noComments:'Пользователь ещё не оставлял комментариев',noGeography:'Нет данных о географии фотографий',noLocation:'Место не указано',loading:'Загрузка профиля…',notFound:'Не удалось найти профиль'},
+  en:{photos:'All photos',best:'Best',comments:'Author comments',geography:'Geography',photoCount:'Photos',monthCount:'This month',likes:'Likes',back:'Back',allPhotos:'All photos by this user',bestPhotos:'Best photos',commentsTitle:'Author comments',photoGeography:'Photo geography',mainLocation:'Most often photographs in',noPhotos:'This user has no published photos yet',noComments:'This user has not posted comments yet',noGeography:'No photo geography data',noLocation:'Location not set',loading:'Loading profile…',notFound:'Profile not found'},
+  by:{photos:'Усе фатаграфіі',best:'Найлепшыя',comments:'Каментары аўтара',geography:'Геаграфія',photoCount:'Фатаграфіі',monthCount:'За месяц',likes:'Падабайкі',back:'Назад',allPhotos:'Усе фатаграфіі аўтара',bestPhotos:'Найлепшыя фатаграфіі',commentsTitle:'Каментары аўтара',photoGeography:'Геаграфія фатаграфій',mainLocation:'Часцей за ўсё фатаграфуе ў',noPhotos:'У карыстальніка пакуль няма апублікаваных фатаграфій',noComments:'Карыстальнік яшчэ не пакідаў каментарыяў',noGeography:'Няма даных пра геаграфію фатаграфій',noLocation:'Месца не пазначана',loading:'Загрузка профілю…',notFound:'Не ўдалося знайсці профіль'}
 };
 
 function peopleProfileText(key){return (PEOPLE_PROFILE_TEXT[lang]||PEOPLE_PROFILE_TEXT.uk)[key]||key}
-function peopleProfileLink(uid,name){const node=document.createElement(uid?'button':'span');node.textContent=name||'—';if(uid){node.type='button';node.className='people-profile-link';node.addEventListener('click',event=>{event.stopPropagation();openUserProfile(uid)})}return node}
+function showUserProfileError(error){$('userProfileName').textContent=peopleProfileText('notFound');$('userProfileMessage').textContent=error&&error.message||peopleProfileText('notFound');$('userProfileMessage').classList.remove('hidden')}
+function peopleProfileLink(uid,name){const label=String(name||'—').trim(),targetId=uid||null,clickable=!!targetId||label!=='—';const node=document.createElement(clickable?'button':'span');node.textContent=label;if(clickable){node.type='button';node.className='people-profile-link';node.addEventListener('click',async event=>{event.stopPropagation();try{let profileId=targetId;if(!profileId){const result=await db.from('profiles').select('id,username').ilike('username',escapeLikePattern(label)).limit(5);profileId=(result.data||[]).find(profile=>String(profile.username||'').toLocaleLowerCase()===label.toLocaleLowerCase())?.id;if(result.error||!profileId){alert(peopleProfileText('notFound'));return}}await openUserProfile(profileId)}catch(error){showUserProfileError(error)}})}return node}
 function profileStat(label,value){const item=document.createElement('div');item.className='people-profile-stat';const count=document.createElement('b');count.textContent=Number(value||0).toLocaleString(lang==='by'?'be':lang);const caption=document.createElement('span');caption.textContent=label;item.append(count,caption);return item}
 function profilePhotoGeography(photos){const groups=new Map();photos.forEach(photo=>{const city=cities.find(item=>item.id===photo.city_id),country=city&&city.country||'—',name=city&&city.name||photo.city_name||'—';if(!groups.has(country))groups.set(country,new Map());const cityCounts=groups.get(country);cityCounts.set(name,(cityCounts.get(name)||0)+1)});return [...groups].sort((a,b)=>[...b[1].values()].reduce((s,n)=>s+n,0)-[...a[1].values()].reduce((s,n)=>s+n,0))}
 function drawProfileGeography(photos){const root=$('userProfileGeography'),groups=profilePhotoGeography(photos);root.replaceChildren();$('userProfileGeographyEmpty').classList.toggle('hidden',groups.length>0);groups.forEach(([country,cityCounts])=>{const row=document.createElement('div');row.className='people-profile-country';const title=document.createElement('b');title.textContent=country+' ('+[...cityCounts.values()].reduce((s,n)=>s+n,0)+')';const detail=document.createElement('span');detail.textContent=[...cityCounts].sort((a,b)=>b[1]-a[1]).map(([city,count])=>city+' ('+count+')').join(', ');row.append(title,detail);root.appendChild(row)})}
