@@ -2829,23 +2829,7 @@ html[data-theme="dark"] .um-sep { background: #444; }
 </div>
 
 <div id="cityView" class="panel hidden">
-      <!-- <div class="cv-main-tabs">
-        <button class="cv-main-tab active" data-main="city" type="button">Місто</button>
-        <button class="cv-main-tab" data-main="enterprises" type="button">Підприємства</button>
-      </div>
-      <div class="ent-pane">
-        <div class="ent-bar">
-          <h3 class="ent-title">Підприємства міста</h3>
-        </div>
-        <div class="ent-head hidden" id="entHead">
-          <span>Назва</span>
-          <span>Статус</span>
-          <span>Види транспорту</span>
-        </div>
-        <div id="entList"></div>
-        <p id="entEmpty" class="cv-empty">Підприємств поки немає</p>
-      </div>
-      --> <div class="cv-top">
+      <div class="cv-top">
         <div class="cv-info">
           <div class="cv-country" id="viCountry"></div>
           <div class="cv-titlerow">
@@ -5325,8 +5309,6 @@ function applyAccountPrefs(p) {
   safeStorage.setItem('lang', lang);
 }
 
-
-// ---------- Переклади: дані лежать у lang/uk.js, lang/ru.js, lang/en.js ----------
 const SRC = LANG.uk || { subs: {}, patterns: [] };
 for (const l in LANG) {
   const T = LANG[l];
@@ -6290,7 +6272,6 @@ db.channel('live')
   .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, p => { if (inCurrentCity(p)) queueLive('routes'); })
   .subscribe(status => { liveOk = status === 'SUBSCRIBED'; });
 
-// запасний варіант, якщо realtime недоступний
 setInterval(() => {
   if (liveOk || document.hidden) return;
   queueLive('cities'); queueLive('ents'); queueLive('vehs'); queueLive('routes');
@@ -6302,7 +6283,6 @@ document.addEventListener('visibilitychange', () => {
   queueLive('cities'); queueLive('ents'); queueLive('vehs'); queueLive('routes');
 });
 
-/* ---------- Фото ---------- */
 const PH_CATS = ['Зовнішнє фото', 'Салон', 'Кабіна', 'Обладнання', 'Детальна зйомка', 'Заводська табличка', 'Інфраструктура', 'Неідентифікований транспорт', 'Додаткова спецтехніка'];
 const PH_TYPE_BY_NAME = { 'Tram / LRV': 'tram', 'Trolleybus': 'trolleybus', 'Bus': 'bus', 'Metro / Railway': 'metro', 'Funicular': 'funicular', 'Monorail': 'monorail', '(Other)': 'other' };
 const PH_W = 1920;
@@ -6689,7 +6669,6 @@ function openList(title, items, value, onPick, back) {
   showView('pick');
 }
 
-// вид транспорту ставиться автоматично
 function phFillTypes() {
   if (phTypeKey) return;
   const e = phEnts.find(x => x.id === phEntId);
@@ -7895,7 +7874,6 @@ function ppL() {
 }
 
 
-// підписи категорій з малої літери (на картках фото)
 PH_CATS.forEach(c => {
   for (const l in LANG) {
     const dd = LANG[l].dict;

@@ -1,18 +1,10 @@
-/*
- * by.js — файл беларускай мовы.
- * Keys are the original Ukrainian texts of the site (see lang/uk.js).
- * To add / fix a translation, edit the value after the colon.
- * Loaded in index.html: <script src="by.js"></script>
- */
 (window.LANG = window.LANG || {}).by = {
   name: "Беларуская",
 
-  // Months (in a date: "5 студзеня"), month names alone, weekdays (Sunday first)
   months: ["студзеня", "лютага", "сакавіка", "красавіка", "травеня", "чэрвеня", "ліпеня", "жніўня", "верасня", "кастрычніка", "лістапада", "снежня"],
   monthsNom: ["студзень", "люты", "сакавік", "красавік", "травень", "чэрвень", "ліпень", "жнівень", "верасень", "кастрычнік", "лістапад", "снежань"],
   weekdays: ["Нядзеля", "Панядзелак", "Аўторак", "Серада", "Чацвер", "Пятніца", "Субота"],
 
-  // Plain phrases: "Ukrainian text": "translation"
   dict: {
     "Редактори": "Рэдактары",
     "Локальні редактори міста": "Лакальныя рэдактары горада",
@@ -362,7 +354,6 @@
     "Оберіть фото": "Абярыце фота"
   },
 
-  // Beginnings of phrases ("Населення: 5") — only the beginning is translated
   prefix: {
     "Додано: ": "Дададзена: ",
     "Сповіщення не надіслано: ": "Апавяшчэнне не адпраўлена: ",
@@ -406,11 +397,8 @@
     "ТС: ": "ТС: "
   },
 
-  // Replacements inside text (regexes are in lang/uk.js, same ids)
   subs: {'founded': 'заснаваны $1', 'km2': '$1 км²'},
 
-  // Phrases with variable parts. {1} {2}... are the groups of the regex with the same id in lang/uk.js;
-  // {t2} = group 2 translated via dict; "w" = translations of group values.
   patterns: {
     editor_added: "Вас дадалі рэдактарам горада «{1}»",
     shown: "Паказана запісаў: {1} з {2}",

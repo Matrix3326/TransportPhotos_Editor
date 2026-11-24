@@ -1,18 +1,10 @@
-/*
- * ru.js — файл русского языка.
- * Keys are the original Ukrainian texts of the site (see lang/uk.js).
- * To add / fix a translation, edit the value after the colon.
- * Loaded in index.html: <script src="lang/ru.js"></script>
- */
 (window.LANG = window.LANG || {}).ru = {
   name: "Русский",
 
-  // Months (in a date: "5 января"), month names alone, weekdays (Sunday first)
   months: ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"],
   monthsNom: ["январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"],
   weekdays: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
 
-  // Plain phrases: "Ukrainian text": "translation"
   dict: {
     "Редактори": "Редакторы",
     "Локальні редактори міста": "Локальные редакторы города",
@@ -362,7 +354,6 @@
     "Оберіть фото": "Выберите фото"
   },
 
-  // Beginnings of phrases ("Населення: 5") — only the beginning is translated
   prefix: {
     "Додано: ": "Добавлено: ",
     "Сповіщення не надіслано: ": "Уведомление не отправлено: ",
@@ -406,11 +397,8 @@
     "ТС: ": "ТС: "
   },
 
-  // Replacements inside text (regexes are in lang/uk.js, same ids)
   subs: {'founded': 'основан $1', 'km2': '$1 км²'},
 
-  // Phrases with variable parts. {1} {2}... are the groups of the regex with the same id in lang/uk.js;
-  // {t2} = group 2 translated via dict; "w" = translations of group values.
   patterns: {
     editor_added: "Вас добавили редактором города «{1}»",
     shown: "Показано записей: {1} из {2}",
