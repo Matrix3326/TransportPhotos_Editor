@@ -3598,7 +3598,7 @@ const UI_ICON_RULES = [
   [/^Повідомлення всім$/i, 'speakerphone'], [/^Правки ТС$/i, 'pencil-plus']
 ];
 function decorateUiIcon(target) {
-  if (!(target instanceof HTMLElement) || target.querySelector('.ui-icon')) return;
+  if (!(target instanceof HTMLElement) || target.classList.contains('pp-act') || target.querySelector('.ui-icon')) return;
   const label = target.textContent.replace(/\s+/g, ' ').trim();
   const match = UI_ICON_RULES.find(([pattern]) => pattern.test(label));
   if (!match) return;
