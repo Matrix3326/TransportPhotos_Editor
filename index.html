@@ -5037,7 +5037,7 @@ let vhCur = null;
 
 function openVehInfo(v, editable) { openVehicleProfile(v, editable); }
 let vehPageReturn = null, vehPageCurrent = null, vehPageEditable = false;
-function addVehHistoryRow(rows, cityName, entName, plate, status, arrived, startDate, writtenOff) { const tr=document.createElement('tr'); [cityName||'—',entName||'—'].forEach(x=>{const td=document.createElement('td');td.textContent=x;tr.appendChild(td)});const plateCell=document.createElement('td'),plateBadge=document.createElement('span');plateBadge.className='veh-history-plate';plateBadge.textContent=cleanVehicleNumber(plate)||'—';plateBadge.style.setProperty('--vc',statColor(VEH_STATUSES,status));plateCell.appendChild(plateBadge);tr.appendChild(plateCell);const stateCell=document.createElement('td'),state=VEH_STATUSES.find(x=>x.key===status);stateCell.textContent=state?state.name:'Не вказаний';tr.appendChild(stateCell);[arrived,startDate,writtenOff].forEach(x=>{const td=document.createElement('td');td.textContent=x||'Не вказано';tr.appendChild(td)});rows.push(tr); }
+function addVehHistoryRow(rows, cityName, entName, plate, status, arrived, startDate, writtenOff) { const tr=document.createElement('tr'); [cityName||'—',entName||'—'].forEach(x=>{const td=document.createElement('td');td.textContent=x;tr.appendChild(td)});const plateCell=document.createElement('td'),plateBadge=document.createElement('span');plateBadge.className='veh-history-plate';plateBadge.textContent=cleanVehicleNumber(plate)||'—';plateBadge.style.setProperty('--vc',statColor(VEH_STATUSES,status));plateCell.appendChild(plateBadge);tr.appendChild(plateCell);const stateCell=document.createElement('td'),state=VEH_STATUSES.find(x=>x.key===status);stateCell.textContent=state?state.name:'Не вказаний';tr.appendChild(stateCell);[arrived||'Не вказано',startDate||'—',writtenOff||'—'].forEach(x=>{const td=document.createElement('td');td.textContent=x;tr.appendChild(td)});rows.push(tr); }
 function openVehicleProfile(v, editable=false, sourcePhoto=null) {
   if(!vehPageReturn)vehPageReturn={page:PAGES.find(id=>!$(id).classList.contains('hidden'))||null,cityId:currentId,ent:curEnt,photo:ppCur,hash:location.hash};
   vehPageCurrent=v;vehPageEditable=editable;vhCur=v;const fleet=String(v.fleet_no||'').trim(),plate=String(v.plate_no||'').trim();
@@ -5045,7 +5045,7 @@ function openVehicleProfile(v, editable=false, sourcePhoto=null) {
   $('vpModel').textContent=String(v.model||'Транспортний засіб').trim();$('vpYear').textContent=v.build_year?String(v.build_year):'';  $('vpEdit').classList.toggle('hidden',!editable);$('vpTransfer').classList.toggle('hidden',!editable||!v.id);$('vpSuggest').classList.toggle('hidden',!me.uid||editable||!v.id);
   const city=cities.find(c=>c.id===v.city_id), enterprise=enterprises.find(e=>e.id===v.enterprise_id)||curEnt;$('vpLocation').textContent=[city&&city.name,enterprise&&enterprise.name].filter(Boolean).join(' · ');
   const tp=ENT_TYPES.find(t=>t.key===v.vehicle_type),st=VEH_STATUSES.find(x=>x.key===v.status);$('vpFacts').replaceChildren();
-  [['Виробник',v.manufacturer],['Тип транспорту',tp&&tp.name],['Модель',v.model],['Виготовлено',v.build_year],['Заводський номер',v.factory_no],['VIN-код',v.vin],['Призначення',v.purpose],['Поточний стан',st&&st.name],['Надійшов',v.arrived],['Початок роботи',v.start_date],['Списаний',v.written_off],['Примітка',v.note]].filter(x=>x[1]!=null&&String(x[1]).trim()!=='').forEach(([label,value])=>{const d=document.createElement('div');d.className='veh-fact';const sm=document.createElement('small');sm.textContent=label;const b=document.createElement('b');b.textContent=String(value);d.append(sm,b);$('vpFacts').appendChild(d)});
+  [['Виробник',v.manufacturer],['Тип транспорту',tp&&tp.name],['Модель',v.model],['Виготовлено',v.build_year],['Заводський номер',v.factory_no],['VIN-код',v.vin],['Призначення',v.purpose],['Поточний стан',st&&st.name],['Надійшов',v.arrived],['Початок роботи',v.start_date||'—'],['Списаний',v.written_off||'—'],['Примітка',v.note]].filter(x=>x[1]!=null&&String(x[1]).trim()!=='').forEach(([label,value])=>{const d=document.createElement('div');d.className='veh-fact';const sm=document.createElement('small');sm.textContent=label;const b=document.createElement('b');b.textContent=String(value);d.append(sm,b);$('vpFacts').appendChild(d)});
   const loading=document.createElement('tr'),loadingCell=document.createElement('td');loadingCell.colSpan=7;loadingCell.textContent='Завантаження історії підприємств…';loading.appendChild(loadingCell);$('vpHistory').replaceChildren(loading);
   $('vpPhotoGrid').replaceChildren();$('vpPhotoEmpty').classList.remove('hidden');currentId=null;renderCity();PAGES.forEach(id=>$(id).classList.toggle('hidden',id!=='vehiclePage'));loadVehicleEnterpriseHistory(v);loadVehicleProfilePhotos(v,sourcePhoto);window.scrollTo({top:0});
 }
@@ -5719,7 +5719,7 @@ async function notify(uid, message) {
   if (uid === me.uid) await loadNotifs();
 }
 
-function deletePhotoWithReason(p, afterDelete) {
+async function deletePhotoWithReason(p, afterDelete) {
   const requiresReason=p.status==='approved'&&p.owner_id!==me.uid;
   const remove=async reason=>{
     const published=p.status==='approved';
@@ -5730,19 +5730,36 @@ function deletePhotoWithReason(p, afterDelete) {
       photoUrl=signed.data&&signed.data.signedUrl||'';
       if(!photoUrl)return 'Не вдалося підготувати посилання на фото';
     }
-    const {data,error}=await db.from('photos').delete().eq('id',p.id).select('id');
+    const {error}=await db.from('photos').delete().eq('id',p.id);
     if(error)return error.message;
-    if(!data||!data.length)return 'Фото вже видалене або недоступне';
-    if(!requiresReason){const storageResult=await db.storage.from('photos').remove([p.path]);if(storageResult.error)console.error(storageResult.error)}
+    if(!requiresReason){
+      try {
+        const storageResult=await db.storage.from('photos').remove([p.path]);
+        if(storageResult.error)console.error(storageResult.error);
+      } catch(e) { console.error(e); }
+    }
     if(published){
-      if(isPhotoMod())await logAction('photo_delete',p.city_name,reason);
-      if(p.owner_id&&p.owner_id!==me.uid)await notify(p.owner_id,'Ваше опубліковане фото у місті «'+(p.city_name||'—')+'» видалено. Причина: '+reason+' [[OPEN_PHOTO_URL:'+encodeURIComponent(photoUrl)+']]');
+      try {
+        if(isPhotoMod())await logAction('photo_delete',p.city_name,reason);
+        if(p.owner_id&&p.owner_id!==me.uid)await notify(p.owner_id,'Ваше опубліковане фото у місті «'+(p.city_name||'—')+'» видалено. Причина: '+reason+' [[OPEN_PHOTO_URL:'+encodeURIComponent(photoUrl)+']]');
+      } catch(e) { console.error(e); }
     }
     if(afterDelete)await afterDelete();
     return '';
   };
-  if(requiresReason)askReason('Причина видалення опублікованого фото',remove);
-  else remove('');
+  if(requiresReason){
+    askReason('Причина видалення опублікованого фото',remove);
+    return '';
+  }
+  try {
+    const error=await remove('');
+    if(error)alert('Не вдалося видалити фото: '+error);
+    return error;
+  } catch(e) {
+    const error=e&&e.message||String(e);
+    alert('Не вдалося видалити фото: '+error);
+    return error;
+  }
 }
 function askReason(title, cb) {
   reasonCb = cb;
@@ -7936,7 +7953,7 @@ function openPhoto(p) {
   if (me.uid && (p.owner_id === me.uid || isPhotoMod())) {
     side.push(ppAct('pencil', 'Редагувати', () => openPhotoForm(p)));
     side.push(ppAct('trash', 'Видалити', async (b, s) => {
-      if(p.status==='approved'){
+      if(p.status==='approved'&&p.owner_id!==me.uid){
         await deletePhotoWithReason(p,async()=>{closePhoto();await loadPhotos()});
         return;
       }
