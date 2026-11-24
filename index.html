@@ -6838,7 +6838,7 @@ function photoUserTags(value) {
 }
 function photoTagsWithVehicleLinks(value, links) {
   const tags = photoUserTags(value);
-  const metadata = links.length > 1 ? PHOTO_LINKS_PREFIX + encodeURIComponent(JSON.stringify(links.map(link => ({ id: link.id || null, city_id: link.city_id || null, city_name: link.city_name || '', enterprise_id: link.enterprise_id || null, ent_name: link.ent_name || '', fleet_no: link.fleet_no || '', extra_no: link.extra_no || '', plate_no: link.plate_no || '', model: link.model || '', vehicle_type: link.vehicle_type || null }))) + ']]' : '';
+  const metadata = links.length > 1 ? PHOTO_LINKS_PREFIX + encodeURIComponent(JSON.stringify(links.map(link => ({ id: link.id || null, city_id: link.city_id || null, city_name: link.city_name || '', enterprise_id: link.enterprise_id || null, ent_name: link.ent_name || '', fleet_no: link.fleet_no || '', extra_no: link.extra_no || '', plate_no: link.plate_no || '', model: link.model || '', vehicle_type: link.vehicle_type || null })))) + ']]' : '';
   return [tags, metadata].filter(Boolean).join('\n') || null;
 }
 function photoIsLinkedToVehicle(photo, vehicle) {
