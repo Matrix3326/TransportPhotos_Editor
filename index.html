@@ -2890,7 +2890,6 @@ body.maintenance-active{overflow:hidden!important}
     <button class="staff-tab" data-staff="log" type="button">Журнал</button>
     <button class="staff-tab" data-staff="accounts" type="button">Акаунти</button>
     <button class="staff-tab" data-staff="photos" type="button">Заявки на фото</button>
-    <button class="staff-tab" data-staff="maintenance" type="button">Технічні роботи</button>
   </div>
   <div class="staff-pane" id="staffPending">
     <div id="reqPending"></div>
@@ -2920,14 +2919,6 @@ body.maintenance-active{overflow:hidden!important}
     <input class="cv-search acc-search" id="accSearch" type="text" placeholder="Пошук за ніком...">
     <p id="accMsg" class="msg"></p>
     <div id="accList" class="notif-list acc-list"></div>
-  </div>
-  <div class="staff-pane hidden" id="staffMaintenance">
-    <h3>Режим технічних робіт</h3>
-    <p>Коли режим увімкнено, відвідувачі побачать сторінку технічних робіт. Адміністратори зможуть залишитися на сайті й вимкнути режим.</p>
-    <label class="maint-switch"><input id="maintenanceEnabled" type="checkbox"><span>Закрити сайт для відвідувачів</span></label>
-    <label class="field"><span>Заголовок</span><input id="maintenanceTitleInput" maxlength="120" type="text" value="Технічні роботи"></label>
-    <label class="field"><span>Повідомлення</span><textarea id="maintenanceMessageInput" rows="4" maxlength="1000">Сайт тимчасово недоступний. Будь ласка, зайдіть трохи пізніше.</textarea></label>
-    <div class="maint-actions"><button class="btn dark" id="saveMaintenance" type="button">Зберегти</button><p id="maintenanceAdminMsg" class="msg"></p></div>
   </div>
 </div>
 
@@ -5662,8 +5653,6 @@ document.querySelectorAll('.staff-tab').forEach(t => {
     $('staffLog').classList.toggle('hidden', t.dataset.staff !== 'log');
     $('staffAccounts').classList.toggle('hidden', t.dataset.staff !== 'accounts');
     $('staffPhotos').classList.toggle('hidden', t.dataset.staff !== 'photos');
-    $('staffMaintenance').classList.toggle('hidden', t.dataset.staff !== 'maintenance');
-    if (t.dataset.staff === 'maintenance') loadMaintenanceSettings();
     if (t.dataset.staff === 'photos') loadPhotoReqs();
     if (t.dataset.staff === 'log') loadLog();
     if (t.dataset.staff === 'accounts') loadAccounts();
@@ -7964,30 +7953,10 @@ $('logout').addEventListener('click', async () => {
   await db.auth.signOut();
 });
 
-async function currentSessionIsStaff(){
-  try{const {data:s}=await db.auth.getSession();if(!s.session)return false;const {data:p}=await db.from('profiles').select('role').eq('id',s.session.user.id).maybeSingle();return !!p&&['owner','admin'].includes(p.role)}catch(e){return false}
-}
-async function loadMaintenanceSettings(){
-  if(!isStaff())return;setMsg($('maintenanceAdminMsg'),'');
-  const {data,error}=await db.from('site_maintenance').select('enabled,title,message').eq('id',true).maybeSingle();
-  if(error){setMsg($('maintenanceAdminMsg'),'Налаштуйте таблицю site_maintenance у Supabase за файлом site_maintenance.sql.');return}
-  $('maintenanceEnabled').checked=!!(data&&data.enabled);
-  $('maintenanceTitleInput').value=data&&data.title||'Технічні роботи';
-  $('maintenanceMessageInput').value=data&&data.message||'Сайт тимчасово недоступний. Будь ласка, зайдіть трохи пізніше.';
-}
-$('saveMaintenance').addEventListener('click',async()=>{
-  if(!isStaff())return;const b=$('saveMaintenance');b.disabled=true;setMsg($('maintenanceAdminMsg'),'');
-  const row={id:true,enabled:$('maintenanceEnabled').checked,title:$('maintenanceTitleInput').value.trim()||'Технічні роботи',message:$('maintenanceMessageInput').value.trim()||'Сайт тимчасово недоступний. Будь ласка, зайдіть трохи пізніше.',updated_at:new Date().toISOString()};
-  const {error}=await db.from('site_maintenance').update(row).eq('id',true);b.disabled=false;
-  if(error){setMsg($('maintenanceAdminMsg'),error.message);return}
-  setMsg($('maintenanceAdminMsg'),row.enabled?'Режим технічних робіт увімкнено. Адміністратори можуть залишитися на сайті.':'Режим технічних робіт вимкнено.',true);
-});
 async function loadMaintenanceMode(){
   let config=null;
-  try{const {data,error}=await db.from('site_maintenance').select('enabled,title,message').eq('id',true).maybeSingle();if(!error&&data)config=data}catch(e){}
-  if(!config){try{const response=await fetch('./maintenance.json',{cache:'no-store'});if(response.ok)config=await response.json()}catch(e){}}
+  try{const response=await fetch('./maintenance.json',{cache:'no-store'});if(response.ok)config=await response.json()}catch(e){}
   if(!config||config.enabled!==true)return;
-  if(await currentSessionIsStaff())return;
   if(typeof config.title==='string'&&config.title.trim())$('maintenanceTitle').textContent=config.title.trim();
   if(typeof config.message==='string'&&config.message.trim())$('maintenanceMessage').textContent=config.message.trim();
   $('maintenanceScreen').classList.remove('hidden');$('maintenanceScreen').setAttribute('aria-hidden','false');document.body.classList.add('maintenance-active');
