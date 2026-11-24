@@ -6,12 +6,9 @@
 <script>try{if(localStorage.getItem('theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  background: #ffffff;
-  font-family: Arial, sans-serif;
-}
+:root{color-scheme:light;--bg:#ffffff;--surface:#ffffff;--surface-2:#f4f4f4;--text:#222222;--muted:#777777;--border:#dcdcdc;--accent:#ffc61a;--danger:#e53935;--ok:#2e7d32}
+html[data-theme="dark"]{color-scheme:dark;--bg:#121212;--surface:#1e1e1e;--surface-2:#2a2a2a;--text:#e8e8e8;--muted:#9a9aa0;--border:#444444;--accent:#ffc61a;--danger:#ef4444;--ok:#22c55e}
+html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family:Arial,sans-serif; }
 body::before {
   content: "";
   position: fixed;
@@ -19,7 +16,7 @@ body::before {
   left: 0;
   right: 0;
   height: 20px;
-  background: #ffffff;
+  background: var(--surface);
   z-index: 4;
 }
 body {
@@ -32,7 +29,9 @@ nav {
   gap: 10px;
   height: 64px;
   padding: 0 20px;
-  background: #f4f4f4;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
   box-sizing: border-box;
   border-radius: 18px;
   position: sticky;
@@ -57,8 +56,8 @@ nav {
   height: 40px;
   padding: 0 22px;
   border-radius: 14px;
-  background: #ffffff;
-  color: #222222;
+  background: var(--surface);
+  color: var(--text);
   font-family: inherit;
   font-size: 16px;
   transform: scale(1);
@@ -98,7 +97,8 @@ nav {
   gap: 10px;
   height: 40px;
   padding: 0 18px 0 4px;
-  background: #ffffff;
+  background: var(--surface);
+  color: var(--text);
   border-radius: 14px;
   box-sizing: border-box;
   transform: scale(1);
@@ -349,21 +349,6 @@ nav .profile:hover #navName {
 .panel-foot .msg {
   flex: 1;
 }
-@media (max-width: 600px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-}
-@media (max-width: 800px) {
-  .layout {
-    flex-direction: column;
-  }
-  .side {
-    position: static;
-    width: 100%;
-    max-height: none;
-  }
-}
 .overlay {
   position: fixed;
   inset: 0;
@@ -480,7 +465,7 @@ nav .profile:hover #navName {
   color: #c0392b;
 }
 .msg.ok {
-  color: #2e7d32;
+  color: var(--ok);
 }
 .switch {
   margin: 0;
@@ -682,7 +667,7 @@ main {
   animation: cityIn 0.35s ease;
 }
 .btn.danger {
-  background: #e53935;
+  background: var(--danger);
   color: #ffffff;
 }
 .btn.danger:hover {
@@ -1061,22 +1046,12 @@ main {
   white-space: pre-wrap;
   word-break: break-word;
 }
-@media (max-width: 1100px) {
-  .cv-filters {
-    grid-template-columns: 1fr 1fr;
-  }
-}
 @media (max-width: 800px) {
   .cv-top {
     flex-direction: column;
   }
   .cv-side {
     width: 100%;
-  }
-}
-@media (max-width: 600px) {
-  .city-grid {
-    grid-template-columns: 1fr;
   }
 }
 .dd {
@@ -1456,15 +1431,6 @@ main {
 .city-grid select:focus {
   border-color: #808080;
 }
-@media (max-width: 700px) {
-  .ent-head {
-    display: none;
-  }
-  .ent-row {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-}
 .city-tabs {
   display: flex;
   gap: 4px;
@@ -1670,42 +1636,42 @@ main {
   }
 }
 nav .btn:hover, nav .btn:active {
-  height: 40px !important;
-  padding: 0 22px !important;
-  font-size: 16px !important;
+  height: 40px;
+  padding: 0 22px;
+  font-size: 16px;
 }
 .cv-btns .btn:hover, .cv-btns .btn:active,
 .city-actions .btn:hover, .city-actions .btn:active {
-  height: 34px !important;
-  padding: 0 18px !important;
-  font-size: 14px !important;
+  height: 34px;
+  padding: 0 18px;
+  font-size: 14px;
 }
 nav .profile:hover {
-  height: 40px !important;
-  padding: 0 18px 0 4px !important;
+  height: 40px;
+  padding: 0 18px 0 4px;
 }
 nav .profile:hover .avatar {
-  width: 32px !important;
-  height: 32px !important;
+  width: 32px;
+  height: 32px;
 }
 nav .profile:hover #navName {
-  font-size: 16px !important;
+  font-size: 16px;
 }
 .burger:hover, .burger:active {
-  width: 40px !important;
-  height: 40px !important;
+  width: 40px;
+  height: 40px;
 }
 .btn, .burger, nav .profile {
-  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease !important;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 .btn:hover, .burger:hover, nav .profile:hover {
-  transform: scale(1.04) !important;
+  transform: scale(1.04);
 }
 .btn:active, .burger:active {
-  transform: scale(0.96) !important;
+  transform: scale(0.96);
 }
 .btn:disabled:hover, .btn:disabled:active {
-  transform: none !important;
+  transform: none;
 }
 button {
   touch-action: manipulation;
@@ -1734,27 +1700,17 @@ button {
 
 @media (hover: none) {
   .btn:hover, .burger:hover, nav .profile:hover {
-    transform: none !important;
-    box-shadow: none !important;
+    transform: none;
+    box-shadow: none;
   }
   .btn:active, .burger:active {
-    transform: scale(0.96) !important;
+    transform: scale(0.96);
   }
 }
 
 @media (max-width: 1000px) {
   .cv-side {
     width: 220px;
-  }
-}
-
-@media (max-width: 800px) {
-  .layout {
-    flex-direction: column-reverse;
-    align-items: stretch;
-  }
-  .content {
-    width: 100%;
   }
 }
 
@@ -1781,14 +1737,14 @@ button {
     margin-left: 2px;
   }
   nav .btn, nav .btn:hover, nav .btn:active {
-    padding: 0 12px !important;
-    font-size: 14px !important;
+    padding: 0 12px;
+    font-size: 14px;
   }
   nav .profile, nav .profile:hover {
-    padding: 0 4px !important;
+    padding: 0 4px;
   }
   #navName, #navBadge {
-    display: none !important;
+    display: none;
   }
   .modal {
     padding: 24px 16px 16px 16px;
@@ -1816,9 +1772,6 @@ button {
   .cv-sources {
     padding: 4px 16px 16px 16px;
   }
-  .cv-filters {
-    grid-template-columns: 1fr;
-  }
   .cv-btns .cv-search {
     width: 100%;
   }
@@ -1829,7 +1782,7 @@ button {
     padding: 12px 14px 16px 14px;
   }
   .modal input, .modal textarea, .cv-search, #broadcastText, .cv-filters input {
-    font-size: 16px !important;
+    font-size: 16px;
   }
 }
 
@@ -2112,29 +2065,29 @@ button {
   }
   nav .btn, nav .btn:hover, nav .btn:active {
     flex: none;
-    padding: 0 10px !important;
-    font-size: 14px !important;
+    padding: 0 10px;
+    font-size: 14px;
   }
   #navName, #navBadge {
-    display: none !important;
+    display: none;
   }
   nav .profile, nav .profile:hover {
     flex: none;
     width: 40px;
-    padding: 4px !important;
+    padding: 4px;
     justify-content: center;
-    transform: none !important;
-    box-shadow: none !important;
+    transform: none;
+    box-shadow: none;
   }
   nav .profile:hover .avatar {
-    width: 32px !important;
-    height: 32px !important;
+    width: 32px;
+    height: 32px;
   }
 }
 @media (max-width: 400px) {
   nav .btn, nav .btn:hover, nav .btn:active {
-    padding: 0 8px !important;
-    font-size: 13px !important;
+    padding: 0 8px;
+    font-size: 13px;
   }
   .burger {
     width: 36px;
@@ -2142,10 +2095,10 @@ button {
   }
 }
 .panel, .side, nav, .side-block { border-radius: 10px; }
-.modal { border-radius: 12px !important; }
+.modal { border-radius: 12px; }
 .btn, .burger, .profile, .dd-btn, .cv-route, .cv-search, .city-grid select, .field input, .field textarea,
-.modal input[type="text"], .modal input[type="email"], .modal input[type="password"], .modal input[type="number"], .modal textarea { border-radius: 8px !important; }
-.side-item, .dd-item, .notif-item, .ent-row, .ent-chip span, .cv-tab, .staff-tab, .city-tab, .veh-wrap, .cv-photo, .stag, .ttag, .badge, .cv-label, .dd-menu, .ev-box, .rt-chip { border-radius: 6px !important; }
+.modal input[type="text"], .modal input[type="email"], .modal input[type="password"], .modal input[type="number"], .modal textarea { border-radius: 8px; }
+.side-item, .dd-item, .notif-item, .ent-row, .ent-chip span, .cv-tab, .staff-tab, .city-tab, .veh-wrap, .cv-photo, .stag, .ttag, .badge, .cv-label, .dd-menu, .ev-box, .rt-chip { border-radius: 6px; }
 
 .ev-card { padding: 18px 24px 8px 24px; }
 .ev-crumb { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 15px; color: #222; }
@@ -2188,18 +2141,17 @@ button {
 .set-label { font-size: 13px; font-weight: 700; color: #777; }
 .set-themes { display: flex; gap: 10px; }
 .set-theme { flex: 1; }
-.set-theme.active { box-shadow: 0 0 0 2px #808080 !important; }
+.set-theme.active { box-shadow: 0 0 0 2px #808080; }
 
-html[data-theme="dark"] { color-scheme: dark; }
-html[data-theme="dark"], html[data-theme="dark"] body, html[data-theme="dark"] body::before { background: #121212; color: #e8e8e8; }
-html[data-theme="dark"] nav, html[data-theme="dark"] .panel, html[data-theme="dark"] .side, html[data-theme="dark"] .notif-item, html[data-theme="dark"] .city-ent .ent-row { background: #1e1e1e; }
-html[data-theme="dark"] .modal { background: #1e1e1e; }
+html[data-theme="dark"] body::before { background: var(--bg); }
+html[data-theme="dark"] nav, html[data-theme="dark"] .panel, html[data-theme="dark"] .side, html[data-theme="dark"] .notif-item, html[data-theme="dark"] .city-ent .ent-row { background: var(--surface); }
+html[data-theme="dark"] .modal { background: var(--surface); }
 html[data-theme="dark"] .btn:not(.dark):not(.danger):not(.green):not(.blue):not(.ghost),
 html[data-theme="dark"] .burger, html[data-theme="dark"] .profile, html[data-theme="dark"] .side-item, html[data-theme="dark"] .dd-btn,
 html[data-theme="dark"] .cv-route, html[data-theme="dark"] .cv-search, html[data-theme="dark"] .city-grid select,
 html[data-theme="dark"] .modal input, html[data-theme="dark"] .modal textarea, html[data-theme="dark"] .field input, html[data-theme="dark"] .field textarea,
-html[data-theme="dark"] .ent-row, html[data-theme="dark"] .ent-chip span, html[data-theme="dark"] .veh-wrap, html[data-theme="dark"] .ev-box { background: #2a2a2a; }
-html[data-theme="dark"] .btn:not(.dark):not(.danger):not(.green):not(.blue):not(.ghost):hover, html[data-theme="dark"] .burger:hover { background: #383838; }
+html[data-theme="dark"] .ent-row, html[data-theme="dark"] .ent-chip span, html[data-theme="dark"] .veh-wrap, html[data-theme="dark"] .ev-box { background: var(--surface-2); }
+html[data-theme="dark"] .btn:not(.dark):not(.danger):not(.green):not(.blue):not(.ghost):hover, html[data-theme="dark"] .burger:hover { background: var(--surface-2); }
 html[data-theme="dark"] .btn:not(.dark):not(.danger):not(.green):not(.blue):not(.ghost),
 html[data-theme="dark"] .brand, html[data-theme="dark"] #navName, html[data-theme="dark"] .side-item, html[data-theme="dark"] .dd-btn, html[data-theme="dark"] .dd-item,
 html[data-theme="dark"] .modal h2, html[data-theme="dark"] .ent-title, html[data-theme="dark"] .ent-name b, html[data-theme="dark"] .cv-titlerow h1,
@@ -2208,28 +2160,28 @@ html[data-theme="dark"] .ev-legend h3, html[data-theme="dark"] .legend-item, htm
 html[data-theme="dark"] .cv-country, html[data-theme="dark"] .city-desc, html[data-theme="dark"] .cv-about-text, html[data-theme="dark"] .cv-sources h3,
 html[data-theme="dark"] .notif-item p, html[data-theme="dark"] .pending-text, html[data-theme="dark"] .pending-text b, html[data-theme="dark"] .ev-count,
 html[data-theme="dark"] .ent-chip span, html[data-theme="dark"] .modal input, html[data-theme="dark"] .modal textarea, html[data-theme="dark"] .cv-search,
-html[data-theme="dark"] .cv-route input, html[data-theme="dark"] .city-grid select, html[data-theme="dark"] .field input, html[data-theme="dark"] .field textarea { color: #e8e8e8; }
-html[data-theme="dark"] .burger span { background: #e8e8e8; }
+html[data-theme="dark"] .cv-route input, html[data-theme="dark"] .city-grid select, html[data-theme="dark"] .field input, html[data-theme="dark"] .field textarea { color: var(--text); }
+html[data-theme="dark"] .burger span { background: var(--text); }
 html[data-theme="dark"] .panel-head, html[data-theme="dark"] .side-block, html[data-theme="dark"] .city-head, html[data-theme="dark"] .city-foot,
-html[data-theme="dark"] .city-tabs, html[data-theme="dark"] .cv-filters, html[data-theme="dark"] .cv-sources h3, html[data-theme="dark"] .ev-stats { border-color: #3a3a3a; }
+html[data-theme="dark"] .city-tabs, html[data-theme="dark"] .cv-filters, html[data-theme="dark"] .cv-sources h3, html[data-theme="dark"] .ev-stats { border-color: var(--surface-2); }
 html[data-theme="dark"] .dd-btn, html[data-theme="dark"] .cv-route, html[data-theme="dark"] .cv-search, html[data-theme="dark"] .ent-chip span,
-html[data-theme="dark"] .modal input, html[data-theme="dark"] .modal textarea, html[data-theme="dark"] .city-grid select { border-color: #444; }
-html[data-theme="dark"] .side-item:hover, html[data-theme="dark"] .dd-item:hover, html[data-theme="dark"] .ent-row.openable:hover, html[data-theme="dark"] .ent-row.editable:hover { background: #343434; }
-html[data-theme="dark"] .side-item.active, html[data-theme="dark"] .dd-item.active { background: #3a3a3a; }
-html[data-theme="dark"] .cv-tab:hover, html[data-theme="dark"] .staff-tab:hover, html[data-theme="dark"] .city-tab:hover { background: #2a2a2a; color: #e8e8e8; }
-html[data-theme="dark"] .cv-tab.active, html[data-theme="dark"] .staff-tab.active, html[data-theme="dark"] .city-tab.active { background: #383838; color: #e8e8e8; }
-html[data-theme="dark"] .dd-box { background: #2a2a2a; }
-html[data-theme="dark"] .cv-photo { background: #2a2a2a; }
-html[data-theme="dark"] .notif-item.new { background: #1f2a44; }
-html[data-theme="dark"] .acc-row.banned { background: #3a1f1f; }
+html[data-theme="dark"] .modal input, html[data-theme="dark"] .modal textarea, html[data-theme="dark"] .city-grid select { border-color: var(--border); }
+html[data-theme="dark"] .side-item:hover, html[data-theme="dark"] .dd-item:hover, html[data-theme="dark"] .ent-row.openable:hover, html[data-theme="dark"] .ent-row.editable:hover { background: var(--surface-2); }
+html[data-theme="dark"] .side-item.active, html[data-theme="dark"] .dd-item.active { background: var(--surface-2); }
+html[data-theme="dark"] .cv-tab:hover, html[data-theme="dark"] .staff-tab:hover, html[data-theme="dark"] .city-tab:hover { background: var(--surface-2); color: var(--text); }
+html[data-theme="dark"] .cv-tab.active, html[data-theme="dark"] .staff-tab.active, html[data-theme="dark"] .city-tab.active { background: var(--surface-2); color: var(--text); }
+html[data-theme="dark"] .dd-box { background: var(--surface-2); }
+html[data-theme="dark"] .cv-photo { background: var(--surface-2); }
+html[data-theme="dark"] .notif-item.new { background: color-mix(in srgb,var(--accent) 12%,var(--surface)); }
+html[data-theme="dark"] .acc-row.banned { background: color-mix(in srgb,var(--danger) 15%,var(--surface)); }
 .ev-legend { max-width: 460px; }
 .ev-leg { display: flex; align-items: center; gap: 14px; padding: 6px 4px; text-align: left; border: none; background: none; font-size: 15px; }
 .lg-chip { flex: none; min-width: 64px; padding: 3px 10px; text-align: center; font-weight: 700; font-size: 15px; border: 2px solid var(--c); border-radius: 8px; background: color-mix(in srgb, var(--c) 18%, transparent); }
 
 .ev-tags .ttag { height: 24px; padding: 0 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
-.ev-box { border-radius: 10px !important; padding: 12px 18px; min-width: 110px; }
+.ev-box { border-radius: 10px; padding: 12px 18px; min-width: 110px; }
 
-.rt-chip { border-radius: 7px !important; min-width: 2.6em; padding: 4px 12px; font-size: 22px; font-weight: 700; border-width: 2px; color: #fff; background-color: #1d1d1d; background-image: none; }
+.rt-chip { border-radius: 7px; min-width: 2.6em; padding: 4px 12px; font-size: 22px; font-weight: 700; border-width: 2px; color: #fff; background-color: #1d1d1d; background-image: none; }
 .rt-chip.bd-active { border-color: #22c55e; background-image: linear-gradient(rgba(34,197,94,.14), rgba(34,197,94,.14)); }
 .rt-chip.bd-temp { border-color: #f59e0b; background-image: linear-gradient(rgba(245,158,11,.14), rgba(245,158,11,.14)); }
 .rt-chip.bd-renum { border-color: #60a5fa; background-image: linear-gradient(rgba(96,165,250,.14), rgba(96,165,250,.14)); }
@@ -2249,7 +2201,7 @@ html[data-theme="dark"] .acc-row.banned { background: #3a1f1f; }
 .ev-legend { max-width: 560px; }
 .ev-legend h3 { text-align: left; }
 
-.ev-box b { font-style: normal !important; font-weight: 800; font-size: 32px; }
+.ev-box b { font-style: normal; font-weight: 800; font-size: 32px; }
 .ev-legend { max-width: 560px; margin: 0 auto; padding: 0 16px 24px 16px; }
 .lg-toggle { display: block; width: 100%; padding: 12px 16px; font-family: inherit; font-size: 16px; color: inherit; opacity: .8; background: transparent; border: 1px solid color-mix(in srgb, currentColor 35%, transparent); border-radius: 6px; cursor: pointer; transition: background .25s ease, opacity .25s ease, transform .15s ease, border-color .25s ease; }
 .lg-toggle b { font-weight: 700; }
@@ -2270,39 +2222,38 @@ html[data-theme="dark"] .acc-row.banned { background: #3a1f1f; }
 .veh-table tbody td, .veh-table tbody td b { font-weight: 600; }
 .veh-table tr.editable:hover { filter: brightness(1.12); }
 .veh-table tbody td, .veh-table tbody td b, .veh-table tbody td small { color: #222222; }
-html[data-theme="dark"] .veh-table tbody td, html[data-theme="dark"] .veh-table tbody td b, html[data-theme="dark"] .veh-table tbody td small { color: #f2f2f2; }
+html[data-theme="dark"] .veh-table tbody td, html[data-theme="dark"] .veh-table tbody td b, html[data-theme="dark"] .veh-table tbody td small { color: var(--text); }
 .veh-wrap, html[data-theme="dark"] .veh-wrap { background: transparent; box-shadow: none; padding: 0 0 4px 0; }
 .veh-table tbody td { background: color-mix(in srgb, var(--c, #8f8f8f) 22%, transparent); }
-.veh-table tbody td { border-bottom: 2px solid var(--c, #8f8f8f) !important; }
+.veh-table tbody td { border-bottom: 2px solid var(--c, #8f8f8f); }
 .veh-table tbody td:first-child { border-radius: 8px 0 0 8px; }
 .veh-table tbody td:last-child { border-radius: 0 8px 8px 0; }
 .veh-wrap { overflow-y: visible; padding-bottom: 2px; }
 .set-langs { display: flex; gap: 8px; }
 .set-lang { flex: 1; padding: 0 8px; font-size: 14px; }
-.set-lang.active { box-shadow: 0 0 0 2px #808080 !important; }
+.set-lang.active { box-shadow: 0 0 0 2px #808080; }
 .ev-reorg { margin: 0 0 14px 0; padding: 12px 16px; background: #ffffff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
 .ev-reorg-title { margin: 0 0 8px 0; font-size: 15px; color: #222222; }
 .ev-reorg ul { margin: 0; padding-left: 20px; }
 .ev-reorg li { padding: 3px 0; font-size: 14px; color: #222222; white-space: pre-wrap; word-break: break-word; }
-html[data-theme="dark"] .ev-reorg { background: #2a2a2a; }
-html[data-theme="dark"] .ev-reorg-title, html[data-theme="dark"] .ev-reorg li { color: #e8e8e8; }
+html[data-theme="dark"] .ev-reorg { background: var(--surface-2); }
+html[data-theme="dark"] .ev-reorg-title, html[data-theme="dark"] .ev-reorg li { color: var(--text); }
 #entTypesBtn { height: auto; min-height: 42px; padding: 6px 12px; }
 #entTypesBtn .dd-label { display: flex; flex-wrap: wrap; gap: 6px; white-space: normal; overflow: visible; }
 #entTypesBtn .ttag { height: 26px; font-size: 13px; letter-spacing: 0; }
-.ent-head, .ent-row { grid-template-columns: 1fr 150px 300px; }
 .ent-group { margin: 16px 0 8px 4px; font-size: 18px; font-weight: 700; color: #222222; }
 .ent-group:first-child { margin-top: 0; }
-html[data-theme="dark"] .ent-group { color: #e8e8e8; }
+html[data-theme="dark"] .ent-group { color: var(--text); }
 .plate-row { display: flex; gap: 6px; }
 .plate-row input { flex: 1; width: auto; min-width: 0; }
 .plate-gen { flex: none; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; padding: 0; border: 1px solid #c8c8c8; border-radius: 8px; background: #ffffff; cursor: pointer; }
-html[data-theme="dark"] .plate-gen { background: #2a2a2a; border-color: #444; }
+html[data-theme="dark"] .plate-gen { background: var(--surface-2); border-color: var(--border); }
 .dup-modes { display: flex; gap: 8px; }
 .dup-mode { flex: 1; padding: 0 8px; font-size: 14px; }
-.dup-mode.active { background: #2f7bff !important; color: #ffffff !important; }
+.dup-mode.active { background: #2f7bff; color: #ffffff; }
 .dup-foot { display: flex; justify-content: flex-end; gap: 10px; }
 #rcLine {
-  min-width: 0 !important;
+  min-width: 0;
   width: max-content;
   box-sizing: border-box;
   padding: 4px 14px;
@@ -2311,11 +2262,11 @@ html[data-theme="dark"] .plate-gen { background: #2a2a2a; border-color: #444; }
 .ent-card { margin-bottom: 14px; overflow: hidden; background: #ffffff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
 .ent-card .ent-group { display: flex; align-items: center; gap: 10px; margin: 0; padding: 12px 16px; font-size: 16px; font-weight: 700; color: #222222; background: rgba(128,128,128,.12); border-bottom: 1px solid rgba(128,128,128,.25); border-left: 4px solid #808080; }
 .ent-count { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; font-style: normal; font-size: 12px; font-weight: 700; color: #ffffff; background: #808080; border-radius: 11px; box-sizing: border-box; }
-.ent-card .ent-row.ent-row { margin: 0; background: transparent; box-shadow: none; border-radius: 0 !important; border-top: 1px solid rgba(128,128,128,.2); padding: 14px 16px; }
+.ent-card .ent-row.ent-row { margin: 0; background: transparent; box-shadow: none; border-radius: 0; border-top: 1px solid rgba(128,128,128,.2); padding: 14px 16px; }
 .ent-card .ent-group + .ent-row.ent-row, .ent-card > .ent-row.ent-row:first-child { border-top: none; }
 .ent-card .ent-row.ent-row:hover { background: rgba(128,128,128,.12); box-shadow: none; }
-html[data-theme="dark"] .ent-card { background: #2a2a2a; }
-html[data-theme="dark"] .ent-card .ent-group { color: #e8e8e8; }
+html[data-theme="dark"] .ent-card { background: var(--surface-2); }
+html[data-theme="dark"] .ent-card .ent-group { color: var(--text); }
 html[data-theme="dark"] .ent-card .ent-row.ent-row { background: transparent; }
 html[data-theme="dark"] .ent-card .ent-row.ent-row:hover { background: rgba(255,255,255,.06); }
 .tree-search {
@@ -2373,15 +2324,15 @@ html[data-theme="dark"] .ent-card .ent-row.ent-row:hover { background: rgba(255,
   display: block;
 }
 html[data-theme="dark"] .tree-head {
-  color: #e8e8e8;
+  color: var(--text);
 }
 html[data-theme="dark"] .tree-head:hover {
-  background: #343434;
+  background: var(--surface-2);
 }
 .veh-table tbody td,
 .veh-table tbody td:first-child,
 .veh-table tbody td:last-child {
-  border: none !important;
+  border: none;
 }
 .veh-table tbody td {
   background: color-mix(in srgb, var(--c, #8f8f8f) 28%, rgba(128, 128, 128, 0.14));
@@ -2397,16 +2348,16 @@ html:not([data-theme="dark"]) .rt-chip:not(.bd-seasonal):not(.bd-night):not(#rcL
 .veh-table th.sortable { cursor: pointer; user-select: none; }
 .veh-table th.sortable:hover { filter: brightness(1.25); }
 .veh-sub { margin: 22px 0 10px 0; text-align: center; font-size: 20px; font-weight: 700; color: #222222; }
-html[data-theme="dark"] .veh-sub { color: #e8e8e8; }
+html[data-theme="dark"] .veh-sub { color: var(--text); }
 #vehInfo .info-row span { white-space: pre-wrap; }
 #importLog { white-space: pre-line; }
 html[data-theme="dark"] .info-row,
-html[data-theme="dark"] .info-row span { color: #e8e8e8; }
-html[data-theme="dark"] .info-row b { color: #9a9aa0; }
+html[data-theme="dark"] .info-row span { color: var(--text); }
+html[data-theme="dark"] .info-row b { color: var(--muted); }
 .cv-filters.rn-filters { grid-template-columns: 1fr 1fr; }
 .cv-filters select { cursor: pointer; }
-html[data-theme="dark"] .cv-filters select { background: #2a2a2a; color: #e8e8e8; border-color: #444; }
-.rn-card { margin-top: 14px; overflow: hidden; background: #ffffff; border-radius: 10px !important; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+html[data-theme="dark"] .cv-filters select { background: var(--surface-2); color: var(--text); border-color: var(--border); }
+.rn-card { margin-top: 14px; overflow: hidden; background: #ffffff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
 .rn-head { padding: 12px 16px; background: rgba(128,128,128,.12); border-left: 4px solid #808080; }
 .rn-head small { display: block; margin-bottom: 2px; font-size: 12px; color: #777777; }
 .rn-head b { font-size: 17px; color: #222222; word-break: break-word; }
@@ -2414,23 +2365,22 @@ html[data-theme="dark"] .cv-filters select { background: #2a2a2a; color: #e8e8e8
 .rn-head + .rn-sub { border-top: none; }
 .rn-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px; }
 .rn-chips .rt-chip { font-size: 17px; padding: 3px 10px; }
-html[data-theme="dark"] .rn-card { background: #2a2a2a; }
-html[data-theme="dark"] .rn-head b { color: #e8e8e8; }
-@media (max-width: 600px) { .cv-filters.rn-filters { grid-template-columns: 1fr; } }
+html[data-theme="dark"] .rn-card { background: var(--surface-2); }
+html[data-theme="dark"] .rn-head b { color: var(--text); }
 .nav-lbl { margin-left: 6px; }
 @media (max-width: 1000px) { .nav-lbl { display: none; } }
 .ph-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; padding-top: 14px; }
-.ph-card { position: relative; overflow: hidden; background: #ffffff; border-radius: 8px !important; box-shadow: 0 1px 3px rgba(0,0,0,.12); cursor: pointer; transition: box-shadow .2s ease; }
+.ph-card { position: relative; overflow: hidden; background: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.12); cursor: pointer; transition: box-shadow .2s ease; }
 .ph-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.25); }
 .ph-card img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #e4e4e4; }
 .ph-meta { padding: 8px 10px; font-size: 13px; color: #222222; }
 .ph-meta b { display: block; margin-bottom: 2px; font-size: 14px; word-break: break-word; }
 .ph-meta small { display: block; color: #777777; word-break: break-word; }
 .ph-badge { position: absolute; top: 8px; left: 8px; padding: 3px 8px; border-radius: 6px; background: #fff3cd; color: #8a6d00; font-size: 12px; font-weight: 700; }
-html[data-theme="dark"] .ph-card { background: #2a2a2a; }
-html[data-theme="dark"] .ph-meta { color: #e8e8e8; }
-.ph-prev { display: block; width: 100%; aspect-ratio: 4 / 3; border-radius: 8px !important; background: #e4e4e4; cursor: grab; touch-action: none; }
-html[data-theme="dark"] .ph-prev { background: #2a2a2a; }
+html[data-theme="dark"] .ph-card { background: var(--surface-2); }
+html[data-theme="dark"] .ph-meta { color: var(--text); }
+.ph-prev { display: block; width: 100%; aspect-ratio: 4 / 3; border-radius: 8px; background: #e4e4e4; cursor: grab; touch-action: none; }
+html[data-theme="dark"] .ph-prev { background: var(--surface-2); }
 .ph-hint { font-size: 12px; font-weight: 400; font-style: normal; color: #888888; }
 .pv-img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: #111111; border-radius: 12px 12px 0 0; }
 .pv-body { display: flex; flex-direction: column; gap: 4px; padding: 16px 24px 20px 24px; }
@@ -2441,17 +2391,17 @@ html[data-theme="dark"] .ph-prev { background: #2a2a2a; }
 .ph-req .btn { height: 30px; padding: 0 14px; font-size: 13px; }
 #phReqList { max-height: 560px; }
 .ph-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 22px 18px; }
-.ph-card { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; overflow: visible; padding-bottom: 10px; border-bottom: 1px solid rgba(128,128,128,.45); }
+.ph-card { background: transparent; box-shadow: none; border-radius: 0; overflow: visible; padding-bottom: 10px; border-bottom: 1px solid rgba(128,128,128,.45); }
 .ph-pic { position: relative; overflow: hidden; border-radius: 4px; }
 .ph-pic img { transition: transform .3s ease; }
 .ph-card:hover .ph-pic img { transform: scale(1.03); }
-.ph-new { position: absolute; right: 8px; bottom: 8px; padding: 3px 8px; background: #ffc61a; color: #1a1a1a; font: 700 12px/1.2 "Courier New", monospace; letter-spacing: 1px; border-radius: 3px; }
+.ph-new { position: absolute; right: 8px; bottom: 8px; padding: 3px 8px; background: var(--accent); color: #1a1a1a; font: 700 12px/1.2 "Courier New", monospace; letter-spacing: 1px; border-radius: 3px; }
 .ph-info { color: #222222; }
 .ph-loc { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; font-size: 15px; word-break: break-word; }
 .ph-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 8px; font-size: 16px; font-weight: 600; word-break: break-word; }
 .ph-box { padding: 1px 8px; border: 2px solid currentColor; border-radius: 5px; font-weight: 700; opacity: .85; }
 .ph-grid.nodesc .ph-info { display: none; }
-html[data-theme="dark"] .ph-info, html[data-theme="dark"] .cv-fav { color: #e8e8e8; }
+html[data-theme="dark"] .ph-info, html[data-theme="dark"] .cv-fav { color: var(--text); }
 .ph-prev { width: 320px; max-width: 100%; }
 .ph-model { word-break: break-word; }
 .ph-plate { color: #ff4d4d; opacity: 1; }
@@ -2480,10 +2430,10 @@ textarea.up-in { height: auto; padding: 10px 14px; resize: vertical; }
 .up-foot { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 20px 24px; }
 .up-foot .msg { flex: 1 0 100%; text-align: center; }
 #uploadView.editing .up-drop, #uploadView.editing .up-clear { display: none; }
-html[data-theme="dark"] .up-in { background: #2a2a2a; color: #e8e8e8; border-color: #444; }
-html[data-theme="dark"] .up-drop { border-color: #555; }
-html[data-theme="dark"] .up-note { color: #9a9aa0; }
-html[data-theme="dark"] .up-f .dd-btn { border-color: #444; }
+html[data-theme="dark"] .up-in { background: var(--surface-2); color: var(--text); border-color: var(--border); }
+html[data-theme="dark"] .up-drop { border-color: var(--border); }
+html[data-theme="dark"] .up-note { color: var(--muted); }
+html[data-theme="dark"] .up-f .dd-btn { border-color: var(--border); }
 @media (max-width: 800px) { .up-sec { grid-template-columns: 1fr; } .up-label { text-align: left; } .up-date { grid-template-columns: 1fr 1fr 1fr; } .up-date select { grid-column: 1 / -1; } }
 .up-f { position: relative; }
 .up-sug { position: absolute; left: 0; right: 0; top: 100%; z-index: 20; margin-top: 4px; max-height: 360px; overflow-y: auto; background: #fff; border: 1px solid #c8c8c8; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
@@ -2491,9 +2441,9 @@ html[data-theme="dark"] .up-f .dd-btn { border-color: #444; }
 .up-sug-item:hover { background: #ffc800; }
 .up-sug-item small { display: block; margin-top: 2px; font-size: 12px; opacity: .7; }
 .up-sug-empty { cursor: default; opacity: .7; }
-html[data-theme="dark"] .up-sug { background: #2b2d3a; border-color: #444; }
-html[data-theme="dark"] .up-sug-item { color: #e8e8e8; }
-html[data-theme="dark"] .up-sug-item:hover { color: #222; }
+html[data-theme="dark"] .up-sug { background: var(--surface-2); border-color: var(--border); }
+html[data-theme="dark"] .up-sug-item { color: var(--text); }
+html[data-theme="dark"] .up-sug-item:hover { color: var(--text); }
 .up-dd { position: relative; min-width: 0; }
 .up-dd .dd-btn { height: 40px; border-color: #c8c8c8; font-size: 15px; }
 .up-dd-menu { display: none; position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 20; min-width: 190px; padding: 6px; background: #fff; border: 1px solid #c8c8c8; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
@@ -2501,8 +2451,8 @@ html[data-theme="dark"] .up-sug-item:hover { color: #222; }
 .up-dd.open .dd-arrow { transform: rotate(-135deg) translateY(-2px); }
 .up-dd-item { padding: 10px 12px; border-radius: 6px; font-size: 15px; cursor: pointer; }
 .up-dd-item:hover, .up-dd-item.active { background: rgba(128,128,128,.22); }
-html[data-theme="dark"] .up-dd-menu { background: #3a3d4c; border-color: #555; }
-html[data-theme="dark"] .up-dd .dd-btn { border-color: #444; }
+html[data-theme="dark"] .up-dd-menu { background: var(--surface-2); border-color: var(--border); }
+html[data-theme="dark"] .up-dd .dd-btn { border-color: var(--border); }
 .up-in:disabled { opacity: .5; }
 .up-veh { margin: 0; min-height: 18px; font-size: 14px; font-weight: 700; }
 @media (max-width: 800px) { .up-date .up-dd { grid-column: 1 / -1; } }
@@ -2524,30 +2474,30 @@ html[data-theme="dark"] .up-dd .dd-btn { border-color: #444; }
 .ct-city.sel, .ct-node.has-sel > .ct-head { background: #ffc800; color: #222222; }
 .ct-node.has-sel > .ct-head .ct-arrow { border-color: #222222; }
 .pick-list .side-item.active { background: #e0e0e0; }
-html[data-theme="dark"] .pick-list .side-item.active { background: #3a3a3a; }
+html[data-theme="dark"] .pick-list .side-item.active { background: var(--surface-2); }
 html[data-theme="dark"] .up-dd-menu,
-html[data-theme="dark"] .up-sug { background: #2a2a2a; border-color: #444; }
+html[data-theme="dark"] .up-sug { background: var(--surface-2); border-color: var(--border); }
 html[data-theme="dark"] .up-dd-item:hover,
-html[data-theme="dark"] .up-dd-item.active { background: #3a3a3a; }
-html[data-theme="dark"] .up-dd-item { color: #e8e8e8; }
-html[data-theme="dark"] .up-sug-item:hover { background: #3a3a3a; color: #e8e8e8; }
+html[data-theme="dark"] .up-dd-item.active { background: var(--surface-2); }
+html[data-theme="dark"] .up-dd-item { color: var(--text); }
+html[data-theme="dark"] .up-sug-item:hover { background: var(--surface-2); color: var(--text); }
 .up-sug, .up-dd-menu { background: #ffffff; }
 .up-sug-item:hover, .up-dd-item:hover, .up-dd-item.active { background: #efefef; color: #222222; }
 html[data-theme="dark"] .up-sug,
-html[data-theme="dark"] .up-dd-menu { background: #2a2a2a; border-color: #444; }
+html[data-theme="dark"] .up-dd-menu { background: var(--surface-2); border-color: var(--border); }
 html[data-theme="dark"] .up-sug-item,
-html[data-theme="dark"] .up-dd-item { color: #e8e8e8; }
+html[data-theme="dark"] .up-dd-item { color: var(--text); }
 html[data-theme="dark"] .up-sug-item:hover,
 html[data-theme="dark"] .up-dd-item:hover,
-html[data-theme="dark"] .up-dd-item.active { background: #343434; color: #e8e8e8; }
+html[data-theme="dark"] .up-dd-item.active { background: var(--surface-2); color: var(--text); }
 .dd-btn:disabled { opacity: .5; cursor: not-allowed; }
 .up-inl { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border: 1px solid #c8c8c8; border-radius: 8px; background: #ffffff; box-sizing: border-box; cursor: text; transition: border-color .2s ease, opacity .2s ease; }
 .up-inl:focus-within { border-color: #808080; }
 .up-inl > span { flex: none; font-size: 15px; color: #888888; white-space: nowrap; }
 .up-inl input { flex: 1; min-width: 0; height: 100%; padding: 0; border: none; outline: none; background: transparent; color: #222222; font: inherit; font-size: 15px; font-weight: 700; }
 .up-inl:has(input:disabled) { opacity: .5; cursor: not-allowed; }
-html[data-theme="dark"] .up-inl { background: #2a2a2a; border-color: #444; }
-html[data-theme="dark"] .up-inl input { color: #e8e8e8; }
+html[data-theme="dark"] .up-inl { background: var(--surface-2); border-color: var(--border); }
+html[data-theme="dark"] .up-inl input { color: var(--text); }
 .pp-wrap { padding: 18px 24px 28px; }
 .pp-top { margin-bottom: 14px; }
 .pp-img { display: block; width: 100%; max-width: 960px; margin: 0 auto; aspect-ratio: 4 / 3; background: #111111; border-radius: 8px; overflow: hidden; }
@@ -2571,7 +2521,7 @@ html[data-theme="dark"] .up-inl input { color: #e8e8e8; }
 .pp-act { display: flex; align-items: center; gap: 14px; padding: 0; border: none; background: none; color: inherit; font: inherit; font-size: 15px; text-align: left; cursor: pointer; }
 .pp-act i { flex: none; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(128,128,128,.5); border-radius: 8px; font-style: normal; font-size: 22px; transition: background .2s ease; }
 .pp-act:hover i { background: rgba(128,128,128,.2); }
-.pp-act.danger { color: #e53935; }
+.pp-act.danger { color: var(--danger); }
 @media (max-width: 600px) { .pp-wrap { padding: 12px; } .pp-route { margin-left: 0; } }
 .up-drop.drag, .up-prev.drag { border-color: #808080; background: rgba(128,128,128,.18); outline: 2px dashed #808080; outline-offset: -2px; }
 .up-vsel { display: flex; flex-direction: column; gap: 10px; font-size: 16px; }
@@ -2602,7 +2552,7 @@ html[data-theme="dark"] .up-inl input { color: #e8e8e8; }
 .cm-item { padding: 12px 14px; background: rgba(128,128,128,.12); border-radius: 8px; }
 .cm-top { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 6px; font-size: 14px; }
 .cm-top small { opacity: .6; }
-.cm-del { margin-left: auto; border: none; background: none; color: #e53935; font: inherit; font-size: 13px; cursor: pointer; }
+.cm-del { margin-left: auto; border: none; background: none; color: var(--danger); font: inherit; font-size: 13px; cursor: pointer; }
 .cm-body { margin: 0; font-size: 15px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
 .pp-vote { display: flex; gap: 10px; }
 .pp-vbtn { display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 18px; border: 1px solid rgba(128,128,128,.5); border-radius: 8px; background: none; color: inherit; font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; transition: background .2s ease, border-color .2s ease; }
@@ -2635,8 +2585,8 @@ html[data-theme="dark"] .up-inl input { color: #e8e8e8; }
 .eds-row b { font-size: 15px; word-break: break-all; }
 .eds-row .btn { height: 30px; padding: 0 14px; font-size: 13px; }
 .up-f > .msg:empty { display: none; }
-html[data-theme="dark"] .eds-row { background: #2a2a2a; }
-html[data-theme="dark"] .eds-row b { color: #e8e8e8; }
+html[data-theme="dark"] .eds-row { background: var(--surface-2); }
+html[data-theme="dark"] .eds-row b { color: var(--text); }
 
 /* ===== Мобільні виправлення ===== */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -2647,11 +2597,6 @@ img, canvas, video { max-width: 100%; }
 .ent-row, .ent-name, .ent-tags, .ev-box, .rc-top > div { min-width: 0; }
 
 /* рядки підприємств: пізніше правило з 300px перебивало мобільну розкладку */
-@media (max-width: 700px) {
-  .ent-head { display: none !important; }
-  .ent-row { grid-template-columns: 1fr !important; gap: 8px; }
-}
-
 @media (max-width: 800px) {
   nav { overflow-x: auto; scrollbar-width: none; }
   nav::-webkit-scrollbar { display: none; }
@@ -2675,7 +2620,7 @@ img, canvas, video { max-width: 100%; }
   .ev-actions .btn { height: 40px; }
   .ev-card { padding: 14px 12px 8px; }
   .ev-stats { gap: 12px 24px; }
-  .ev-box b { font-size: 26px !important; }
+  .ev-box b { font-size: 26px; }
   .ev-fleet { gap: 8px; }
   .ev-box { flex: 1 1 calc(50% - 8px); min-width: 0; padding: 10px 12px; }
 
@@ -2716,7 +2661,7 @@ img, canvas, video { max-width: 100%; }
 }
 
 @media (max-width: 360px) {
-  nav .btn, nav .btn:hover, nav .btn:active { padding: 0 7px !important; font-size: 12px !important; }
+  nav .btn, nav .btn:hover, nav .btn:active { padding: 0 7px; font-size: 12px; }
   .ev-box { flex-basis: 100%; }
   .up-date { grid-template-columns: 1fr 1fr; }
   .up-date .up-dd { grid-column: 1 / -1; }
@@ -2742,15 +2687,15 @@ img, canvas, video { max-width: 100%; }
 .um-item:active { background: #e6e6e6; padding-left: 26px; font-size: 15px; }
 .um-ic { width: 22px; text-align: center; flex: none; font-size: 16px; }
 .um-sep { height: 1px; margin: 6px 24px; background: rgba(0, 0, 0, 0.12); }
-html[data-theme="dark"] .user-menu { background: #2a2a2a; box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6); }
-html[data-theme="dark"] .um-item { color: #e8e8e8; }
-html[data-theme="dark"] .um-item:hover { background: #343434; }
-html[data-theme="dark"] .um-item:active { background: #3d3d3d; }
-html[data-theme="dark"] .um-sep { background: #444; }
-.veh-page-wrap{padding:22px 24px 30px}.veh-page-back{margin-bottom:14px}.veh-page-heading{display:flex;align-items:center;flex-wrap:wrap;gap:12px 18px}.veh-page-id{display:flex;align-items:center;gap:10px}.veh-page-fleet,.veh-page-plate{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 14px;border:2px solid rgba(128,128,128,.65);border-radius:6px;font-size:25px;font-weight:800;white-space:nowrap}.veh-page-plate{font-size:24px}.veh-page-name{display:flex;flex-direction:column;gap:3px}.veh-page-name h1{margin:0;font-size:25px}.veh-page-name span{font-size:14px;opacity:.7}.veh-page-location{margin:12px 0 18px;font-weight:700}.veh-section-title{margin:20px 0 10px;font-size:18px}.veh-history-scroll{max-height:50vh;overflow:auto}.veh-history-table thead th{position:sticky;top:0;z-index:1}.veh-history-table{width:100%;border-collapse:collapse;background:rgba(128,128,128,.07);font-size:14px}.veh-history-table th,.veh-history-table td{padding:10px 12px;text-align:left;border-bottom:1px solid rgba(128,128,128,.25);white-space:nowrap}.veh-history-table th{background:rgba(128,128,128,.18);font-weight:600}.veh-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:rgba(128,128,128,.2)}.veh-fact{padding:10px;background:rgba(128,128,128,.08);min-width:0;overflow-wrap:anywhere}.veh-fact small{display:block;margin-bottom:4px;opacity:.65}.veh-fact b{font-size:14px}.ph-box:empty,.pp-fleet:empty,.veh-page-fleet:empty,.veh-page-plate:empty{display:none!important}.ph-vehicle-link{font:inherit;color:inherit;background:transparent;cursor:pointer}.ph-vehicle-link:hover{text-decoration:underline}.pp-veh-link{font-family:inherit;cursor:pointer;background:transparent;appearance:none}.pp-veh-link:hover{filter:brightness(1.2)}@media(max-width:600px){.veh-page-wrap{padding:14px 12px 22px}.veh-page-heading{align-items:flex-start}.veh-page-fleet,.veh-page-plate{min-height:40px;font-size:18px;padding:0 10px}.veh-page-name h1{font-size:20px}.veh-history-table th,.veh-history-table td{padding:8px;font-size:12px}}
-.rules-head{display:flex;align-items:center;justify-content:space-between;gap:16px}.rules-head h2{margin:0;font-size:22px}.rules-head p{margin:6px 0 0;color:#777;font-size:14px}.rules-list{padding:8px 20px 20px}.rule-card{padding:16px 0;border-bottom:1px solid rgba(128,128,128,.35)}.rule-card:last-child{border-bottom:0}.rule-card h3{margin:0 0 8px;font-size:17px}.rule-card p{margin:0;line-height:1.55;white-space:pre-wrap}.rule-edit{display:grid;gap:8px;margin-top:10px}.rule-edit input,.rule-edit textarea{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ccc;border-radius:8px;background:#fff;color:inherit;font:inherit}.rule-actions{display:flex;gap:8px;margin-top:10px}.veh-profile{gap:10px}.veh-profile-tabs{display:flex;gap:6px;border-bottom:1px solid #ddd;overflow:auto}.veh-profile-tab{border:0;background:transparent;color:#777;padding:10px 12px;border-radius:8px 8px 0 0;font:inherit;cursor:pointer;white-space:nowrap}.veh-profile-tab.active{color:inherit;background:rgba(128,128,128,.16);font-weight:700}.veh-profile-pane{max-height:min(55vh,560px);overflow:auto}.vh-timeline{display:grid;gap:0;padding:4px 0}.vh-event{position:relative;margin-left:8px;padding:4px 12px 18px 22px;border-left:2px solid #aaa}.vh-event:before{content:"";position:absolute;left:-6px;top:7px;width:10px;height:10px;border-radius:50%;background:#808080}.vh-event b{display:block;margin-bottom:3px}.vh-event small{display:block;color:#888;margin-bottom:4px}.veh-profile-actions{display:flex;justify-content:flex-end;gap:8px;padding-top:10px;border-top:1px solid rgba(128,128,128,.3)}html[data-theme="dark"] .rule-edit input,html[data-theme="dark"] .rule-edit textarea{background:#2a2a2a;border-color:#444;color:#e8e8e8}@media(max-width:600px){.rules-head{align-items:flex-start;flex-direction:column}.rules-head .btn{width:100%}.rules-list{padding:8px 14px 16px}.veh-profile-actions .btn{flex:1}}
+html[data-theme="dark"] .user-menu { background: var(--surface-2); box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6); }
+html[data-theme="dark"] .um-item { color: var(--text); }
+html[data-theme="dark"] .um-item:hover { background: var(--surface-2); }
+html[data-theme="dark"] .um-item:active { background: var(--surface-2); }
+html[data-theme="dark"] .um-sep { background: var(--border); }
+.veh-page-wrap{padding:22px 24px 30px}.veh-page-back{margin-bottom:14px}.veh-page-heading{display:flex;align-items:center;flex-wrap:wrap;gap:12px 18px}.veh-page-id{display:flex;align-items:center;gap:10px}.veh-page-fleet,.veh-page-plate{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 14px;border:2px solid rgba(128,128,128,.65);border-radius:6px;font-size:25px;font-weight:800;white-space:nowrap}.veh-page-plate{font-size:24px}.veh-page-name{display:flex;flex-direction:column;gap:3px}.veh-page-name h1{margin:0;font-size:25px}.veh-page-name span{font-size:14px;opacity:.7}.veh-page-location{margin:12px 0 18px;font-weight:700}.veh-section-title{margin:20px 0 10px;font-size:18px}.veh-history-scroll{max-height:50vh;overflow:auto;position:relative;isolation:isolate}.veh-history-table thead th{position:sticky;top:0;z-index:2}.veh-history-table{width:100%;border-collapse:separate;border-spacing:0;background:rgba(128,128,128,.07);font-size:14px}.veh-history-plate{display:inline-block;padding:3px 8px;border:1px solid var(--vc,var(--text));border-radius:5px;color:var(--vc,var(--text));font-weight:700}.veh-page-fleet,.veh-page-plate{border-color:var(--vc,var(--border));color:var(--vc,var(--text))}.veh-history-table th,.veh-history-table td{padding:10px 12px;text-align:left;border-bottom:1px solid rgba(128,128,128,.25);white-space:nowrap}.veh-history-table th{background:var(--surface-2);font-weight:600;box-shadow:0 1px 0 var(--border)}.veh-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:rgba(128,128,128,.2)}.veh-fact{padding:10px;background:rgba(128,128,128,.08);min-width:0;overflow-wrap:anywhere}.veh-fact small{display:block;margin-bottom:4px;opacity:.65}.veh-fact b{font-size:14px}.ph-box:empty,.pp-fleet:empty,.veh-page-fleet:empty,.veh-page-plate:empty{display:none}.ph-vehicle-link{font:inherit;color:inherit;background:transparent;cursor:pointer}.ph-vehicle-link:hover{text-decoration:underline}.pp-veh-link{font-family:inherit;cursor:pointer;background:transparent;appearance:none}.pp-veh-link:hover{filter:brightness(1.2)}@media(max-width:600px){.veh-page-wrap{padding:14px 12px 22px}.veh-page-heading{align-items:flex-start}.veh-page-fleet,.veh-page-plate{min-height:40px;font-size:18px;padding:0 10px}.veh-page-name h1{font-size:20px}.veh-history-table th,.veh-history-table td{padding:8px;font-size:12px}}
+.rules-head{display:flex;align-items:center;justify-content:space-between;gap:16px}.rules-head h2{margin:0;font-size:22px}.rules-head p{margin:6px 0 0;color:#777;font-size:14px}.rules-list{padding:8px 20px 20px}.rule-card{padding:16px 0;border-bottom:1px solid rgba(128,128,128,.35)}.rule-card:last-child{border-bottom:0}.rule-card h3{margin:0 0 8px;font-size:17px}.rule-card p{margin:0;line-height:1.55;white-space:pre-wrap}.rule-edit{display:grid;gap:8px;margin-top:10px}.rule-edit input,.rule-edit textarea{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ccc;border-radius:8px;background:#fff;color:inherit;font:inherit}.rule-actions{display:flex;gap:8px;margin-top:10px}.veh-profile{gap:10px}.veh-profile-tabs{display:flex;gap:6px;border-bottom:1px solid #ddd;overflow:auto}.veh-profile-tab{border:0;background:transparent;color:#777;padding:10px 12px;border-radius:8px 8px 0 0;font:inherit;cursor:pointer;white-space:nowrap}.veh-profile-tab.active{color:inherit;background:rgba(128,128,128,.16);font-weight:700}.veh-profile-pane{max-height:min(55vh,560px);overflow:auto}.vh-timeline{display:grid;gap:0;padding:4px 0}.vh-event{position:relative;margin-left:8px;padding:4px 12px 18px 22px;border-left:2px solid #aaa}.vh-event:before{content:"";position:absolute;left:-6px;top:7px;width:10px;height:10px;border-radius:50%;background:#808080}.vh-event b{display:block;margin-bottom:3px}.vh-event small{display:block;color:#888;margin-bottom:4px}.veh-profile-actions{display:flex;justify-content:flex-end;gap:8px;padding-top:10px;border-top:1px solid rgba(128,128,128,.3)}html[data-theme="dark"] .rule-edit input,html[data-theme="dark"] .rule-edit textarea{background:var(--surface-2);border-color:var(--border);color:var(--text)}@media(max-width:600px){.rules-head{align-items:flex-start;flex-direction:column}.rules-head .btn{width:100%}.rules-list{padding:8px 14px 16px}.veh-profile-actions .btn{flex:1}}
 
-/* Phone and narrow-screen layout */
+@media (max-width:1100px){.cv-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width: 800px) {
   html, body { width:100%; max-width:100%; overflow-x:hidden; }
   body { padding:8px 8px 0; }
@@ -2766,6 +2711,8 @@ html[data-theme="dark"] .um-sep { background: #444; }
   .side.collapsed { display:none; }
   .cv-top { padding:14px; gap:12px; }
   .cv-info, .cv-side, .ent-card, .ent-row, .ev-card, .veh-page-wrap { min-width:0; max-width:100%; }
+  .ent-head { display:none; }
+  .ent-row { grid-template-columns:minmax(0,1fr); gap:8px; }
   .cv-tabs, .staff-tabs, .city-tabs { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
   .cv-tabs::-webkit-scrollbar, .staff-tabs::-webkit-scrollbar, .city-tabs::-webkit-scrollbar { display:none; }
   .cv-tab, .staff-tab, .city-tab { flex:none; min-height:42px; }
@@ -2806,7 +2753,7 @@ html[data-theme="dark"] .um-sep { background: #444; }
 @media (max-width: 480px) {
   body { padding-left:6px; padding-right:6px; }
   nav { border-radius:8px; padding:6px; gap:5px; }
-  nav .btn, nav .btn:hover, nav .btn:active { min-height:40px; padding:0 9px !important; font-size:13px !important; }
+  nav .btn, nav .btn:hover, nav .btn:active { min-height:40px; padding:0 9px; font-size:13px; }
   .burger { flex:none; }
   #guest, #user { gap:5px; }
   .ph-grid { grid-template-columns:minmax(0,1fr); }
@@ -2822,20 +2769,19 @@ html[data-theme="dark"] .um-sep { background: #444; }
   .rules-list { padding-left:12px; padding-right:12px; }
 }
 @media (max-width: 360px) {
-  nav .btn, nav .btn:hover, nav .btn:active { padding:0 7px !important; font-size:12px !important; }
+  nav .btn, nav .btn:hover, nav .btn:active { padding:0 7px; font-size:12px; }
   .veh-page-fleet, .veh-page-plate { font-size:16px; padding:0 8px; }
   .pp-cm-head h3, .pp-cm-head .pp-cm-n { font-size:19px; }
 }
 
 
-.maint-switch{display:flex;align-items:center;gap:10px;margin:14px 0;padding:14px;border-radius:8px;background:rgba(128,128,128,.1);font-weight:700}.maint-switch input{width:20px;height:20px;accent-color:#e0b500}.maint-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.maint-actions .msg{margin:0}
 .maintenance-screen{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:#1b1d24;color:#f5f5f5;text-align:center}
 .maintenance-card{width:min(620px,100%);padding:38px 30px;border:1px solid rgba(255,255,255,.14);border-radius:16px;background:#252833;box-shadow:0 18px 60px rgba(0,0,0,.35)}
 .maintenance-brand{display:block;margin-bottom:22px;color:#ffcf27;font-size:14px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
 .maintenance-card h1{margin:0 0 14px;font-size:clamp(26px,5vw,38px)}
 .maintenance-card p{margin:0;font-size:17px;line-height:1.6;white-space:pre-line;overflow-wrap:anywhere}
 .maintenance-card small{display:block;margin-top:22px;color:#b8bbc5;font-size:13px}
-body.maintenance-active{overflow:hidden!important}
+body.maintenance-active{overflow:hidden}
 @media(max-width:480px){.maintenance-screen{padding:16px}.maintenance-card{padding:28px 18px}.maintenance-card p{font-size:16px}}
 
 </style>
@@ -3127,7 +3073,7 @@ body.maintenance-active{overflow:hidden!important}
   <div class="veh-page-back"><button class="btn light" id="vpBack" type="button">← Назад</button></div>
   <div class="veh-page-heading"><div class="veh-page-id"><span id="vpFleet" class="veh-page-fleet hidden"></span><span id="vpPlate" class="veh-page-plate hidden"></span></div><div class="veh-page-name"><h1 id="vpModel">Транспортний засіб</h1><span id="vpYear"></span></div><button class="btn light hidden" id="vpTransfer" type="button">Передати в інше підприємство</button><button class="btn dark hidden" id="vpEdit" type="button">Редагувати ТЗ</button></div>
   <div class="veh-page-location" id="vpLocation"></div>
-  <h2 class="veh-section-title">Історія транспортного засобу</h2><div class="veh-history-scroll"><table class="veh-history-table"><thead><tr><th>Місто/регіон</th><th>Підприємство</th><th>Державний номер</th><th>Від</th><th>До</th></tr></thead><tbody id="vpHistory"></tbody></table></div>
+  <h2 class="veh-section-title">Історія транспортного засобу</h2><div class="veh-history-scroll"><table class="veh-history-table"><thead><tr><th>Місто / регіон</th><th>Підприємство</th><th>Держномер</th><th>Статус запису</th><th>Надійшов</th><th>Початок роботи</th><th>Списаний</th></tr></thead><tbody id="vpHistory"></tbody></table></div>
   <h2 class="veh-section-title">Характеристики</h2><div class="veh-facts" id="vpFacts"></div>
   <h2 class="veh-section-title">Фотографії цього ТЗ</h2><div id="vpPhotoGrid" class="ph-grid"></div><p id="vpPhotoEmpty" class="cv-empty">Пов’язаних фотографій поки немає.</p>
 </div></div>
@@ -3479,6 +3425,7 @@ body.maintenance-active{overflow:hidden!important}
 <script src="en.js"></script>
 <script src="by.js"></script>
 <script>
+
 const SUPABASE_URL = 'https://pmncybtnpeumpdytakyc.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Zra57qRt0JGVB9zIrhhXxw_2sGyDlPT';
 
@@ -3529,6 +3476,35 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
 });
 
 const $ = id => document.getElementById(id);
+function normalizeDateParts(day, month, year) {
+  const d=Number(day),m=Number(month),y=Number(year);
+  if(!Number.isInteger(d)||!Number.isInteger(m)||!Number.isInteger(y)||y<1||m<1||m>12)return false;
+  const leap=y%4===0&&(y%100!==0||y%400===0),days=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31];
+  return d>=1&&d<=days[m-1];
+}
+function isValidDateText(value) {
+  const text=String(value||'').trim();if(!text)return true;
+  let match=/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(text);
+  if(match)return normalizeDateParts(match[1],match[2],match[3]);
+  match=/^(\d{1,2})\.(\d{4})$/.exec(text);
+  if(match)return Number(match[1])>=1&&Number(match[1])<=12&&Number(match[2])>=1;
+  match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+  if(match)return normalizeDateParts(match[3],match[2],match[1]);
+  return /^\d{4}$/.test(text)&&Number(text)>=1;
+}
+function isValidPhotoDate(day, month, year) {
+  if((day&&!/^\d{1,2}$/.test(day))||(month&&!/^\d{1,2}$/.test(month))||(year&&!/^\d{4}$/.test(year)))return false;
+  if(day)return !!month&&!!year&&normalizeDateParts(day,month,year);
+  if(month)return !!year&&Number(month)>=1&&Number(month)<=12&&Number(year)>=1;
+  return !year||Number(year)>=1;
+}
+function postgrestLiteral(value, pattern=false) {
+  let text=String(value).replace(/\\/g,'\\\\').replace(/"/g,'\\"');
+  if(pattern)text=text.replace(/[%_]/g,'\\$&');
+  if(pattern)text='%'+text+'%';
+  return '"'+text+'"';
+}
+function escapeLikePattern(value) { return String(value).replace(/[\\%_]/g,'\\$&'); }
 const placeholder = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"><rect width="44" height="44" fill="#d9d9d9"/><circle cx="22" cy="17" r="8" fill="#9a9a9a"/><path d="M6 44c0-10 7-16 16-16s16 6 16 16z" fill="#9a9a9a"/></svg>');
 const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
 const maxSize = 2 * 1024 * 1024;
@@ -3544,7 +3520,10 @@ let prefsReady = Promise.resolve();
 let pending = null;
 let pickBack = null;
 let pickDoneCb = null;
+let modalReturnFocus = null;
 let pollTimer = null;
+let notificationTimer = null;
+let liveFallbackTimer = null;
 let checking = false;
 
 function setMsg(el, text, ok) {
@@ -3554,13 +3533,16 @@ function setMsg(el, text, ok) {
 
 function showView(name) {
   if (name === 'photoUp' || name === 'upload') { pickBack = null; closeModal(); return; }
+  if(name==='pick'&&!$('overlay').classList.contains('open'))modalReturnFocus=document.activeElement;
   if (name === 'pick') $('overlay').classList.add('open');
   Object.keys(views).forEach(k => views[k].classList.toggle('active', k === name));
   $('modal').classList.toggle('wide', ['city', 'ent', 'veh', 'route', 'routeInfo', 'photoUp', 'photoView', 'transfer'].includes(name));
   if (name === 'city') setCityButtons();
+  if(name==='pending')syncResendTimer();
 }
 
 function openModal(mode) {
+  if(!$('overlay').classList.contains('open'))modalReturnFocus=document.activeElement;
   if (pending && mode === 'register') mode = 'pending';
   setMsg($('loginMsg'), '');
   setMsg($('regMsg'), '');
@@ -3568,12 +3550,19 @@ function openModal(mode) {
   setMsg($('cityMsg'), '');
   showView(mode);
   $('overlay').classList.add('open');
+  if(mode==='pending')syncResendTimer();
+  const activeView=Object.values(views).find(view=>view.classList.contains('active'));
+  const firstFocus=activeView&&activeView.querySelector('input:not([disabled]),select:not([disabled]),textarea:not([disabled]),button:not([disabled])');
+  if(firstFocus)setTimeout(()=>{if($('overlay').classList.contains('open')&&firstFocus.isConnected)firstFocus.focus()},0);
 }
 
 function closeModal() {
   pickBack = null;
   pickDoneCb = null;
   $('overlay').classList.remove('open');
+  stopResendTimer();
+  const target=modalReturnFocus;modalReturnFocus=null;
+  if(target&&target.isConnected&&!target.closest('.hidden')&&typeof target.focus==='function')target.focus();
 }
 
 function closeTop() {
@@ -3610,6 +3599,7 @@ async function uploadAvatar(uid, file) {
 async function render(session) {
   if (!session) {
     me = { uid: null, role: null };
+    syncNotificationTimer();
     $('guest').classList.remove('hidden');
     $('user').classList.add('hidden');
     renderCity();
@@ -3633,8 +3623,9 @@ async function render(session) {
   $('navName').textContent = data && data.username ? data.username : '';
   const role = data && data.role;
   me = { uid: session.user.id, role: role || null, name: data && data.username ? data.username : '' };
+  syncNotificationTimer();
   $('openRequests').classList.toggle('hidden', !isPhotoMod());
-  loadNotifs();
+  if(!document.hidden)loadNotifs();
   const badge = $('navBadge');
   badge.className = 'badge';
   if (role === 'owner' || role === 'admin' || role === 'photomod') {
@@ -3651,6 +3642,7 @@ async function render(session) {
 
 function startPolling() {
   stopPolling();
+  if(document.hidden||!pending)return;
   pollTimer = setInterval(() => checkPending(false), 40000);
 }
 
@@ -3664,24 +3656,27 @@ async function checkPending(manual) {
   checking = true;
   const p = pending;
   if (manual) $('pendCheck').disabled = true;
-  const { data, error } = await db.auth.signInWithPassword({ email: p.email, password: p.password });
-  checking = false;
-  $('pendCheck').disabled = false;
-  if (pending !== p) return;
-  if (error) {
-    if (/confirm/i.test(error.message)) {
-      if (manual) setMsg($('pendMsg'), 'Ще не підтверджено');
-    } else {
-      setMsg($('pendMsg'), error.message);
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email: p.email, password: p.password });
+    if (pending !== p) return;
+    if (error) {
+      if (/confirm/i.test(error.message)) {
+        if (manual) setMsg($('pendMsg'), 'Ще не підтверджено');
+      } else setMsg($('pendMsg'), error.message);
+      return;
     }
-    return;
+    stopPolling();
+    pending = null;
+    if (p.file) await uploadAvatar(data.user.id, p.file);
+    await render(data.session);
+    $('registerForm').reset();
+    closeModal();
+  } catch (error) {
+    if(pending===p)setMsg($('pendMsg'),error.message||'Не вдалося перевірити підтвердження');
+  } finally {
+    checking=false;
+    $('pendCheck').disabled=false;
   }
-  stopPolling();
-  pending = null;
-  if (p.file) await uploadAvatar(data.user.id, p.file);
-  await render(data.session);
-  $('registerForm').reset();
-  closeModal();
 }
 
 let routed = false;
@@ -3703,7 +3698,12 @@ db.auth.onAuthStateChange((event, session) => {
 });
 
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) checkPending(false);
+  if(document.hidden){stopPolling();stopResendTimer();syncNotificationTimer();syncLiveFallbackTimer();if(liveTimer){clearTimeout(liveTimer);liveTimer=null}return}
+  if(pending)startPolling();
+  checkPending(false);
+  syncResendTimer();
+  syncNotificationTimer();
+  syncLiveFallbackTimer();
 });
 
 $('openLogin').addEventListener('click', () => openModal('login'));
@@ -3715,7 +3715,15 @@ $('overlay').addEventListener('click', e => {
   if (e.target === $('overlay')) closeTop();
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeTop();
+  if(!$('overlay').classList.contains('open'))return;
+  if(e.key==='Escape'){closeTop();return}
+  if(e.key==='Tab'){
+    const focusable=[...$('modal').querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>el.offsetParent!==null&&!el.closest('.hidden'));
+    if(!focusable.length)return;
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+  }
 });
 
 $('pendCheck').addEventListener('click', () => checkPending(true));
@@ -3728,14 +3736,13 @@ $('pendVerify').addEventListener('click', async () => {
     return;
   }
   $('pendVerify').disabled = true;
-  const { error } = await db.auth.verifyOtp({ email: pending.email, token: code, type: 'signup' });
-  $('pendVerify').disabled = false;
-  if (error) {
-    setMsg($('pendMsg'), 'Невірний або прострочений код');
-    return;
-  }
-  $('pendCode').value = '';
-  checkPending(true);
+  try {
+    const { error } = await db.auth.verifyOtp({ email: pending.email, token: code, type: 'signup' });
+    if (error) { setMsg($('pendMsg'), 'Невірний або прострочений код'); return; }
+    $('pendCode').value = '';
+    await checkPending(true);
+  } catch(error) { setMsg($('pendMsg'),error.message||'Не вдалося перевірити код'); }
+  finally { $('pendVerify').disabled = false; }
 });
 
 let resendAt = 0;
@@ -3755,24 +3762,28 @@ function drawResend() {
   b.textContent = 'Надіслати лист ще раз';
 }
 
+function stopResendTimer(){if(resendTick)clearInterval(resendTick);resendTick=null}
+function syncResendTimer(){
+  stopResendTimer();
+  if(document.hidden||!$('overlay').classList.contains('open')||!$('pendingView').classList.contains('active'))return drawResend();
+  if(Date.now()<resendAt)resendTick=setInterval(drawResend,1000);
+  drawResend();
+}
 function startResendTimer() {
   resendAt = Date.now() + 120000;
-  clearInterval(resendTick);
-  resendTick = setInterval(drawResend, 1000);
-  drawResend();
+  syncResendTimer();
 }
 
 $('pendResend').addEventListener('click', async () => {
   if (!pending || Date.now() < resendAt) return;
   $('pendResend').disabled = true;
-  const { error } = await db.auth.resend({ type: 'signup', email: pending.email });
-  if (error) {
-    drawResend();
-    setMsg($('pendMsg'), /rate limit|seconds/i.test(error.message) ? 'Забагато листів, спробуй пізніше' : error.message);
-    return;
-  }
-  setMsg($('pendMsg'), 'Лист надіслано ще раз', true);
-  startResendTimer();
+  try {
+    const { error } = await db.auth.resend({ type: 'signup', email: pending.email });
+    if (error) { setMsg($('pendMsg'), /rate limit|seconds/i.test(error.message) ? 'Забагато листів, спробуй пізніше' : error.message);return; }
+    setMsg($('pendMsg'), 'Лист надіслано ще раз', true);
+    startResendTimer();
+  } catch(error) { setMsg($('pendMsg'),error.message||'Не вдалося надіслати лист'); }
+  finally { if(Date.now()>=resendAt)drawResend(); }
 });
 function dropPending(p) {
   if (!p) return;
@@ -3796,19 +3807,18 @@ $('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
   setMsg($('loginMsg'), '');
   $('loginSubmit').disabled = true;
-  const { error } = await db.auth.signInWithPassword({
-    email: $('loginEmail').value.trim(),
-    password: $('loginPassword').value
-  });
-  $('loginSubmit').disabled = false;
-  if (error) {
-    if (/confirm/i.test(error.message)) setMsg($('loginMsg'), 'Підтверди email за листом');
-    else if (/invalid/i.test(error.message)) setMsg($('loginMsg'), 'Невірний email або пароль');
-    else setMsg($('loginMsg'), error.message);
-    return;
-  }
-  $('loginForm').reset();
-  closeModal();
+  try {
+    const { error } = await db.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});
+    if (error) {
+      if (/confirm/i.test(error.message)) setMsg($('loginMsg'), 'Підтверди email за листом');
+      else if (/invalid/i.test(error.message)) setMsg($('loginMsg'), 'Невірний email або пароль');
+      else setMsg($('loginMsg'), error.message);
+      return;
+    }
+    $('loginForm').reset();
+    closeModal();
+  } catch(error) { setMsg($('loginMsg'),error.message||'Не вдалося увійти'); }
+  finally { $('loginSubmit').disabled = false; }
 });
 
 $('registerForm').addEventListener('submit', async e => {
@@ -3847,11 +3857,9 @@ $('registerForm').addEventListener('submit', async e => {
   }
   $('regSubmit').disabled = true;
   pendingPrefs = { lang, theme };
-  const { data, error } = await db.auth.signUp({
-    email,
-    password,
-    options: { data: { username } }
-  });
+  let data,error;
+  try { ({data,error}=await db.auth.signUp({email,password,options:{data:{username}}})); }
+  catch(err){pendingPrefs=null;$('regSubmit').disabled=false;setMsg($('regMsg'),err.message||'Не вдалося створити акаунт');return}
   $('regSubmit').disabled = false;
   if (error) {
     pendingPrefs = null;
@@ -3862,7 +3870,6 @@ $('registerForm').addEventListener('submit', async e => {
     return;
   }
   if (data.user && data.user.identities && data.user.identities.length === 0) {
-    pendingPrefs = null;
     pendingPrefs = null;
     setMsg($('regMsg'), 'Цей email вже зареєстрований');
     return;
@@ -4227,7 +4234,7 @@ $('edAdd').addEventListener('click', async () => {
   }
   $('edAdd').disabled = true;
   try {
-    const { data: found, error: fe } = await db.from('profiles').select('id, username').ilike('username', name).limit(10);
+    const { data: found, error: fe } = await db.from('profiles').select('id, username').ilike('username', escapeLikePattern(name)).limit(10);
     if (fe) throw fe;
     const u = (found || []).find(x => String(x.username).toLowerCase() === name.toLowerCase());
     if (!u) {
@@ -5017,50 +5024,54 @@ let vhCur = null;
 
 function openVehInfo(v, editable) { openVehicleProfile(v, editable); }
 let vehPageReturn = null, vehPageCurrent = null, vehPageEditable = false;
-function addVehHistoryRow(rows, cityName, entName, plate, fromDate, toDate) { const tr=document.createElement('tr'); [cityName||'—',entName||'—',plate||'—',fromDate||'—',toDate||'—'].forEach(x=>{const td=document.createElement('td');td.textContent=x;tr.appendChild(td)}); rows.push(tr); }
+function addVehHistoryRow(rows, cityName, entName, plate, status, arrived, startDate, writtenOff) { const tr=document.createElement('tr'); [cityName||'—',entName||'—'].forEach(x=>{const td=document.createElement('td');td.textContent=x;tr.appendChild(td)});const plateCell=document.createElement('td'),plateBadge=document.createElement('span');plateBadge.className='veh-history-plate';plateBadge.textContent=cleanVehicleNumber(plate)||'—';plateBadge.style.setProperty('--vc',statColor(VEH_STATUSES,status));plateCell.appendChild(plateBadge);tr.appendChild(plateCell);const stateCell=document.createElement('td'),state=VEH_STATUSES.find(x=>x.key===status);stateCell.textContent=state?state.name:'Не вказаний';tr.appendChild(stateCell);[arrived,startDate,writtenOff].forEach(x=>{const td=document.createElement('td');td.textContent=x||'Не вказано';tr.appendChild(td)});rows.push(tr); }
 function openVehicleProfile(v, editable=false, sourcePhoto=null) {
   if(!vehPageReturn)vehPageReturn={page:PAGES.find(id=>!$(id).classList.contains('hidden'))||null,cityId:currentId,ent:curEnt,photo:ppCur,hash:location.hash};
   vehPageCurrent=v;vehPageEditable=editable;vhCur=v;const fleet=String(v.fleet_no||'').trim(),plate=String(v.plate_no||'').trim();
-  $('vpFleet').textContent=fleet;$('vpFleet').classList.toggle('hidden',!fleet);$('vpPlate').textContent=plate;$('vpPlate').classList.toggle('hidden',!plate);
+  $('vpFleet').textContent=fleet;$('vpFleet').classList.toggle('hidden',!fleet);$('vpPlate').textContent=plate;$('vpPlate').classList.toggle('hidden',!plate);const vehicleColor=statColor(VEH_STATUSES,v.status);$('vpFleet').style.setProperty('--vc',vehicleColor);$('vpPlate').style.setProperty('--vc',vehicleColor);
   $('vpModel').textContent=String(v.model||'Транспортний засіб').trim();$('vpYear').textContent=v.build_year?String(v.build_year):'';$('vpEdit').classList.toggle('hidden',!editable);$('vpTransfer').classList.toggle('hidden',!editable||!v.id);
   const city=cities.find(c=>c.id===v.city_id), enterprise=enterprises.find(e=>e.id===v.enterprise_id)||curEnt;$('vpLocation').textContent=[city&&city.name,enterprise&&enterprise.name].filter(Boolean).join(' · ');
   const tp=ENT_TYPES.find(t=>t.key===v.vehicle_type),st=VEH_STATUSES.find(x=>x.key===v.status);$('vpFacts').replaceChildren();
   [['Виробник',v.manufacturer],['Тип транспорту',tp&&tp.name],['Модель',v.model],['Виготовлено',v.build_year],['Заводський номер',v.factory_no],['VIN-код',v.vin],['Призначення',v.purpose],['Поточний стан',st&&st.name],['Надійшов',v.arrived],['Початок роботи',v.start_date],['Списаний',v.written_off],['Примітка',v.note]].filter(x=>x[1]!=null&&String(x[1]).trim()!=='').forEach(([label,value])=>{const d=document.createElement('div');d.className='veh-fact';const sm=document.createElement('small');sm.textContent=label;const b=document.createElement('b');b.textContent=String(value);d.append(sm,b);$('vpFacts').appendChild(d)});
-  const loading=document.createElement('tr'),loadingCell=document.createElement('td');loadingCell.colSpan=5;loadingCell.textContent='Завантаження історії підприємств…';loading.appendChild(loadingCell);$('vpHistory').replaceChildren(loading);
+  const loading=document.createElement('tr'),loadingCell=document.createElement('td');loadingCell.colSpan=7;loadingCell.textContent='Завантаження історії підприємств…';loading.appendChild(loadingCell);$('vpHistory').replaceChildren(loading);
   $('vpPhotoGrid').replaceChildren();$('vpPhotoEmpty').classList.remove('hidden');currentId=null;renderCity();PAGES.forEach(id=>$(id).classList.toggle('hidden',id!=='vehiclePage'));loadVehicleEnterpriseHistory(v);loadVehicleProfilePhotos(v,sourcePhoto);window.scrollTo({top:0});
 }
 async function loadVehicleEnterpriseHistory(v){
-  const queries=[],fields='id, city_id, enterprise_id, fleet_no, plate_no, model, vin, factory_no, arrived, start_date, written_off';
-  const vin=String(v.vin||'').trim(),factory=String(v.factory_no||'').trim(),plate=cleanVehicleNumber(v.plate_no),fleet=cleanVehicleNumber(v.fleet_no),model=normalizeVehicleModel(v.model);
+  const queries=[],fields='id, city_id, enterprise_id, fleet_no, plate_no, model, vin, factory_no, build_year, arrived, start_date, written_off, status';
+  const vin=String(v.vin||'').trim(),factory=String(v.factory_no||'').trim(),plate=cleanVehicleNumber(v.plate_no),model=normalizeVehicleModel(v.model);
   if(vin)queries.push({request:db.from('vehicles').select(fields).eq('vin',vin).limit(100),matches:x=>normalizeVehicleKey(x.vin)===normalizeVehicleKey(vin)});
-  if(factory)queries.push({request:db.from('vehicles').select(fields).eq('factory_no',factory).limit(100),matches:x=>normalizeVehicleKey(x.factory_no)===normalizeVehicleKey(factory)});
-  if(plate&&model)queries.push({request:db.from('vehicles').select(fields).eq('plate_no',plate).limit(100),matches:x=>normalizeVehicleKey(x.plate_no)===normalizeVehicleKey(plate)&&normalizeVehicleModel(x.model)===model});
-  if(fleet&&model&&v.city_id)queries.push({request:db.from('vehicles').select(fields).eq('city_id',v.city_id).eq('fleet_no',fleet).limit(100),matches:x=>normalizeVehicleKey(x.fleet_no)===normalizeVehicleKey(fleet)&&normalizeVehicleModel(x.model)===model});
-  const results=await Promise.all(queries.map(x=>x.request)),records=new Map([[v.id||'current',v]]);
-  results.forEach((r,i)=>(r.data||[]).filter(queries[i].matches).forEach(x=>records.set(x.id||JSON.stringify(x),x)));
+  else if(factory&&model)queries.push({request:db.from('vehicles').select(fields).eq('factory_no',factory).limit(100),matches:x=>normalizeVehicleKey(x.factory_no)===normalizeVehicleKey(factory)&&normalizeVehicleModel(x.model)===model&&(v.build_year==null||x.build_year==null||Number(x.build_year)===Number(v.build_year))});
+  else if(plate&&model)queries.push({request:db.from('vehicles').select(fields).eq('plate_no',plate).limit(100),matches:x=>normalizeVehicleKey(x.plate_no)===normalizeVehicleKey(plate)&&normalizeVehicleModel(x.model)===model});
+  const results=await Promise.all(queries.map(x=>x.request));
   if(vehPageCurrent!==v)return;
-  const list=[...records.values()],cityIds=[...new Set(list.map(x=>x.city_id).filter(Boolean))],entIds=[...new Set(list.map(x=>x.enterprise_id).filter(Boolean))];
+  const requestError=results.find(r=>r.error);
+  if(requestError){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=7;td.textContent='Не вдалося завантажити історію: '+requestError.error.message;tr.appendChild(td);$('vpHistory').replaceChildren(tr);return}
+  const records=new Map();
+  if(v.id)records.set(v.id,v);
+  results.forEach((r,i)=>(r.data||[]).filter(queries[i].matches).forEach(x=>records.set(x.id||JSON.stringify(x),x)));
+  const list=[...records.values()];
+  if(!list.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=7;td.textContent='Немає інших записів, що підтверджуються VIN / заводським номером або держномером і моделлю.';tr.appendChild(td);$('vpHistory').replaceChildren(tr);return}
+  const cityIds=[...new Set(list.map(x=>x.city_id).filter(Boolean))],entIds=[...new Set(list.map(x=>x.enterprise_id).filter(Boolean))];
   const [cityResult,entResult]=await Promise.all([
     cityIds.length?db.from('cities').select('id,name,region').in('id',cityIds):Promise.resolve({data:[]} ),
     entIds.length?db.from('enterprises').select('id,name').in('id',entIds):Promise.resolve({data:[]} )
   ]);
   if(vehPageCurrent!==v)return;
   const cityMap=new Map((cityResult.data||[]).map(x=>[x.id,x])),entMap=new Map((entResult.data||[]).map(x=>[x.id,x]));
-  const historyDateValue=value=>{const s=String(value||'').trim();let m=/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(s);if(m)return Date.UTC(+m[3],+m[2]-1,+m[1]);m=/^(\d{1,2})\.(\d{4})$/.exec(s);if(m)return Date.UTC(+m[2],+m[1]-1,1);const n=Date.parse(s);return Number.isNaN(n)?0:n};
+  const historyDateValue=value=>{const text=String(value||'').trim();let match=/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(text);if(match)return normalizeDateParts(match[1],match[2],match[3])?Date.UTC(+match[3],+match[2]-1,+match[1]):0;match=/^(\d{1,2})\.(\d{4})$/.exec(text);if(match)return +match[1]>=1&&+match[1]<=12?Date.UTC(+match[2],+match[1]-1,1):0;const parsed=Date.parse(text);return Number.isNaN(parsed)?0:parsed};
   list.sort((a,b)=>historyDateValue(a.arrived||a.start_date)-historyDateValue(b.arrived||b.start_date));
-  const rows=list.map((x,i)=>{
+  const rows=list.map(x=>{
     const city=cityMap.get(x.city_id)||cities.find(c=>c.id===x.city_id),ent=entMap.get(x.enterprise_id)||enterprises.find(e=>e.id===x.enterprise_id);
-    const next=list[i+1],from=x.arrived||x.start_date,to=x.written_off||(next&&(next.arrived||next.start_date))||'';
-    const tr=[];addVehHistoryRow(tr,[city&&city.name,city&&city.region].filter(Boolean).join(', '),ent&&ent.name,x.plate_no,from,to);return tr[0];
+    const row=[];addVehHistoryRow(row,[city&&city.name,city&&city.region].filter(Boolean).join(', '),ent&&ent.name,x.plate_no,x.status,x.arrived,x.start_date,x.written_off);return row[0];
   });
-  if(rows.length)$('vpHistory').replaceChildren(...rows);else{const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=5;td.textContent='Історичних записів про підприємства поки немає.';tr.appendChild(td);$('vpHistory').replaceChildren(tr)}
+  $('vpHistory').replaceChildren(...rows);
 }
 async function loadVehicleProfilePhotos(v,sourcePhoto){const plate=cleanVehicleNumber(v.plate_no),fleet=cleanVehicleNumber(v.fleet_no),queries=[];if(plate)queries.push(db.from('photos').select('*').eq('status','approved').eq('plate_no',plate).limit(300));else if(fleet)queries.push(db.from('photos').select('*').eq('status','approved').eq('city_id',v.city_id).eq('fleet_no',fleet).limit(300));const results=await Promise.all(queries);if(vehPageCurrent!==v)return;const map=new Map();results.forEach(r=>(r.data||[]).forEach(p=>map.set(p.id,p)));if(sourcePhoto&&sourcePhoto.id)map.set(sourcePhoto.id,sourcePhoto);const photos=[...map.values()].filter(p=>{const pf=String(p.fleet_no||'').trim(),pp=String(p.plate_no||'').trim();return plate?pp===plate:(!fleet||pf===fleet)}).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));await enrichPhotos(photos);if(vehPageCurrent!==v)return;$('vpPhotoGrid').replaceChildren(...photos.map(phCard));$('vpPhotoEmpty').classList.toggle('hidden',photos.length>0)}
 function closeVehicleProfile(){const prev=vehPageReturn;vehPageReturn=null;vehPageCurrent=null;vehPageEditable=false;PAGES.forEach(id=>$(id).classList.add('hidden'));if(!prev)return;currentId=prev.cityId;curEnt=prev.ent;ppCur=prev.photo;renderCity();if(prev.page)$(prev.page).classList.remove('hidden');history.replaceState(null,'',prev.hash||location.pathname+location.search);window.scrollTo({top:0})}
 function cleanVehicleNumber(value){const x=String(value==null?'':value).normalize('NFKC').replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u2800\u00A0]/g,' ').trim();return /[A-Za-z0-9\u00C0-\u024F\u0400-\u04FF]/.test(x)?x:''}
 function normalizeVehicleKey(value){return String(value||'').normalize('NFKC').replace(/\s+/g,'').toLocaleUpperCase()}
 function normalizeVehicleModel(value){return String(value||'').normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase()}
-async function openVehicleProfileFromPhoto(p){const plate=cleanVehicleNumber(p.plate_no),fleet=cleanVehicleNumber(p.fleet_no);let v=null;if(p.city_id&&(plate||fleet)){let q=db.from('vehicles').select('*').eq('city_id',p.city_id);q=plate?q.eq('plate_no',plate):q.eq('fleet_no',fleet);const r=await q.limit(20),found=r.data||[];v=(plate&&p.model&&found.find(x=>normalizeVehicleModel(x.model)===normalizeVehicleModel(p.model)))||found.find(x=>fleet&&normalizeVehicleKey(x.fleet_no)===normalizeVehicleKey(fleet))||found[0]||null}if(!v)v={city_id:p.city_id,enterprise_id:p.enterprise_id,fleet_no:fleet,plate_no:plate,model:p.model,vehicle_type:p.transport};const ent=enterprises.find(e=>e.id===v.enterprise_id),editable=!!(curEnt&&canEditEnt());openVehicleProfile(v,editable,p);if(ent)$('vpLocation').textContent=[(cities.find(c=>c.id===v.city_id)||{}).name,ent.name].filter(Boolean).join(' · ')}
+async function openVehicleProfileFromPhoto(p){const plate=cleanVehicleNumber(p.plate_no),fleet=cleanVehicleNumber(p.fleet_no);let v=null;if(p.city_id&&(plate||fleet)){let q=db.from('vehicles').select('*').eq('city_id',p.city_id);q=plate?q.eq('plate_no',plate):q.eq('fleet_no',fleet);const r=await q.limit(20),found=r.data||[];v=(p.enterprise_id&&found.find(x=>x.enterprise_id===p.enterprise_id&&(!p.model||normalizeVehicleModel(x.model)===normalizeVehicleModel(p.model))))||(plate&&p.model&&found.find(x=>normalizeVehicleModel(x.model)===normalizeVehicleModel(p.model)))||found.find(x=>fleet&&normalizeVehicleKey(x.fleet_no)===normalizeVehicleKey(fleet))||found[0]||null}if(!v)v={city_id:p.city_id,enterprise_id:p.enterprise_id,fleet_no:fleet,plate_no:plate,model:p.model,vehicle_type:p.transport};const ent=enterprises.find(e=>e.id===v.enterprise_id),editable=!!(curEnt&&canEditEnt());openVehicleProfile(v,editable,p);if(ent)$('vpLocation').textContent=[(cities.find(c=>c.id===v.city_id)||{}).name,ent.name].filter(Boolean).join(' · ')}
 $('vpBack').addEventListener('click',closeVehicleProfile);$('vpEdit').addEventListener('click',()=>{if(vehPageCurrent)openVehForm(vehPageCurrent)});$('vpTransfer').addEventListener('click',openVehicleTransfer);
 $('vhEdit').addEventListener('click', () => openVehForm(vhCur));
 $('vhClose').addEventListener('click', closeModal);
@@ -5093,6 +5104,7 @@ $('transferCancel').addEventListener('click',closeModal);
 $('transferForm').addEventListener('submit',async ev=>{
   ev.preventDefault();const source=vehPageCurrent,cityId=$('transferCity').value,enterpriseId=$('transferEnterprise').value;
   if(!source||!cityId||!enterpriseId){setMsg($('transferMsg'),'Оберіть місто та підприємство призначення');return}
+  if(!isValidDateText($('transferArrived').value)){setMsg($('transferMsg'),'Вкажи реальну дату надходження у форматі ДД.ММ.РРРР або ММ.РРРР');return}
   const fleet=$('transferFleet').value.trim(),plate=cleanVehicleNumber($('transferPlate').value),vin=String(source.vin||'').trim(),factory=String(source.factory_no||'').trim();
   const linkedBySerial=!!(vin||factory),linkedByPlate=!!(cleanVehicleNumber(source.plate_no)&&normalizeVehicleKey(plate)===normalizeVehicleKey(source.plate_no)&&normalizeVehicleModel(source.model));
   if(!linkedBySerial&&!linkedByPlate){setMsg($('transferMsg'),'Для зв’язку історії вкажіть держномер і модель або заповнений VIN чи заводський номер.');return}
@@ -5101,8 +5113,10 @@ $('transferForm').addEventListener('submit',async ev=>{
   const target=transferEnterpriseOptions.find(e=>e.id===enterpriseId);
   $('transferSubmit').disabled=true;
   const row={fleet_no:fleet||'',extra_no:source.extra_no||null,plate_no:plate||null,vehicle_type:source.vehicle_type||'bus',model:source.model||'',factory_no:source.factory_no||null,build_year:source.build_year==null?null:source.build_year,vin:source.vin||null,start_date:null,arrived:$('transferArrived').value.trim()||null,written_off:null,status:'active',note:source.note||null,city_id:cityId,enterprise_id:enterpriseId,owner_id:user.id};
-  const {error}=await db.from('vehicles').insert(row);
-  $('transferSubmit').disabled=false;
+  let error;
+  try { ({error}=await db.from('vehicles').insert(row)); }
+  catch(err) { error=err; }
+  finally { $('transferSubmit').disabled=false; }
   if(error){setMsg($('transferMsg'),error.message);return}
   closeModal();
   const active=vehPageCurrent;if(active)openVehicleProfile(active,vehPageEditable);
@@ -5128,9 +5142,10 @@ $('vehForm').addEventListener('submit', async ev => {
     setMsg($('vehMsg'), 'Заповни модель');
     return;
   }
+  const invalidDate=['vehStart','vehArrived','vehWrittenOff'].find(id=>!isValidDateText($(id).value));
+  if(invalidDate){setMsg($('vehMsg'),'Перевір дату. Використовуй ДД.ММ.РРРР або ММ.РРРР');return}
   const year = $('vehYear').value.trim();
   const row = {
-    /* Порожній рядок сумісний зі схемою БД, де поле ще позначене NOT NULL. */
     fleet_no: fleet || '',
     extra_no: t('vehExtra'),
     plate_no: t('vehPlate'),
@@ -5147,12 +5162,11 @@ $('vehForm').addEventListener('submit', async ev => {
   };
   $('vehSubmit').disabled = true;
   let error;
-  if (vehEditingId) {
-    ({ error } = await db.from('vehicles').update(row).eq('id', vehEditingId));
-  } else {
-    ({ error } = await db.from('vehicles').insert({ ...row, city_id: e.city_id, enterprise_id: e.id, owner_id: s.session.user.id }));
-  }
-  $('vehSubmit').disabled = false;
+  try {
+    if (vehEditingId) ({ error } = await db.from('vehicles').update(row).eq('id', vehEditingId));
+    else ({ error } = await db.from('vehicles').insert({ ...row, city_id: e.city_id, enterprise_id: e.id, owner_id: s.session.user.id }));
+  } catch(err) { error=err; }
+  finally { $('vehSubmit').disabled = false; }
   if (error) {
     setMsg($('vehMsg'), error.message);
     return;
@@ -5616,6 +5630,10 @@ function translateTree(root) {
   while ((n = w.nextNode())) applyText(n);
 }
 
+
+;
+
+;
 function setLang(l, save) {
   lang = LANGS.includes(l) ? l : 'uk';
   document.documentElement.lang = lang;
@@ -5702,13 +5720,12 @@ $('reasonOk').addEventListener('click', async () => {
     return;
   }
   $('reasonOk').disabled = true;
-  const err = await reasonCb(reason);
-  $('reasonOk').disabled = false;
-  if (err) {
-    setMsg($('reasonMsg'), err);
-    return;
-  }
-  closeModal();
+  try {
+    const err = await reasonCb(reason);
+    if (err) { setMsg($('reasonMsg'), err);return; }
+    closeModal();
+  } catch(error) { setMsg($('reasonMsg'),error.message||'Не вдалося зберегти'); }
+  finally { $('reasonOk').disabled = false; }
 });
 
 function fillReq(el, rows, actions) {
@@ -6344,8 +6361,16 @@ $('importFile').addEventListener('change', async e => {
   await loadCities();
 });
 
-setInterval(loadNotifs, 30000);
+function syncNotificationTimer(){
+  if(notificationTimer)clearInterval(notificationTimer);
+  notificationTimer=null;
+  if(me.uid&&!document.hidden)notificationTimer=setInterval(loadNotifs,30000);
+}
 
+
+;
+
+;
 /* ---------- Маршрути міста ---------- */
 let cityRoutes = [];
 let rtType = 'bus';
@@ -6434,9 +6459,17 @@ async function loadCityRoutes() {
 let liveOk = false;
 const live = { cities: false, ents: false, vehs: false, routes: false };
 let liveTimer = null;
+function syncLiveFallbackTimer(){
+  if(liveFallbackTimer)clearInterval(liveFallbackTimer);
+  liveFallbackTimer=null;
+  if(!document.hidden&&!liveOk)liveFallbackTimer=setInterval(()=>{
+    queueLive('cities');queueLive('ents');queueLive('vehs');queueLive('routes');
+  },30000);
+}
 
 function queueLive(k) {
   live[k] = true;
+  if(document.hidden)return;
   clearTimeout(liveTimer);
   liveTimer = setTimeout(async () => {
     const l = { ...live };
@@ -6464,26 +6497,26 @@ function inCurrentCity(p) {
 
 db.channel('live')
   .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, p => {
-    if (p.new && p.new.user_id === me.uid) loadNotifs();
-    else if (p.eventType === 'DELETE') loadNotifs();
+    if (me.uid&&(p.new && p.new.user_id === me.uid || p.eventType === 'DELETE')) loadNotifs();
   })
   .on('postgres_changes', { event: '*', schema: 'public', table: 'cities' }, () => queueLive('cities'))
   .on('postgres_changes', { event: '*', schema: 'public', table: 'enterprises' }, p => { if (inCurrentCity(p)) queueLive('ents'); })
   .on('postgres_changes', { event: '*', schema: 'public', table: 'vehicles' }, p => { if (inCurrentCity(p)) queueLive('vehs'); })
   .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, p => { if (inCurrentCity(p)) queueLive('routes'); })
-  .subscribe(status => { liveOk = status === 'SUBSCRIBED'; });
-
-setInterval(() => {
-  if (liveOk || document.hidden) return;
-  queueLive('cities'); queueLive('ents'); queueLive('vehs'); queueLive('routes');
-}, 30000);
+  .subscribe(status => { liveOk = status === 'SUBSCRIBED';syncLiveFallbackTimer(); });
 
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) return;
-  loadNotifs();
+  syncNotificationTimer();
+  syncLiveFallbackTimer();
+  if (document.hidden) { if(liveTimer){clearTimeout(liveTimer);liveTimer=null}return }
+  if(me.uid)loadNotifs();
   queueLive('cities'); queueLive('ents'); queueLive('vehs'); queueLive('routes');
 });
 
+
+;
+
+;
 const PH_CATS = ['Зовнішнє фото', 'Салон', 'Кабіна', 'Обладнання', 'Детальна зйомка', 'Заводська табличка', 'Інфраструктура', 'Неідентифікований транспорт', 'Додаткова спецтехніка'];
 const PH_TYPE_BY_NAME = { 'Tram / LRV': 'tram', 'Trolleybus': 'trolleybus', 'Bus': 'bus', 'Metro / Railway': 'metro', 'Funicular': 'funicular', 'Monorail': 'monorail', '(Other)': 'other' };
 const PH_W = 1920;
@@ -6517,23 +6550,25 @@ function phCard(p) {
 }
 
 async function enrichPhotos(list) {
-  const need = list.filter(p => p.fleet_no && (!p.model || p._vc === undefined));
-  if (!need.length) return;
-  const cityIds = [...new Set(need.map(p => p.city_id))];
-  const fleets = [...new Set(need.map(p => p.fleet_no))];
-  const { data } = await db.from('vehicles').select('city_id, enterprise_id, fleet_no, model, plate_no, status').in('city_id', cityIds).in('fleet_no', fleets);
-  need.forEach(p => {
-    const c = (data || []).filter(v => v.city_id === p.city_id && v.fleet_no === p.fleet_no);
-    const v = c.find(x => x.enterprise_id === p.enterprise_id) || c[0];
-    p._vc = '';
-    if (v) {
-      if (!p.model) p.model = v.model;
-      if (!p.plate_no) p.plate_no = v.plate_no;
-      p._vc = statColor(VEH_STATUSES, v.status);
-    }
+  const need=list.filter(p=>(p.fleet_no||p.plate_no)&&(!p.model||p._vc===undefined));
+  if(!need.length)return;
+  const cityIds=[...new Set(need.map(p=>p.city_id).filter(Boolean))],fleets=[...new Set(need.map(p=>String(p.fleet_no||'').trim()).filter(Boolean))],plates=[...new Set(need.map(p=>String(p.plate_no||'').trim()).filter(Boolean))];
+  const queries=[];
+  if(cityIds.length&&fleets.length)queries.push(db.from('vehicles').select('city_id, enterprise_id, fleet_no, model, plate_no, status').in('city_id',cityIds).in('fleet_no',fleets));
+  if(cityIds.length&&plates.length)queries.push(db.from('vehicles').select('city_id, enterprise_id, fleet_no, model, plate_no, status').in('city_id',cityIds).in('plate_no',plates));
+  const results=await Promise.all(queries);
+  const data=results.flatMap(r=>r.data||[]);
+  need.forEach(p=>{
+    const plate=normalizeVehicleKey(cleanVehicleNumber(p.plate_no)),fleet=normalizeVehicleKey(cleanVehicleNumber(p.fleet_no)),model=normalizeVehicleModel(p.model);
+    const candidates=data.filter(v=>v.city_id===p.city_id&&((plate&&normalizeVehicleKey(v.plate_no)===plate)||(!plate&&fleet&&normalizeVehicleKey(v.fleet_no)===fleet)));
+    candidates.sort((a,b)=>{
+      const score=v=>(plate&&normalizeVehicleKey(v.plate_no)===plate?16:0)+(fleet&&normalizeVehicleKey(v.fleet_no)===fleet?8:0)+(model&&normalizeVehicleModel(v.model)===model?4:0)+(p.enterprise_id&&v.enterprise_id===p.enterprise_id?2:0);
+      return score(b)-score(a);
+    });
+    const v=candidates[0];p._vc=v?statColor(VEH_STATUSES,v.status):'var(--text)';
+    if(v){if(!p.model)p.model=v.model;if(!p.plate_no)p.plate_no=v.plate_no}
   });
 }
-
 function renderPhotos() {
   const entName = [...$('ddEnt')._sel][0];
   const ent = entName ? enterprises.find(e => e.name === entName) : null;
@@ -6879,7 +6914,7 @@ document.addEventListener('click', () => {
 const supClean = s => s.replace(/[,()%*\\]/g, ' ').trim();
 const statColor = (list, key) => {
   const s = list.find(x => x.key === key);
-  return s && s.key !== 'active' ? s.color : '';
+  return s ? (s.key === 'active' ? 'var(--text)' : s.color) : 'var(--text)';
 };
 
 function sugShow(id, items) {
@@ -6961,7 +6996,7 @@ async function phCheckFleet() {
   }
   const city = phCityId;
   const { data, error } = await db.from('vehicles').select('id').eq('city_id', city)
-    .or('fleet_no.eq."' + q + '",plate_no.eq."' + q + '"').limit(1);
+    .or('fleet_no.eq.' + postgrestLiteral(q) + ',plate_no.eq.' + postgrestLiteral(q)).limit(1);
   if (error || city !== phCityId || phVehSel || $('phFleet').value.trim() !== raw) return;
   phSetBad('fleet', !(data && data[0]), raw);
 }
@@ -6974,7 +7009,7 @@ async function phCheckRoute() {
     return;
   }
   const city = phCityId;
-  const { data, error } = await db.from('routes').select('id, line').eq('city_id', city).ilike('line', q).limit(20);
+  const { data, error } = await db.from('routes').select('id, line').eq('city_id', city).ilike('line', escapeLikePattern(q)).limit(20);
   if (error || city !== phCityId || phRouteSel || $('phRoute').value.trim() !== raw) return;
   const ok = (data || []).some(r => String(r.line).toLowerCase() === raw.toLowerCase());
   phSetBad('route', !ok, raw);
@@ -7002,7 +7037,7 @@ async function phSearchVeh() {
   const { data } = await db.from('vehicles')
     .select('id, enterprise_id, fleet_no, extra_no, plate_no, model, vehicle_type, status, arrived, written_off')
     .eq('city_id', city)
-    .or('fleet_no.ilike.%' + q + '%,plate_no.ilike.%' + q + '%,extra_no.ilike.%' + q + '%')
+    .or(['fleet_no','plate_no','extra_no'].map(column=>column+'.ilike.'+postgrestLiteral(q,true)).join(','))
     .limit(8);
   if (city !== phCityId || supClean($('phFleet').value) !== q) return;
   sugShow('phFleetSug', (data || []).map(v => {
@@ -7040,7 +7075,7 @@ async function phSearchRoute() {
   const { data } = await db.from('routes')
     .select('id, enterprise_id, line, name, status, transport, period')
     .eq('city_id', city)
-    .ilike('line', q + '%')
+    .ilike('line', escapeLikePattern(q) + '%')
     .limit(8);
   if (city !== phCityId || supClean($('phRoute').value) !== q) return;
   sugShow('phRouteSug', (data || []).map(r => {
@@ -7073,6 +7108,10 @@ $('phRoute').addEventListener('input', () => {
   phRouteTimer = setTimeout(() => { phSearchRoute(); phCheckRoute(); }, 250);
 });
 
+
+;
+
+;
 /* --- правила з окремого rules.json --- */
 let rulesTitle = "Правила публікації фотографій";
 let rulesRevision = "14.11.2026";
@@ -7417,7 +7456,7 @@ $('photoUp').addEventListener('submit', async ev => {
     const { data: vm } = await db.from('vehicles')
       .select('id, enterprise_id, fleet_no, extra_no, plate_no, model, vehicle_type, status')
       .eq('city_id', city.id)
-      .or('fleet_no.eq."' + q + '",plate_no.eq."' + q + '"')
+      .or('fleet_no.eq.' + postgrestLiteral(q) + ',plate_no.eq.' + postgrestLiteral(q))
       .limit(1);
     if (vm && vm[0]) {
       phPickVeh(vm[0]);
@@ -7431,7 +7470,7 @@ $('photoUp').addEventListener('submit', async ev => {
     const { data: rm } = await db.from('routes')
       .select('id, enterprise_id, line, name, status, transport, period')
       .eq('city_id', city.id)
-      .ilike('line', supClean(typedRoute))
+      .ilike('line', escapeLikePattern(supClean(typedRoute)))
       .limit(20);
     const same = (rm || []).filter(r => String(r.line).toLowerCase() === typedRoute.toLowerCase());
     const found = same.find(x => phVehSel && x.enterprise_id === phVehSel.enterprise_id) || same[0];
@@ -7448,8 +7487,8 @@ $('photoUp').addEventListener('submit', async ev => {
   const dd = $('phDD').value.trim();
   const mm = $('phMM').value.trim();
   const yy = $('phYYYY').value.trim();
-  if ((dd && !/^\d{1,2}$/.test(dd)) || (mm && !/^\d{1,2}$/.test(mm)) || (yy && !/^\d{4}$/.test(yy))) {
-    setMsg($('phMsg'), 'Дата: ДД, ММ — числа, рік — 4 цифри');
+  if (!isValidPhotoDate(dd, mm, yy)) {
+    setMsg($('phMsg'), 'Вкажи реальну дату: день, місяць і рік мають відповідати календарю');
     return;
   }
   const fields = {
@@ -7539,6 +7578,8 @@ $('photoUp').addEventListener('submit', async ev => {
   phUpdateSubmit();
 });
 
+
+;
 /* --- Staff: заявки на фото --- */
 async function approvePhoto(p) {
   const { data, error } = await db.from('photos').update({ status: 'approved' }).eq('id', p.id).eq('status', 'pending').select('id');
@@ -7630,6 +7671,8 @@ db.channel('live_photos')
 
 phDraw();
 
+
+;
 /* ---------- Фотогалерея (усі міста) ---------- */
 let gPhotos = [];
 let gNewest = true;
@@ -7707,8 +7750,8 @@ function ppDate(p) {
   const m = a.pop();
   const d = a.pop();
   let s = String(p.shot_date);
-  if (d && m >= 1 && m <= 12 && y) s = ppL().W[new Date(y, m - 1, d).getDay()] + ', ' + d + ' ' + ppL().M[m - 1] + ' ' + y;
-  else if (m >= 1 && m <= 12 && y) s = ppL().MN[m - 1] + ' ' + y;
+  if (d && normalizeDateParts(d,m,y)) s = ppL().W[new Date(y, m - 1, d).getDay()] + ', ' + d + ' ' + ppL().M[m - 1] + ' ' + y;
+  else if (!d && m >= 1 && m <= 12 && y >= 1) s = ppL().MN[m - 1] + ' ' + y;
   const pre = { approx: 'Приблизно: ', before: 'Не пізніше: ', after: 'Не раніше: ' }[kind] || '';
   return pre + s;
 }
@@ -7787,7 +7830,7 @@ function openPhoto(p) {
     if(fleetNo){const f=document.createElement('button');f.type='button';f.className='pp-fleet pp-veh-link';f.textContent=fleetNo;f.title='Відкрити профіль транспортного засобу';f.addEventListener('click',e=>{e.stopPropagation();openVehicleProfileFromPhoto(p)});v.appendChild(f)}
     if(plateNo){const pl=document.createElement('button');pl.type='button';pl.className='pp-fleet plate pp-veh-link';pl.textContent=plateNo;pl.title='Відкрити профіль транспортного засобу';pl.addEventListener('click',e=>{e.stopPropagation();openVehicleProfileFromPhoto(p)});v.appendChild(pl)}
     const vm=document.createElement('div');vm.className='pp-vm';const mt=document.createElement('span');mt.textContent=p.model||'';const sm=document.createElement('small');vm.append(mt,sm);v.appendChild(vm);info.push(v);
-    if(fleetNo||plateNo)db.from('vehicles').select('build_year,status').eq('city_id',p.city_id).eq(fleetNo?'fleet_no':'plate_no',fleetNo||plateNo).limit(1).then(r=>{const x=r.data&&r.data[0];if(ppCur!==p||!x)return;if(x.build_year)sm.textContent=String(x.build_year);const c=statColor(VEH_STATUSES,x.status);if(c)$('photoPage').style.setProperty('--vc',c)});
+    if(fleetNo||plateNo){const identity=plateNo?'plate_no':'fleet_no',value=plateNo||fleetNo;db.from('vehicles').select('build_year,status,enterprise_id,model,plate_no,fleet_no').eq('city_id',p.city_id).eq(identity,value).limit(100).then(r=>{if(ppCur!==p)return;const rows=r.data||[],x=(p.enterprise_id&&rows.find(v=>v.enterprise_id===p.enterprise_id&&(!p.model||normalizeVehicleModel(v.model)===normalizeVehicleModel(p.model))))||(p.model&&rows.find(v=>normalizeVehicleModel(v.model)===normalizeVehicleModel(p.model)))||rows[0];if(!x)return;if(x.build_year)sm.textContent=String(x.build_year);$('photoPage').style.setProperty('--vc',statColor(VEH_STATUSES,x.status))})}
   }
 
   const rt = document.createElement('div');
@@ -8057,6 +8100,8 @@ $('logout').addEventListener('click', async () => {
   await db.auth.signOut();
 });
 
+
+;
 async function loadMaintenanceMode(){
   let config=null;
   try{const response=await fetch('./maintenance.json',{cache:'no-store'});if(response.ok)config=await response.json()}catch(e){}
@@ -8067,6 +8112,7 @@ async function loadMaintenanceMode(){
   document.querySelector('nav').setAttribute('aria-hidden','true');document.querySelector('main').setAttribute('aria-hidden','true');$('overlay').setAttribute('aria-hidden','true');
 }
 loadMaintenanceMode();
+
 </script>
 </body>
 </html>
