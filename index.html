@@ -3314,7 +3314,7 @@ body.maintenance-active{overflow:hidden!important}
 
     <form id="transferForm" class="view">
       <div class="city-head"><h2>Передати транспортний засіб</h2></div>
-      <p class="pending-text">Буде створено запис у новому підприємстві. Попередня історія зв’яжеться за VIN, заводським номером або держномером.</p>
+      <p class="pending-text">Буде створено запис у новому підприємстві. Історія зв’яжеться за держномером і моделлю; за наявності VIN чи заводського номера вони також допоможуть підтвердити ТС.</p>
       <div class="city-grid">
         <label>Місто призначення *<select id="transferCity" required></select></label>
         <label>Підприємство призначення *<select id="transferEnterprise" required></select></label>
@@ -5030,14 +5030,14 @@ function openVehicleProfile(v, editable=false, sourcePhoto=null) {
   $('vpPhotoGrid').replaceChildren();$('vpPhotoEmpty').classList.remove('hidden');currentId=null;renderCity();PAGES.forEach(id=>$(id).classList.toggle('hidden',id!=='vehiclePage'));loadVehicleEnterpriseHistory(v);loadVehicleProfilePhotos(v,sourcePhoto);window.scrollTo({top:0});
 }
 async function loadVehicleEnterpriseHistory(v){
-  const queries=[],fields='id, city_id, enterprise_id, fleet_no, plate_no, vin, factory_no, arrived, start_date, written_off';
-  const vin=String(v.vin||'').trim(),factory=String(v.factory_no||'').trim(),plate=cleanVehicleNumber(v.plate_no),fleet=cleanVehicleNumber(v.fleet_no);
-  if(vin)queries.push(db.from('vehicles').select(fields).eq('vin',vin).limit(100));
-  if(factory)queries.push(db.from('vehicles').select(fields).eq('factory_no',factory).limit(100));
-  if(plate)queries.push(db.from('vehicles').select(fields).eq('plate_no',plate).limit(100));
-  if(fleet&&v.city_id)queries.push(db.from('vehicles').select(fields).eq('city_id',v.city_id).eq('fleet_no',fleet).limit(100));
-  const results=await Promise.all(queries),records=new Map([[v.id||'current',v]]);
-  results.forEach(r=>(r.data||[]).forEach(x=>records.set(x.id||JSON.stringify(x),x)));
+  const queries=[],fields='id, city_id, enterprise_id, fleet_no, plate_no, model, vin, factory_no, arrived, start_date, written_off';
+  const vin=String(v.vin||'').trim(),factory=String(v.factory_no||'').trim(),plate=cleanVehicleNumber(v.plate_no),fleet=cleanVehicleNumber(v.fleet_no),model=normalizeVehicleModel(v.model);
+  if(vin)queries.push({request:db.from('vehicles').select(fields).eq('vin',vin).limit(100),matches:x=>normalizeVehicleKey(x.vin)===normalizeVehicleKey(vin)});
+  if(factory)queries.push({request:db.from('vehicles').select(fields).eq('factory_no',factory).limit(100),matches:x=>normalizeVehicleKey(x.factory_no)===normalizeVehicleKey(factory)});
+  if(plate&&model)queries.push({request:db.from('vehicles').select(fields).eq('plate_no',plate).limit(100),matches:x=>normalizeVehicleKey(x.plate_no)===normalizeVehicleKey(plate)&&normalizeVehicleModel(x.model)===model});
+  if(fleet&&model&&v.city_id)queries.push({request:db.from('vehicles').select(fields).eq('city_id',v.city_id).eq('fleet_no',fleet).limit(100),matches:x=>normalizeVehicleKey(x.fleet_no)===normalizeVehicleKey(fleet)&&normalizeVehicleModel(x.model)===model});
+  const results=await Promise.all(queries.map(x=>x.request)),records=new Map([[v.id||'current',v]]);
+  results.forEach((r,i)=>(r.data||[]).filter(queries[i].matches).forEach(x=>records.set(x.id||JSON.stringify(x),x)));
   if(vehPageCurrent!==v)return;
   const list=[...records.values()],cityIds=[...new Set(list.map(x=>x.city_id).filter(Boolean))],entIds=[...new Set(list.map(x=>x.enterprise_id).filter(Boolean))];
   const [cityResult,entResult]=await Promise.all([
@@ -5058,7 +5058,9 @@ async function loadVehicleEnterpriseHistory(v){
 async function loadVehicleProfilePhotos(v,sourcePhoto){const plate=cleanVehicleNumber(v.plate_no),fleet=cleanVehicleNumber(v.fleet_no),queries=[];if(plate)queries.push(db.from('photos').select('*').eq('status','approved').eq('plate_no',plate).limit(300));else if(fleet)queries.push(db.from('photos').select('*').eq('status','approved').eq('city_id',v.city_id).eq('fleet_no',fleet).limit(300));const results=await Promise.all(queries);if(vehPageCurrent!==v)return;const map=new Map();results.forEach(r=>(r.data||[]).forEach(p=>map.set(p.id,p)));if(sourcePhoto&&sourcePhoto.id)map.set(sourcePhoto.id,sourcePhoto);const photos=[...map.values()].filter(p=>{const pf=String(p.fleet_no||'').trim(),pp=String(p.plate_no||'').trim();return plate?pp===plate:(!fleet||pf===fleet)}).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));await enrichPhotos(photos);if(vehPageCurrent!==v)return;$('vpPhotoGrid').replaceChildren(...photos.map(phCard));$('vpPhotoEmpty').classList.toggle('hidden',photos.length>0)}
 function closeVehicleProfile(){const prev=vehPageReturn;vehPageReturn=null;vehPageCurrent=null;vehPageEditable=false;PAGES.forEach(id=>$(id).classList.add('hidden'));if(!prev)return;currentId=prev.cityId;curEnt=prev.ent;ppCur=prev.photo;renderCity();if(prev.page)$(prev.page).classList.remove('hidden');history.replaceState(null,'',prev.hash||location.pathname+location.search);window.scrollTo({top:0})}
 function cleanVehicleNumber(value){const x=String(value==null?'':value).normalize('NFKC').replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u2800\u00A0]/g,' ').trim();return /[A-Za-z0-9\u00C0-\u024F\u0400-\u04FF]/.test(x)?x:''}
-async function openVehicleProfileFromPhoto(p){const plate=cleanVehicleNumber(p.plate_no),fleet=cleanVehicleNumber(p.fleet_no);let v=null;if(p.city_id&&(plate||fleet)){let q=db.from('vehicles').select('*').eq('city_id',p.city_id);q=plate?q.eq('plate_no',plate):q.eq('fleet_no',fleet);const r=await q.limit(20);v=(r.data||[]).find(x=>!fleet||String(x.fleet_no||'').trim()===fleet)||(r.data||[])[0]||null}if(!v)v={city_id:p.city_id,enterprise_id:p.enterprise_id,fleet_no:fleet,plate_no:plate,model:p.model,vehicle_type:p.transport};const ent=enterprises.find(e=>e.id===v.enterprise_id),editable=!!(curEnt&&canEditEnt());openVehicleProfile(v,editable,p);if(ent)$('vpLocation').textContent=[(cities.find(c=>c.id===v.city_id)||{}).name,ent.name].filter(Boolean).join(' · ')}
+function normalizeVehicleKey(value){return String(value||'').normalize('NFKC').replace(/\s+/g,'').toLocaleUpperCase()}
+function normalizeVehicleModel(value){return String(value||'').normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase()}
+async function openVehicleProfileFromPhoto(p){const plate=cleanVehicleNumber(p.plate_no),fleet=cleanVehicleNumber(p.fleet_no);let v=null;if(p.city_id&&(plate||fleet)){let q=db.from('vehicles').select('*').eq('city_id',p.city_id);q=plate?q.eq('plate_no',plate):q.eq('fleet_no',fleet);const r=await q.limit(20),found=r.data||[];v=(plate&&p.model&&found.find(x=>normalizeVehicleModel(x.model)===normalizeVehicleModel(p.model)))||found.find(x=>fleet&&normalizeVehicleKey(x.fleet_no)===normalizeVehicleKey(fleet))||found[0]||null}if(!v)v={city_id:p.city_id,enterprise_id:p.enterprise_id,fleet_no:fleet,plate_no:plate,model:p.model,vehicle_type:p.transport};const ent=enterprises.find(e=>e.id===v.enterprise_id),editable=!!(curEnt&&canEditEnt());openVehicleProfile(v,editable,p);if(ent)$('vpLocation').textContent=[(cities.find(c=>c.id===v.city_id)||{}).name,ent.name].filter(Boolean).join(' · ')}
 $('vpBack').addEventListener('click',closeVehicleProfile);$('vpEdit').addEventListener('click',()=>{if(vehPageCurrent)openVehForm(vehPageCurrent)});$('vpTransfer').addEventListener('click',openVehicleTransfer);
 $('vhEdit').addEventListener('click', () => openVehForm(vhCur));
 $('vhClose').addEventListener('click', closeModal);
@@ -5092,8 +5094,8 @@ $('transferForm').addEventListener('submit',async ev=>{
   ev.preventDefault();const source=vehPageCurrent,cityId=$('transferCity').value,enterpriseId=$('transferEnterprise').value;
   if(!source||!cityId||!enterpriseId){setMsg($('transferMsg'),'Оберіть місто та підприємство призначення');return}
   const fleet=$('transferFleet').value.trim(),plate=cleanVehicleNumber($('transferPlate').value),vin=String(source.vin||'').trim(),factory=String(source.factory_no||'').trim();
-  const linkedBySerial=!!(vin||factory),linkedByPlate=!!(cleanVehicleNumber(source.plate_no)&&plate===cleanVehicleNumber(source.plate_no)),linkedByFleet=source.city_id===cityId&&cleanVehicleNumber(source.fleet_no)&&fleet===cleanVehicleNumber(source.fleet_no);
-  if(!linkedBySerial&&!linkedByPlate&&!linkedByFleet){setMsg($('transferMsg'),'Щоб зв’язати історію, збережіть VIN, заводський або держномер. Якщо ТС лишається в тому самому місті — можна зберегти бортовий номер.');return}
+  const linkedBySerial=!!(vin||factory),linkedByPlate=!!(cleanVehicleNumber(source.plate_no)&&normalizeVehicleKey(plate)===normalizeVehicleKey(source.plate_no)&&normalizeVehicleModel(source.model));
+  if(!linkedBySerial&&!linkedByPlate){setMsg($('transferMsg'),'Для зв’язку історії вкажіть держномер і модель або заповнений VIN чи заводський номер.');return}
   const {data:sessionData}=await db.auth.getSession(),user=sessionData&&sessionData.session&&sessionData.session.user;
   if(!user){setMsg($('transferMsg'),'Увійдіть у свій акаунт, щоб передати ТС');return}
   const target=transferEnterpriseOptions.find(e=>e.id===enterpriseId);
