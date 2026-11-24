@@ -2747,7 +2747,7 @@ html[data-theme="dark"] .um-item { color: #e8e8e8; }
 html[data-theme="dark"] .um-item:hover { background: #343434; }
 html[data-theme="dark"] .um-item:active { background: #3d3d3d; }
 html[data-theme="dark"] .um-sep { background: #444; }
-.rules-head{display:flex;align-items:center;justify-content:space-between;gap:16px}.rules-head h2{margin:0;font-size:22px}.rules-head p{margin:6px 0 0;color:#777;font-size:14px}.rules-list{padding:8px 20px 20px}.rule-card{padding:16px 0;border-bottom:1px solid rgba(128,128,128,.35)}.rule-card:last-child{border-bottom:0}.rule-card h3{margin:0 0 8px;font-size:17px}.rule-card p{margin:0;line-height:1.55;white-space:pre-wrap}.rule-edit{display:grid;gap:8px;margin-top:10px}.rule-edit input,.rule-edit textarea{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ccc;border-radius:8px;background:#fff;color:inherit;font:inherit}.rule-actions{display:flex;gap:8px;margin-top:10px}.rules-msg{margin:10px 20px 0}.veh-profile{gap:10px}.veh-profile-tabs{display:flex;gap:6px;border-bottom:1px solid #ddd;overflow:auto}.veh-profile-tab{border:0;background:transparent;color:#777;padding:10px 12px;border-radius:8px 8px 0 0;font:inherit;cursor:pointer;white-space:nowrap}.veh-profile-tab.active{color:inherit;background:rgba(128,128,128,.16);font-weight:700}.veh-profile-pane{max-height:min(55vh,560px);overflow:auto}.vh-timeline{display:grid;gap:0;padding:4px 0}.vh-event{position:relative;margin-left:8px;padding:4px 12px 18px 22px;border-left:2px solid #aaa}.vh-event:before{content:"";position:absolute;left:-6px;top:7px;width:10px;height:10px;border-radius:50%;background:#808080}.vh-event b{display:block;margin-bottom:3px}.vh-event small{display:block;color:#888;margin-bottom:4px}.veh-profile-actions{display:flex;justify-content:flex-end;gap:8px;padding-top:10px;border-top:1px solid rgba(128,128,128,.3)}html[data-theme="dark"] .rule-edit input,html[data-theme="dark"] .rule-edit textarea{background:#2a2a2a;border-color:#444;color:#e8e8e8}@media(max-width:600px){.rules-head{align-items:flex-start;flex-direction:column}.rules-head .btn{width:100%}.rules-list{padding:8px 14px 16px}.veh-profile-actions .btn{flex:1}}
+.rules-head{display:flex;align-items:center;justify-content:space-between;gap:16px}.rules-head h2{margin:0;font-size:22px}.rules-head p{margin:6px 0 0;color:#777;font-size:14px}.rules-list{padding:8px 20px 20px}.rule-card{padding:16px 0;border-bottom:1px solid rgba(128,128,128,.35)}.rule-card:last-child{border-bottom:0}.rule-card h3{margin:0 0 8px;font-size:17px}.rule-card p{margin:0;line-height:1.55;white-space:pre-wrap}.rule-edit{display:grid;gap:8px;margin-top:10px}.rule-edit input,.rule-edit textarea{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ccc;border-radius:8px;background:#fff;color:inherit;font:inherit}.rule-actions{display:flex;gap:8px;margin-top:10px}.veh-profile{gap:10px}.veh-profile-tabs{display:flex;gap:6px;border-bottom:1px solid #ddd;overflow:auto}.veh-profile-tab{border:0;background:transparent;color:#777;padding:10px 12px;border-radius:8px 8px 0 0;font:inherit;cursor:pointer;white-space:nowrap}.veh-profile-tab.active{color:inherit;background:rgba(128,128,128,.16);font-weight:700}.veh-profile-pane{max-height:min(55vh,560px);overflow:auto}.vh-timeline{display:grid;gap:0;padding:4px 0}.vh-event{position:relative;margin-left:8px;padding:4px 12px 18px 22px;border-left:2px solid #aaa}.vh-event:before{content:"";position:absolute;left:-6px;top:7px;width:10px;height:10px;border-radius:50%;background:#808080}.vh-event b{display:block;margin-bottom:3px}.vh-event small{display:block;color:#888;margin-bottom:4px}.veh-profile-actions{display:flex;justify-content:flex-end;gap:8px;padding-top:10px;border-top:1px solid rgba(128,128,128,.3)}html[data-theme="dark"] .rule-edit input,html[data-theme="dark"] .rule-edit textarea{background:#2a2a2a;border-color:#444;color:#e8e8e8}@media(max-width:600px){.rules-head{align-items:flex-start;flex-direction:column}.rules-head .btn{width:100%}.rules-list{padding:8px 14px 16px}.veh-profile-actions .btn{flex:1}}
 </style>
 </head>
 <body>
@@ -2911,8 +2911,8 @@ html[data-theme="dark"] .um-sep { background: #444; }
     </div>
 
 <div id="rulesView" class="panel hidden">
-  <div class="panel-head rules-head"><div><h2>Правила спільноти</h2><p>Актуальні правила публікації та роботи з транспортними даними.</p></div><button class="btn dark hidden" id="addRule" type="button">+ Додати правило</button></div>
-  <p id="rulesMsg" class="msg rules-msg"></p><div id="rulesList" class="rules-list"></div><p id="rulesEmpty" class="cv-empty hidden">Правила ще не додані.</p>
+  <div class="panel-head rules-head"><div><h2>Правила спільноти</h2><p>Правила публікації та роботи з транспортними даними.</p></div></div>
+  <div id="rulesList" class="rules-list"></div><p id="rulesEmpty" class="cv-empty hidden">Правила ще не додані.</p>
 </div>
 <div id="galleryView" class="panel hidden">
   <div class="cv-tabpane">
@@ -6947,15 +6947,36 @@ $('phRoute').addEventListener('input', () => {
   phRouteTimer = setTimeout(() => { phSearchRoute(); phCheckRoute(); }, 250);
 });
 
-/* --- правила --- */
-const RULES_DEFAULT=[{id:'photos',title:'Публікація фотографій',body:'Публікуйте власні фотографії громадського транспорту. Переконайтеся, що зображення відповідає вибраним місту, даті та категорії.'},{id:'data',title:'Точність даних',body:'Вказуйте перевірені дані про транспортні засоби й маршрути. Якщо інформація неточна або застаріла, надішліть виправлення.'},{id:'respect',title:'Повага до спільноти',body:'Дотримуйтеся ввічливого спілкування. Не публікуйте образливі матеріали, персональні дані чи контент, який порушує права інших людей.'}];
-let siteRules=[],rulesSource='remote';
-function drawRules(){const admin=isStaff();$('addRule').classList.toggle('hidden',!admin);$('rulesList').replaceChildren(...siteRules.map((r,i)=>{const c=document.createElement('article');c.className='rule-card';const h=document.createElement('h3');h.textContent=(i+1)+'. '+r.title;const p=document.createElement('p');p.textContent=r.body;c.append(h,p);if(admin){const e=document.createElement('div');e.className='rule-edit hidden';const ti=document.createElement('input');ti.maxLength=120;ti.value=r.title;ti.placeholder='Назва правила';const tx=document.createElement('textarea');tx.rows=4;tx.maxLength=3000;tx.value=r.body;tx.placeholder='Текст правила';const acts=document.createElement('div');acts.className='rule-actions';const save=document.createElement('button');save.type='button';save.className='btn dark';save.textContent='Зберегти';const cancel=document.createElement('button');cancel.type='button';cancel.className='btn light';cancel.textContent='Скасувати';const del=document.createElement('button');del.type='button';del.className='btn danger';del.textContent='Видалити';save.onclick=()=>persistRule({...r,title:ti.value.trim(),body:tx.value.trim()});cancel.onclick=()=>drawRules();del.onclick=()=>{if(confirm('Видалити це правило?'))deleteRule(r)};acts.append(save,cancel,del);e.append(ti,tx,acts);c.append(e);const edit=document.createElement('button');edit.type='button';edit.className='btn light';edit.textContent='Редагувати';edit.onclick=()=>e.classList.toggle('hidden');c.append(edit)}return c}));$('rulesEmpty').classList.toggle('hidden',siteRules.length>0)}
-async function loadRules(){setMsg($('rulesMsg'),'');const {data,error}=await db.from('site_rules').select('*').order('position',{ascending:true});if(!error){rulesSource='remote';siteRules=(data||[]).map(r=>({id:r.id,title:r.title||'',body:r.body||'',position:r.position||0}));if(!siteRules.length)siteRules=RULES_DEFAULT.map((r,i)=>({...r,id:'local-seed-'+r.id,position:i}))}else{rulesSource='local';try{siteRules=JSON.parse(localStorage.getItem('site_rules_fallback')||'null')||RULES_DEFAULT.map((r,i)=>({...r,id:'local-seed-'+r.id,position:i}))}catch(e){siteRules=RULES_DEFAULT.map((r,i)=>({...r,position:i}))}if(isStaff())setMsg($('rulesMsg'),'Спільне збереження недоступне ('+error.message+'). Зміни збережуться лише в цьому браузері.')}drawRules()}
-async function persistRule(r){if(!isStaff())return;if(!r.title||!r.body){setMsg($('rulesMsg'),'Заповніть назву й текст правила');return}const next=[...siteRules],idx=next.findIndex(x=>x.id===r.id);if(idx<0)next.push({...r,position:next.length});else next[idx]=r;if(rulesSource==='remote'&&r.id&&!String(r.id).startsWith('local-')){const {error}=await db.from('site_rules').update({title:r.title,body:r.body,position:idx}).eq('id',r.id);if(error){setMsg($('rulesMsg'),error.message);return}}else if(rulesSource==='remote'){const {data,error}=await db.from('site_rules').insert({title:r.title,body:r.body,position:next.length-1}).select('*').single();if(error){setMsg($('rulesMsg'),error.message);return}next[next.length-1]={...r,id:data.id}}else{if(!r.id||!String(r.id).startsWith('local-'))r.id='local-'+Date.now();const j=next.findIndex(x=>x.id===r.id);if(j>=0)next[j]=r;else next[next.length-1]=r;localStorage.setItem('site_rules_fallback',JSON.stringify(next))}siteRules=next;setMsg($('rulesMsg'),'Зміни збережено',true);drawRules()}
-async function deleteRule(r){if(!isStaff())return;if(rulesSource==='remote'&&r.id&&!String(r.id).startsWith('local-')){const {error}=await db.from('site_rules').delete().eq('id',r.id);if(error){setMsg($('rulesMsg'),error.message);return}}siteRules=siteRules.filter(x=>x.id!==r.id);if(rulesSource==='local')localStorage.setItem('site_rules_fallback',JSON.stringify(siteRules));drawRules()}
-function openRules(push=true){currentId=null;curEnt=null;renderCity();PAGES.forEach(id=>$(id).classList.toggle('hidden',id!=='rulesView'));$('entView').classList.add('hidden');$('cityView').classList.add('hidden');if(push&&location.hash!=='#rules')history.pushState(null,'','#rules');loadRules();window.scrollTo({top:0})}
-$('addRule').addEventListener('click',()=>{const r={id:'local-new-'+Date.now(),title:'',body:'',position:siteRules.length};siteRules.push(r);drawRules();const c=$('rulesList').lastElementChild;c.querySelector('.rule-edit').classList.remove('hidden');c.querySelector('input').focus()});
+/* --- правила з окремого rules.json --- */
+const DEFAULT_SITE_RULES = [
+  { title: 'Публікація фотографій', body: 'Публікуйте власні фотографії громадського транспорту. Переконайтеся, що зображення відповідає вибраним місту, даті та категорії.' },
+  { title: 'Точність даних', body: 'Вказуйте перевірені дані про транспортні засоби й маршрути. Якщо інформація неточна або застаріла, надішліть виправлення.' },
+  { title: 'Повага до спільноти', body: 'Дотримуйтеся ввічливого спілкування. Не публікуйте образливі матеріали, персональні дані чи контент, який порушує права інших людей.' }
+];
+async function drawRules() {
+  let rules = DEFAULT_SITE_RULES;
+  try {
+    const response = await fetch('./rules.json', { cache: 'no-store' });
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data.rules)) rules = data.rules.filter(r => r && typeof r.title === 'string' && typeof r.body === 'string');
+    }
+  } catch (e) { /* fallback rules keep the page usable when rules.json is unavailable */ }
+  $('rulesList').replaceChildren(...rules.map((rule, i) => {
+    const card = document.createElement('article'); card.className = 'rule-card';
+    const title = document.createElement('h3'); title.textContent = (i + 1) + '. ' + rule.title;
+    const body = document.createElement('p'); body.textContent = rule.body;
+    card.append(title, body); return card;
+  }));
+  $('rulesEmpty').classList.toggle('hidden', rules.length > 0);
+}
+function openRules(push = true) {
+  currentId = null; curEnt = null; renderCity();
+  PAGES.forEach(id => $(id).classList.toggle('hidden', id !== 'rulesView'));
+  $('entView').classList.add('hidden'); $('cityView').classList.add('hidden');
+  if (push && location.hash !== '#rules') history.pushState(null, '', '#rules');
+  drawRules(); window.scrollTo({ top: 0 });
+}
 /* --- сторінки --- */
 function hidePages() {
   PAGES.forEach(id => $(id).classList.add('hidden'));
