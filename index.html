@@ -2747,6 +2747,7 @@ html[data-theme="dark"] .um-item { color: #e8e8e8; }
 html[data-theme="dark"] .um-item:hover { background: #343434; }
 html[data-theme="dark"] .um-item:active { background: #3d3d3d; }
 html[data-theme="dark"] .um-sep { background: #444; }
+.veh-page-wrap{padding:22px 24px 30px}.veh-page-back{margin-bottom:14px}.veh-page-heading{display:flex;align-items:center;flex-wrap:wrap;gap:12px 18px}.veh-page-id{display:flex;align-items:center;gap:10px}.veh-page-fleet,.veh-page-plate{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 14px;border:2px solid rgba(128,128,128,.65);border-radius:6px;font-size:25px;font-weight:800;white-space:nowrap}.veh-page-plate{font-size:24px}.veh-page-name{display:flex;flex-direction:column;gap:3px}.veh-page-name h1{margin:0;font-size:25px}.veh-page-name span{font-size:14px;opacity:.7}.veh-page-location{margin:12px 0 18px;font-weight:700}.veh-section-title{margin:20px 0 10px;font-size:18px}.veh-history-scroll{overflow:auto}.veh-history-table{width:100%;border-collapse:collapse;background:rgba(128,128,128,.07);font-size:14px}.veh-history-table th,.veh-history-table td{padding:10px 12px;text-align:left;border-bottom:1px solid rgba(128,128,128,.25);white-space:nowrap}.veh-history-table th{background:rgba(128,128,128,.18);font-weight:600}.veh-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:rgba(128,128,128,.2)}.veh-fact{padding:10px;background:rgba(128,128,128,.08);min-width:0;overflow-wrap:anywhere}.veh-fact small{display:block;margin-bottom:4px;opacity:.65}.veh-fact b{font-size:14px}.ph-vehicle-link{font:inherit;color:inherit;background:transparent;cursor:pointer}.ph-vehicle-link:hover{text-decoration:underline}.pp-veh-link{font-family:inherit;cursor:pointer;background:transparent;appearance:none}.pp-veh-link:hover{filter:brightness(1.2)}@media(max-width:600px){.veh-page-wrap{padding:14px 12px 22px}.veh-page-heading{align-items:flex-start}.veh-page-fleet,.veh-page-plate{min-height:40px;font-size:18px;padding:0 10px}.veh-page-name h1{font-size:20px}.veh-history-table th,.veh-history-table td{padding:8px;font-size:12px}}
 .rules-head{display:flex;align-items:center;justify-content:space-between;gap:16px}.rules-head h2{margin:0;font-size:22px}.rules-head p{margin:6px 0 0;color:#777;font-size:14px}.rules-list{padding:8px 20px 20px}.rule-card{padding:16px 0;border-bottom:1px solid rgba(128,128,128,.35)}.rule-card:last-child{border-bottom:0}.rule-card h3{margin:0 0 8px;font-size:17px}.rule-card p{margin:0;line-height:1.55;white-space:pre-wrap}.rule-edit{display:grid;gap:8px;margin-top:10px}.rule-edit input,.rule-edit textarea{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ccc;border-radius:8px;background:#fff;color:inherit;font:inherit}.rule-actions{display:flex;gap:8px;margin-top:10px}.veh-profile{gap:10px}.veh-profile-tabs{display:flex;gap:6px;border-bottom:1px solid #ddd;overflow:auto}.veh-profile-tab{border:0;background:transparent;color:#777;padding:10px 12px;border-radius:8px 8px 0 0;font:inherit;cursor:pointer;white-space:nowrap}.veh-profile-tab.active{color:inherit;background:rgba(128,128,128,.16);font-weight:700}.veh-profile-pane{max-height:min(55vh,560px);overflow:auto}.vh-timeline{display:grid;gap:0;padding:4px 0}.vh-event{position:relative;margin-left:8px;padding:4px 12px 18px 22px;border-left:2px solid #aaa}.vh-event:before{content:"";position:absolute;left:-6px;top:7px;width:10px;height:10px;border-radius:50%;background:#808080}.vh-event b{display:block;margin-bottom:3px}.vh-event small{display:block;color:#888;margin-bottom:4px}.veh-profile-actions{display:flex;justify-content:flex-end;gap:8px;padding-top:10px;border-top:1px solid rgba(128,128,128,.3)}html[data-theme="dark"] .rule-edit input,html[data-theme="dark"] .rule-edit textarea{background:#2a2a2a;border-color:#444;color:#e8e8e8}@media(max-width:600px){.rules-head{align-items:flex-start;flex-direction:column}.rules-head .btn{width:100%}.rules-list{padding:8px 14px 16px}.veh-profile-actions .btn{flex:1}}
 </style>
 </head>
@@ -3029,6 +3030,15 @@ html[data-theme="dark"] .um-sep { background: #444; }
     </div>
   </div>
 </div>
+
+<div id="vehiclePage" class="panel hidden"><div class="veh-page-wrap">
+  <div class="veh-page-back"><button class="btn light" id="vpBack" type="button">← Назад</button></div>
+  <div class="veh-page-heading"><div class="veh-page-id"><span id="vpFleet" class="veh-page-fleet hidden"></span><span id="vpPlate" class="veh-page-plate hidden"></span></div><div class="veh-page-name"><h1 id="vpModel">Транспортний засіб</h1><span id="vpYear"></span></div><button class="btn dark hidden" id="vpEdit" type="button">Редагувати ТЗ</button></div>
+  <div class="veh-page-location" id="vpLocation"></div>
+  <h2 class="veh-section-title">Історія транспортного засобу</h2><div class="veh-history-scroll"><table class="veh-history-table"><thead><tr><th>Місто/регіон</th><th>Підприємство</th><th>Державний номер</th><th>Подія / дата</th></tr></thead><tbody id="vpHistory"></tbody></table></div>
+  <h2 class="veh-section-title">Характеристики</h2><div class="veh-facts" id="vpFacts"></div>
+  <h2 class="veh-section-title">Фотографії цього ТЗ</h2><div id="vpPhotoGrid" class="ph-grid"></div><p id="vpPhotoEmpty" class="cv-empty">Пов’язаних фотографій поки немає.</p>
+</div></div>
 
 <div id="entView" class="panel hidden">
       <div class="ev-card">
@@ -4882,44 +4892,25 @@ function openVehForm(v) {
 
 let vhCur = null;
 
-function openVehInfo(v, editable) {
-  vhCur = v;
-  const st = VEH_STATUSES.find(s => s.key === v.status);
-  const tp = ENT_TYPES.find(t => t.key === v.vehicle_type);
-  $('vhTitle').textContent = v.fleet_no + (v.extra_no ? ' (' + v.extra_no + ')' : '');
-  const rows = [
-    ['Держ. №', v.plate_no],
-    ['Тип', tp && tp.name],
-    ['Модель', v.model],
-    ['Заводський №', v.factory_no],
-    ['Рік побудови', v.build_year],
-    ['VIN', v.vin],
-    ['Початок роботи', v.start_date],
-    ['Надійшов', v.arrived],
-    ['Списаний', v.written_off],
-    ['Статус', st && st.name],
-    ['Примітка', v.note]
-  ].filter(r => r[1] != null && r[1] !== '').map(r => {
-    const d = document.createElement('div');
-    d.className = 'info-row';
-    const b = document.createElement('b');
-    b.textContent = r[0];
-    const s = document.createElement('span');
-    s.textContent = r[1];
-    d.append(b, s);
-    return d;
-  });
-  $('vhRows').replaceChildren(...rows);
-  $('vhEdit').classList.toggle('hidden', !editable);
-  document.querySelectorAll('.veh-profile-tab').forEach(t=>t.classList.toggle('active',t.dataset.vhtab==='overview'));
-  ['overview','history','photos'].forEach(k=>$('vh'+k[0].toUpperCase()+k.slice(1)).classList.toggle('hidden',k!=='overview'));
-  const events=[];const addEvent=(title,date,detail)=>{if(!date&&!detail)return;const d=document.createElement('div');d.className='vh-event';const b=document.createElement('b');b.textContent=title;const sm=document.createElement('small');sm.textContent=date||'Дата не вказана';const p=document.createElement('span');p.textContent=detail||'';d.append(b,sm,p);events.push(d)};
-  addEvent('Побудовано',v.build_year?String(v.build_year):'',v.factory_no?'Заводський № '+v.factory_no:'');addEvent('Надійшов до підприємства',v.arrived,'Підприємство: '+(curEnt?curEnt.name:'—'));addEvent('Початок роботи',v.start_date,'Статус: '+(st?st.name:'—'));if(v.status==='written_off'||v.written_off)addEvent('Списано',v.written_off,'');if(v.note)addEvent('Примітка','',v.note);if(!events.length){const e=document.createElement('p');e.className='cv-empty';e.textContent='Історія поки не заповнена.';events.push(e)}$('vhTimeline').replaceChildren(...events);
-  $('vhPhotoGrid').replaceChildren();$('vhPhotoEmpty').classList.remove('hidden');if(v.city_id&&(v.fleet_no||v.plate_no))db.from('photos').select('*').eq('city_id',v.city_id).eq('status','approved').order('created_at',{ascending:false}).limit(300).then(async r=>{if(vhCur!==v)return;const matches=(r.data||[]).filter(p=>(v.fleet_no&&String(p.fleet_no||'').toLowerCase()===String(v.fleet_no).toLowerCase())||(v.plate_no&&String(p.plate_no||'').toLowerCase()===String(v.plate_no).toLowerCase()));await enrichPhotos(matches);if(vhCur!==v)return;$('vhPhotoGrid').replaceChildren(...matches.map(phCard));$('vhPhotoEmpty').classList.toggle('hidden',matches.length>0)});
-  openModal('vehInfo');
+function openVehInfo(v, editable) { openVehicleProfile(v, editable); }
+let vehPageReturn = null, vehPageCurrent = null, vehPageEditable = false;
+function addVehHistoryRow(rows, cityName, entName, plate, eventDate) { const tr=document.createElement('tr'); [cityName||'—',entName||'—',plate||'—',eventDate||'—'].forEach(x=>{const td=document.createElement('td');td.textContent=x;tr.appendChild(td)}); rows.push(tr); }
+function openVehicleProfile(v, editable=false, sourcePhoto=null) {
+  if(!vehPageReturn)vehPageReturn={page:PAGES.find(id=>!$(id).classList.contains('hidden'))||null,cityId:currentId,ent:curEnt,photo:ppCur,hash:location.hash};
+  vehPageCurrent=v;vehPageEditable=editable;vhCur=v;const fleet=String(v.fleet_no||'').trim(),plate=String(v.plate_no||'').trim();
+  $('vpFleet').textContent=fleet;$('vpFleet').classList.toggle('hidden',!fleet);$('vpPlate').textContent=plate;$('vpPlate').classList.toggle('hidden',!plate);
+  $('vpModel').textContent=String(v.model||'Транспортний засіб').trim();$('vpYear').textContent=v.build_year?String(v.build_year):'';$('vpEdit').classList.toggle('hidden',!editable);
+  const city=cities.find(c=>c.id===v.city_id), enterprise=enterprises.find(e=>e.id===v.enterprise_id)||curEnt;$('vpLocation').textContent=[city&&city.name,enterprise&&enterprise.name].filter(Boolean).join(' · ');
+  const tp=ENT_TYPES.find(t=>t.key===v.vehicle_type),st=VEH_STATUSES.find(x=>x.key===v.status);$('vpFacts').replaceChildren();
+  [['Виробник',v.manufacturer],['Тип транспорту',tp&&tp.name],['Модель',v.model],['Виготовлено',v.build_year],['Заводський номер',v.factory_no],['VIN-код',v.vin],['Призначення',v.purpose],['Поточний стан',st&&st.name],['Надійшов',v.arrived],['Початок роботи',v.start_date],['Списаний',v.written_off],['Примітка',v.note]].filter(x=>x[1]!=null&&String(x[1]).trim()!=='').forEach(([label,value])=>{const d=document.createElement('div');d.className='veh-fact';const sm=document.createElement('small');sm.textContent=label;const b=document.createElement('b');b.textContent=String(value);d.append(sm,b);$('vpFacts').appendChild(d)});
+  const rows=[];if(v.arrived)addVehHistoryRow(rows,city&&city.name,enterprise&&enterprise.name,plate,'Надійшов: '+v.arrived);if(v.start_date)addVehHistoryRow(rows,city&&city.name,enterprise&&enterprise.name,plate,'Почав працювати: '+v.start_date);if(v.written_off)addVehHistoryRow(rows,city&&city.name,enterprise&&enterprise.name,plate,'Списаний: '+v.written_off);
+  if(rows.length)$('vpHistory').replaceChildren(...rows);else{const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=4;td.textContent='Історичних записів у базі поки немає.';tr.appendChild(td);$('vpHistory').replaceChildren(tr)}
+  $('vpPhotoGrid').replaceChildren();$('vpPhotoEmpty').classList.remove('hidden');currentId=null;renderCity();PAGES.forEach(id=>$(id).classList.toggle('hidden',id!=='vehiclePage'));loadVehicleProfilePhotos(v,sourcePhoto);window.scrollTo({top:0});
 }
-
-document.querySelectorAll('.veh-profile-tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.veh-profile-tab').forEach(x=>x.classList.toggle('active',x===t));['overview','history','photos'].forEach(k=>$('vh'+k[0].toUpperCase()+k.slice(1)).classList.toggle('hidden',k!==t.dataset.vhtab))}));
+async function loadVehicleProfilePhotos(v,sourcePhoto){const plate=String(v.plate_no||'').trim(),fleet=String(v.fleet_no||'').trim(),queries=[];if(plate)queries.push(db.from('photos').select('*').eq('status','approved').eq('plate_no',plate).limit(300));else if(fleet)queries.push(db.from('photos').select('*').eq('status','approved').eq('city_id',v.city_id).eq('fleet_no',fleet).limit(300));const results=await Promise.all(queries);if(vehPageCurrent!==v)return;const map=new Map();results.forEach(r=>(r.data||[]).forEach(p=>map.set(p.id,p)));if(sourcePhoto&&sourcePhoto.id)map.set(sourcePhoto.id,sourcePhoto);const photos=[...map.values()].filter(p=>{const pf=String(p.fleet_no||'').trim(),pp=String(p.plate_no||'').trim();return plate?pp===plate:(!fleet||pf===fleet)}).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));await enrichPhotos(photos);if(vehPageCurrent!==v)return;$('vpPhotoGrid').replaceChildren(...photos.map(phCard));$('vpPhotoEmpty').classList.toggle('hidden',photos.length>0);const sightings=photos.map(p=>{const tr=document.createElement('tr'),city=cities.find(c=>c.id===p.city_id),dt=p.shot_date||p.created_at&&new Date(p.created_at).toLocaleDateString('uk-UA');[p.city_name||(city&&city.name)||'—',p.enterprise_name||'—',String(p.plate_no||plate||'—'),dt||'—'].forEach(x=>{const td=document.createElement('td');td.textContent=x;tr.appendChild(td)});return tr});if(sightings.length){const old=[...$('vpHistory').querySelectorAll('tr')].filter(r=>/Надійшов:|Почав працювати:|Списаний:/.test(r.textContent));$('vpHistory').replaceChildren(...sightings,...old)}}
+function closeVehicleProfile(){const prev=vehPageReturn;vehPageReturn=null;vehPageCurrent=null;vehPageEditable=false;PAGES.forEach(id=>$(id).classList.add('hidden'));if(!prev)return;currentId=prev.cityId;curEnt=prev.ent;ppCur=prev.photo;renderCity();if(prev.page)$(prev.page).classList.remove('hidden');history.replaceState(null,'',prev.hash||location.pathname+location.search);window.scrollTo({top:0})}
+async function openVehicleProfileFromPhoto(p){const plate=String(p.plate_no||'').trim(),fleet=String(p.fleet_no||'').trim();let v=null;if(p.city_id&&(plate||fleet)){let q=db.from('vehicles').select('*').eq('city_id',p.city_id);q=plate?q.eq('plate_no',plate):q.eq('fleet_no',fleet);const r=await q.limit(20);v=(r.data||[]).find(x=>!fleet||String(x.fleet_no||'').trim()===fleet)||(r.data||[])[0]||null}if(!v)v={city_id:p.city_id,enterprise_id:p.enterprise_id,fleet_no:fleet,plate_no:plate,model:p.model,vehicle_type:p.transport};const ent=enterprises.find(e=>e.id===v.enterprise_id),editable=!!(curEnt&&canEditEnt());openVehicleProfile(v,editable,p);if(ent)$('vpLocation').textContent=[(cities.find(c=>c.id===v.city_id)||{}).name,ent.name].filter(Boolean).join(' · ')}
+$('vpBack').addEventListener('click',closeVehicleProfile);$('vpEdit').addEventListener('click',()=>{if(vehPageCurrent)openVehForm(vehPageCurrent)});
 $('vhEdit').addEventListener('click', () => openVehForm(vhCur));
 $('vhClose').addEventListener('click', closeModal);
 
@@ -4972,6 +4963,7 @@ $('vehForm').addEventListener('submit', async ev => {
   }
   closeModal();
   await loadVehicles();
+  if (vehPageCurrent && vehPageCurrent.id === vehEditingId) { const refreshed = vehicles.find(x => x.id === vehEditingId); if (refreshed) openVehicleProfile(refreshed, vehPageEditable); }
 });
 
 $('vehDelete').addEventListener('click', async () => {
@@ -6321,73 +6313,11 @@ function phTime(s) {
 }
 
 function phCard(p) {
-  const card = document.createElement('div');
-  card.className = 'ph-card';
-  const pic = document.createElement('div');
-  pic.className = 'ph-pic';
-  const img = document.createElement('img');
-  img.loading = 'lazy';
-  img.src = phUrl(p);
-  img.alt = p.caption || '';
-  pic.appendChild(img);
-  if (p.status !== 'approved') {
-    const bd = document.createElement('span');
-    bd.className = 'ph-badge';
-    bd.textContent = '⏳ На модерації';
-    pic.appendChild(bd);
-  } else {
-    const left = 20 * 3600000 - (Date.now() - phTime(p.created_at));
-    if (left > 0) {
-      const nw = document.createElement('span');
-      nw.className = 'ph-new';
-      nw.textContent = 'НОВЕ';
-      pic.appendChild(nw);
-      setTimeout(() => nw.remove(), left);
-    }
-  }
-  const info = document.createElement('div');
-  info.className = 'ph-info';
-  const loc = document.createElement('div');
-  loc.className = 'ph-loc';
-  const pin = document.createElement('span');
-  pin.textContent = '📍';
-  const lt = document.createElement('span');
-  const cb = document.createElement('b');
-  cb.textContent = p.city_name || (cities.find(c => c.id === p.city_id) || {}).name || '—';
-  lt.append(cb, p.caption ? ', ' + p.caption : '');
-  loc.append(pin, lt);
-  const row = document.createElement('div');
-  row.className = 'ph-row';
-  if (p.model || p.fleet_no || p.plate_no) {
-    if (p.model) {
-      const m = document.createElement('span');
-      m.className = 'ph-model';
-      m.textContent = p.model;
-      row.appendChild(m);
-    }
-    if (p.fleet_no) {
-      const bx = document.createElement('span');
-      bx.className = 'ph-box';
-      bx.textContent = p.fleet_no;
-      if (p._vc) bx.style.color = p._vc;
-      row.appendChild(bx);
-    } else if (p.plate_no) {
-      const bx = document.createElement('span');
-      bx.className = 'ph-box ph-plate';
-      bx.textContent = p.plate_no;
-      if (p._vc) bx.style.color = p._vc;
-      row.appendChild(bx);
-    }
-  } else if (p.category) {
-    const mu = document.createElement('span');
-    mu.className = 'ph-muted';
-    mu.textContent = p.category.toLowerCase();
-    row.appendChild(mu);
-  }
-  info.append(loc, row);
-  card.append(pic, info);
-  card.addEventListener('click', () => openPhoto(p));
-  return card;
+  const card=document.createElement('div');card.className='ph-card';const pic=document.createElement('div');pic.className='ph-pic';const img=document.createElement('img');img.loading='lazy';img.src=phUrl(p);img.alt=p.caption||'';pic.appendChild(img);
+  if(p.status!=='approved'){const bd=document.createElement('span');bd.className='ph-badge';bd.textContent='⏳ На модерації';pic.appendChild(bd)}else{const left=20*3600000-(Date.now()-phTime(p.created_at));if(left>0){const nw=document.createElement('span');nw.className='ph-new';nw.textContent='НОВЕ';pic.appendChild(nw);setTimeout(()=>nw.remove(),left)}}
+  const info=document.createElement('div');info.className='ph-info';const loc=document.createElement('div');loc.className='ph-loc';const pin=document.createElement('span');pin.textContent='📍';const lt=document.createElement('span');const cb=document.createElement('b');cb.textContent=p.city_name||(cities.find(c=>c.id===p.city_id)||{}).name||'—';lt.append(cb,p.caption?', '+p.caption:'');loc.append(pin,lt);
+  const row=document.createElement('div');row.className='ph-row';const fleet=String(p.fleet_no||'').trim(),plate=String(p.plate_no||'').trim();if(p.model||fleet||plate){if(p.model){const m=document.createElement('span');m.className='ph-model';m.textContent=p.model;row.appendChild(m)}if(fleet){const bx=document.createElement('span');bx.className='ph-box';bx.textContent=fleet;if(p._vc)bx.style.color=p._vc;row.appendChild(bx)}if(plate){const bx=document.createElement('button');bx.type='button';bx.className='ph-box ph-plate ph-vehicle-link';bx.textContent=plate;if(p._vc)bx.style.color=p._vc;bx.title='Відкрити профіль транспортного засобу';bx.addEventListener('click',e=>{e.stopPropagation();openVehicleProfileFromPhoto(p)});row.appendChild(bx)}}else if(p.category){const mu=document.createElement('span');mu.className='ph-muted';mu.textContent=p.category.toLowerCase();row.appendChild(mu)}
+  info.append(loc,row);card.append(pic,info);card.addEventListener('click',()=>openPhoto(p));return card;
 }
 
 async function enrichPhotos(list) {
@@ -6640,7 +6570,7 @@ let phRouteBad = false;
 let phEditId = null;
 let myPhotos = [];
 const UP_FIELDS = ['phFleet', 'phRoute', 'phRouteNote', 'phNote', 'phTags', 'phDD', 'phMM', 'phYYYY', 'phPlace'];
-const PAGES = ['requestsView', 'galleryView', 'myView', 'uploadView', 'photoPage', 'rulesView'];
+const PAGES = ['requestsView', 'galleryView', 'myView', 'uploadView', 'photoPage', 'rulesView', 'vehiclePage'];
 const DATE_KINDS = [['exact', 'Точна дата'], ['approx', 'Приблизна дата'], ['before', 'Не пізніше'], ['after', 'Не раніше'], ['unknown', 'Невідома дата']];
 
 function phSetBtn(id, text) {
@@ -7611,7 +7541,7 @@ function ppFact(label, value) {
 
 function openPhoto(p) {
   if ($('photoPage').classList.contains('hidden')) {
-    ppPrev = { cityId: currentId, ent: curEnt, pages: ['requestsView', 'galleryView', 'myView'].filter(id => !$(id).classList.contains('hidden')) };
+    ppPrev = { cityId: currentId, ent: curEnt, pages: ['requestsView', 'galleryView', 'myView', 'vehiclePage'].filter(id => !$(id).classList.contains('hidden')) };
   }
   ppCur = p;
   $('photoPage').style.removeProperty('--vc');
@@ -7655,39 +7585,13 @@ function openPhoto(p) {
   }
   const info = [left];
 
-  if (p.fleet_no || p.plate_no || p.model) {
-    const v = document.createElement('div');
-    v.className = 'pp-veh';
-    if (p.fleet_no || p.plate_no) {
-      const f = document.createElement('span');
-      f.className = 'pp-fleet' + (p.fleet_no ? '' : ' plate');
-      f.textContent = p.fleet_no || p.plate_no;
-      v.appendChild(f);
-      if (p.fleet_no && p.plate_no) {
-        const pl = document.createElement('span');
-        pl.className = 'pp-fleet plate';
-        pl.textContent = p.plate_no;
-        v.appendChild(pl);
-      }
-    }
-    const vm = document.createElement('div');
-    vm.className = 'pp-vm';
-    const mt = document.createElement('span');
-    mt.textContent = p.model || '';
-    const sm = document.createElement('small');
-    sm.textContent = '';
-    vm.append(mt, sm);
-    v.appendChild(vm);
-    info.push(v);
-    if (p.fleet_no || p.plate_no) {
-      db.from('vehicles').select('build_year, status').eq('city_id', p.city_id).eq(p.fleet_no ? 'fleet_no' : 'plate_no', p.fleet_no || p.plate_no).limit(1).then(r => {
-        const x = r.data && r.data[0];
-        if (ppCur !== p || !x) return;
-        if (x.build_year) sm.textContent = [x.build_year, sm.textContent].filter(Boolean).join(' · ');
-        const c = statColor(VEH_STATUSES, x.status);
-        if (c) $('photoPage').style.setProperty('--vc', c);
-      });
-    }
+  const fleetNo=String(p.fleet_no||'').trim(), plateNo=String(p.plate_no||'').trim();
+  if (fleetNo || plateNo || p.model) {
+    const v=document.createElement('div');v.className='pp-veh';
+    if(fleetNo){const f=document.createElement('span');f.className='pp-fleet';f.textContent=fleetNo;v.appendChild(f)}
+    if(plateNo){const pl=document.createElement('button');pl.type='button';pl.className='pp-fleet plate pp-veh-link';pl.textContent=plateNo;pl.title='Відкрити профіль транспортного засобу';pl.addEventListener('click',e=>{e.stopPropagation();openVehicleProfileFromPhoto(p)});v.appendChild(pl)}
+    const vm=document.createElement('div');vm.className='pp-vm';const mt=document.createElement('span');mt.textContent=p.model||'';const sm=document.createElement('small');vm.append(mt,sm);v.appendChild(vm);info.push(v);
+    if(fleetNo||plateNo)db.from('vehicles').select('build_year,status').eq('city_id',p.city_id).eq(fleetNo?'fleet_no':'plate_no',fleetNo||plateNo).limit(1).then(r=>{const x=r.data&&r.data[0];if(ppCur!==p||!x)return;if(x.build_year)sm.textContent=String(x.build_year);const c=statColor(VEH_STATUSES,x.status);if(c)$('photoPage').style.setProperty('--vc',c)});
   }
 
   const rt = document.createElement('div');
