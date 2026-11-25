@@ -2896,6 +2896,24 @@ body.maintenance-active{overflow:hidden}
 .country-journal-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:18px 0}
 .recent-changes-wrap{padding:24px}.recent-changes-filters{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;margin:18px 0}.recent-changes-filters input,.recent-changes-filters select{min-width:0;height:40px;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font:inherit}.recent-changes-table-wrap{overflow:auto}.recent-changes-table{width:100%;border-collapse:collapse;min-width:780px}.recent-changes-table th,.recent-changes-table td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}.recent-changes-table th{background:var(--surface-2);font-size:12px}.recent-changes-table td button{font:inherit}.recent-changes-date{font-weight:700}@media(max-width:700px){.recent-changes-wrap{padding:14px}.recent-changes-filters{grid-template-columns:1fr 1fr}}
 .journal-page-wrap h1,.following-page-wrap h1{margin:16px 0 20px}
+.pub-journal-list{display:flex;flex-direction:column;max-width:1220px}
+.pub-journal-entry{display:grid;grid-template-columns:minmax(220px,30%) minmax(0,1fr);gap:22px;padding:14px 0;border-bottom:1px solid var(--border)}
+.pub-journal-photo{display:block;width:100%;height:252px;padding:0;border:0;border-radius:0;background:var(--surface-2);cursor:pointer;overflow:hidden}
+.pub-journal-photo img{display:block;width:100%;height:100%;object-fit:contain}
+.pub-journal-body{display:flex;min-width:0;flex-direction:column;gap:10px}
+.pub-journal-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.pub-journal-status{display:inline-flex;align-items:center;gap:7px;font-weight:700}
+.pub-journal-status.approved{color:var(--ok)}
+.pub-journal-status.pending{color:var(--accent)}
+.pub-journal-status.rejected{color:var(--danger)}
+.pub-journal-date{color:var(--muted);white-space:nowrap}
+.pub-journal-reason{padding:10px 12px;border-radius:8px;background:var(--surface-2)}
+.pub-journal-reason p{margin:0 0 6px}
+.pub-journal-reason ul{margin:0;padding-left:22px}
+.pub-journal-meta{margin-top:auto;padding-top:10px;display:grid;gap:7px}
+.pub-journal-location,.pub-journal-vehicles{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.pub-journal-vehicle{display:inline-flex;align-items:center;gap:7px}
+@media(max-width:700px){.pub-journal-entry{grid-template-columns:1fr;gap:10px}.pub-journal-photo{height:auto;max-height:320px;aspect-ratio:3/2}.pub-journal-top{flex-wrap:wrap}.pub-journal-date{white-space:normal}}
 .people-profile-follow{margin-top:12px}
 @media(max-width:700px){.global-vehicle-search input{position:absolute;right:0;top:46px;width:min(280px,calc(100vw - 32px));z-index:20}.country-page-wrap,.journal-page-wrap,.following-page-wrap{padding:14px}.country-profile-hero{grid-template-columns:1fr}.country-cover{height:180px}.country-city-table th,.country-city-table td{padding:8px;font-size:13px}}
 
@@ -3244,7 +3262,7 @@ body.maintenance-active{overflow:hidden}
 </div></div>
 
 <div id="publicationView" class="panel hidden"><div class="journal-page-wrap">
-  <button class="btn light" id="publicationBack" type="button">Назад</button><h1 id="publicationTitle">Журнал публікацій</h1><div class="ph-grid" id="publicationGrid"></div><p class="cv-empty hidden" id="publicationEmpty">Опублікованих фотографій поки немає</p>
+  <button class="btn light" id="publicationBack" type="button">Назад</button><h1 id="publicationTitle">Журнал публікацій</h1><div class="pub-journal-list" id="publicationGrid"></div><p class="cv-empty hidden" id="publicationEmpty">Опублікованих фотографій поки немає</p>
 </div></div>
 
 <div id="followingView" class="panel hidden"><div class="following-page-wrap">
@@ -3743,6 +3761,7 @@ let checking = false;
 let vehicleCorrectionContext = null;
 const VEHICLE_EDIT_REQUEST_PREFIX='[VEHICLE_EDIT_REQUEST]';
 const COUNTRY_FLAG_REQUEST_PREFIX='[COUNTRY_FLAG_REQUEST]';
+const PHOTO_REVIEW_MARKER='[[PHOTO_REVIEW:';
 const COUNTRY_FLAG_APPROVAL_ACTION='country_flag_approve';
 const COUNTRY_FLAG_MARKER='country-flag:';
 const countryFlagCache=new Map();
@@ -6457,7 +6476,7 @@ function drawNotifs() {
     const t = document.createElement('p');
     const photoLink=x.message.match(/\[\[OPEN_PHOTO_URL:([^\]]+)\]\]/);
     const correction=parseVehicleEditRequest(x.message);
-    t.textContent=correction?'Нова пропозиція правки ТС від '+(correction.author_name||'користувача')+' — '+(correction.plate_no||correction.fleet_no||correction.model||'ТС'):x.message.replace(/\[\[OPEN_PHOTO_URL:[^\]]+\]\]/,'').trim();
+    t.textContent=correction?'Нова пропозиція правки ТС від '+(correction.author_name||'користувача')+' — '+(correction.plate_no||correction.fleet_no||correction.model||'ТС'):x.message.replace(/\[\[OPEN_PHOTO_URL:[^\]]+\]\]/,'').replace(/\[\[PHOTO_REVIEW:[^\]]+\]\]/,'').trim();
     const s = document.createElement('small');
     s.textContent = new Date(x.created_at).toLocaleString('uk-UA');
     d.append(t, s);
@@ -7167,6 +7186,7 @@ let phRouteTimer = null;
 let phFleetBad = false;
 let phRouteBad = false;
 let phEditId = null;
+let phEditStatus = null;
 let myPhotos = [];
 const UP_FIELDS = ['phFleet', 'phRoute', 'phRouteNote', 'phNote', 'phTags', 'phDD', 'phMM', 'phYYYY', 'phPlace', 'phAuthorName'];
 const PAGES = ['requestsView', 'galleryView', 'myView', 'uploadView', 'photoPage', 'rulesView', 'vehiclePage', 'userProfilePage', 'countryView', 'recentChangesView', 'publicationView', 'followingView'];
@@ -7558,10 +7578,11 @@ function restorePageState(state){PAGES.forEach(id=>$(id).classList.add('hidden')
 function openFeatureView(id,hash,fromRoute,stateName){if(!fromRoute&&!window[stateName])window[stateName]=capturePageState();currentId=null;curEnt=null;renderCity();PAGES.forEach(page=>$(page).classList.toggle('hidden',page!==id));if(!fromRoute)history.pushState(null,'',hash);window.scrollTo({top:0})}
 function closeFeatureView(stateName){const state=window[stateName];window[stateName]=null;restorePageState(state)}
 function drawPhotoList(gridId,emptyId,list,message){$(gridId).replaceChildren(...list.map(phCard));$(emptyId).textContent=message;$(emptyId).classList.toggle('hidden',list.length>0)}
+function drawPublicationJournal(list,notifications){const reviews=new Map();(notifications||[]).forEach(row=>{const match=String(row.message||'').match(/\[\[PHOTO_REVIEW:(approved|rejected):([^\]]+)\]\]/);if(match&&!reviews.has(match[2]))reviews.set(match[2],{status:match[1],created_at:row.created_at,message:row.message})});const locale=lang==='ru'?'ru-RU':lang==='en'?'en-US':lang==='by'?'be-BY':'uk-UA';const entries=list.map(photo=>{const latestReview=reviews.get(String(photo.id)),status=String(photo.status||'pending').toLowerCase(),review=latestReview&&latestReview.status===status?latestReview:null,entry=document.createElement('article');entry.className='pub-journal-entry';const open=document.createElement('button');open.type='button';open.className='pub-journal-photo';open.title=tr('Відкрити фото');const image=document.createElement('img');image.src=phUrl(photo);image.alt=photo.model||photo.city_name||'Фото';image.loading='lazy';image.decoding='async';open.appendChild(image);open.addEventListener('click',()=>openPhoto(photo));const body=document.createElement('div');body.className='pub-journal-body';const top=document.createElement('div');top.className='pub-journal-top';const state=document.createElement('strong');state.className='pub-journal-status '+(status==='approved'?'approved':status==='rejected'?'rejected':'pending');state.append(makeUiIcon(status==='approved'?'circle-check':status==='rejected'?'circle-x':'hourglass',true),document.createTextNode(tr(status==='approved'?'Фотографію прийнято':status==='rejected'?'Фотографію відхилено':'На модерації')));const date=document.createElement('time');date.className='pub-journal-date';const stamp=review&&review.created_at||photo.updated_at&&status!=='pending'&&photo.updated_at||photo.created_at;date.dateTime=stamp||'';date.textContent=stamp?new Date(stamp).toLocaleString(locale,{dateStyle:'long',timeStyle:'short'}):'—';top.append(state,date);body.appendChild(top);if(status==='rejected'&&review){const reviewText=String(review.message||'').split(PHOTO_REVIEW_MARKER)[0],reasonMatch=reviewText.match(/Причина:\s*([\s\S]*)$/),reason=reasonMatch&&reasonMatch[1].trim();if(reason){const section=document.createElement('div');section.className='pub-journal-reason';const label=document.createElement('p');label.textContent=tr('Причина відмови:');const details=document.createElement('ul');reason.split(/\n+/).map(value=>value.trim()).filter(Boolean).forEach(value=>{const item=document.createElement('li');item.textContent=value;details.appendChild(item)});section.append(label,details);body.appendChild(section)}}const meta=document.createElement('div');meta.className='pub-journal-meta';const location=document.createElement('div');location.className='pub-journal-location';location.appendChild(makeUiIcon('map-pin',true));const area=photoRegionLocation(photo),city=cities.find(item=>item.id===photo.city_id);if(area){location.append(document.createTextNode(area.region));if(area.country)location.append(' | ',countryLink(area.country))}else if(city){location.appendChild(cityLink(city));if(city.country)location.append(' | ',countryLink(city.country))}else location.append(document.createTextNode(photo.city_name||'—'));if(photo.caption)location.append(document.createTextNode(', '+photo.caption));meta.appendChild(location);const links=photoVehicleLinks(photo),vehicles=document.createElement('div');vehicles.className='pub-journal-vehicles';if(links.length){links.forEach(link=>{const item=document.createElement('span');item.className='pub-journal-vehicle';const model=document.createElement('span');model.textContent=link.model||photo.model||'ТС';item.appendChild(model);const value=link.plate_no||link.fleet_no||link.extra_no;if(value){const number=document.createElement('button');number.type='button';number.className='pp-fleet';number.textContent=value;number.addEventListener('click',()=>openVehicleProfileFromPhoto(photo,link));item.appendChild(number)}vehicles.appendChild(item)})}else{const fallback=[photo.model,photo.plate_no||photo.fleet_no].filter(Boolean);if(fallback.length)vehicles.textContent=fallback.join(' · ')}if(vehicles.childNodes.length)meta.appendChild(vehicles);body.appendChild(meta);entry.append(open,body);return entry});$('publicationGrid').replaceChildren(...entries);$('publicationEmpty').textContent=tr('У вас ще немає фотографій');$('publicationEmpty').classList.toggle('hidden',entries.length>0)}
 async function openCountryProfile(name,fromRoute=false){name=String(name||'').trim();if(!name)return;openFeatureView('countryView','#country='+encodeURIComponent(name),fromRoute,'countryReturnState');$('countryTitle').textContent=name;$('countryFlag').src=countryFlagSource(name);$('countryFlag').alt=name+' flag';updateCountryFlagControls();refreshApprovedCountryFlags().then(()=>{$('countryFlag').src=countryFlagSource(name)});$('countryEditors').textContent='';$('countryStats').replaceChildren();$('countryCover').replaceChildren();$('countryCityTableWrap').replaceChildren();$('countryPhotoGrid').replaceChildren();$('countryPhotoEmpty').classList.remove('hidden');const matches=cities.filter(city=>String(city.country||'').toLocaleLowerCase()===name.toLocaleLowerCase()),ids=matches.map(city=>city.id);const res=ids.length?await db.from('photos').select('*').in('city_id',ids).eq('status','approved').order('created_at',{ascending:false}).limit(500):{data:[]};const list=res.data||[];await enrichPhotos(list).catch(()=>{});const cover=list.length?list[Math.floor(Math.random()*list.length)]:null;if(cover){const img=document.createElement('img');img.src=phUrl(cover);img.alt=name;$('countryCover').replaceChildren(img)}const vehicleKeys=new Set(list.flatMap(photo=>photoVehicleLinks(photo).map(link=>link.id||link.plate_no||link.fleet_no||link.extra_no).filter(Boolean)));const stats=[['Міста',matches.length],['Фотографії',list.length],['Транспортні засоби',vehicleKeys.size]];stats.forEach(([label,value])=>{const box=document.createElement('div');box.className='country-profile-stat';const b=document.createElement('b');b.textContent=String(value);const span=document.createElement('span');span.textContent=label;box.append(b,span);$('countryStats').appendChild(box)});const table=document.createElement('table');table.className='country-city-table';const head=document.createElement('thead'),hr=document.createElement('tr');['Місто','Регіон','Населення'].forEach(label=>{const th=document.createElement('th');th.textContent=label;hr.appendChild(th)});head.appendChild(hr);const body=document.createElement('tbody');matches.sort((a,b)=>String(a.name).localeCompare(String(b.name),lang)).forEach(city=>{const tr=document.createElement('tr'),nameCell=document.createElement('td'),region=document.createElement('td'),population=document.createElement('td');nameCell.appendChild(cityLink(city));region.textContent=city.region||'—';population.textContent=city.population==null?'—':String(city.population);tr.append(nameCell,region,population);body.appendChild(tr)});table.append(head,body);$('countryCityTableWrap').appendChild(table);drawPhotoList('countryPhotoGrid','countryPhotoEmpty',list,'У країні ще немає опублікованих фотографій');}
 function drawRecentVehicleChanges(country=null){const terms={city:$('recentChangeCity').value.trim().toLocaleLowerCase(),enterprise:$('recentChangeEnterprise').value.trim().toLocaleLowerCase(),type:$('recentChangeType').value.trim().toLocaleLowerCase(),model:$('recentChangeModel').value.trim().toLocaleLowerCase()};const filtered=recentVehicleRows.filter(vehicle=>{const city=cities.find(item=>item.id===vehicle.city_id),location=[city&&city.name,city&&city.region,city&&city.country].filter(Boolean).join(' ').toLocaleLowerCase(),enterprise=String(vehicle.ent_name||'').toLocaleLowerCase(),type=String(vehicle.vehicle_type||'').toLocaleLowerCase(),model=String(vehicle.model||'').toLocaleLowerCase();return(!country||String(city&&city.country||'').toLocaleLowerCase()===country.toLocaleLowerCase())&&(!terms.city||location.includes(terms.city))&&(!terms.enterprise||enterprise.includes(terms.enterprise))&&(!terms.type||type.includes(terms.type))&&(!terms.model||model.includes(terms.model))});const rows=filtered.map(vehicle=>{const tr=document.createElement('tr'),fleet=document.createElement('td'),plate=document.createElement('td'),model=document.createElement('td'),location=document.createElement('td'),enterprise=document.createElement('td'),updated=document.createElement('td'),editor=document.createElement('td'),city=cities.find(item=>item.id===vehicle.city_id),label=String(vehicle.model||'—'),editable=!!(city&&me.uid&&(city.owner_id===me.uid||isStaff()||isCityEditor(city.id)));const addNumber=(cell,value)=>{if(!value){cell.textContent='—';return}const color=statColor(VEH_STATUSES,vehicle.status);const button=entityButton(cleanVehicleNumber(value),'veh-history-plate',()=>openVehicleProfile(vehicle,editable));if(color)button.style.setProperty('--vc',color);cell.appendChild(button)};addNumber(fleet,vehicle.fleet_no||vehicle.extra_no);addNumber(plate,vehicle.plate_no);model.appendChild(entityButton(label,'',()=>openVehicleProfile(vehicle,editable)));location.appendChild(city?cityLink(city):document.createTextNode('—'));if(city&&city.region)location.append(', '+city.region);enterprise.textContent=vehicle.ent_name||'—';const stamp=vehicle.updated_at||vehicle.modified_at||vehicle.created_at;updated.className='recent-changes-date';updated.textContent=stamp?new Date(stamp).toLocaleString(lang==='ru'?'ru-RU':lang==='en'?'en-US':lang==='by'?'be-BY':'uk-UA'):'—';editor.textContent=vehicle.updated_by_name||vehicle.editor_name||vehicle.updated_by||'—';tr.append(fleet,plate,model,location,enterprise,updated,editor);return tr});$('recentChangesRows').replaceChildren(...rows);$('recentChangesEmpty').classList.toggle('hidden',rows.length>0)}
 async function openRecentVehicleChanges(country=null,fromRoute=false){openFeatureView('recentChangesView',country?'#changes='+encodeURIComponent(country):'#changes',fromRoute,'recentChangesReturnState');$('recentChangesTitle').textContent=tr('Останні зміни')+(country?' · '+country:'');const result=await db.from('vehicles').select('*').limit(1000);let rows=result.error?[]:result.data||[];rows=await phEnrichVeh(rows).catch(()=>rows);recentVehicleRows=rows.sort((a,b)=>new Date(b.updated_at||b.modified_at||b.created_at||0)-new Date(a.updated_at||a.modified_at||a.created_at||0));drawRecentVehicleChanges(country);if(result.error){$('recentChangesEmpty').textContent=tr('Не вдалося завантажити зміни: ')+result.error.message;$('recentChangesEmpty').classList.remove('hidden')}}
-async function openPublicationJournal(country=null,fromRoute=false){if(!me.uid){openModal('login');return}openFeatureView('publicationView',country?'#journal='+encodeURIComponent(country):'#journal',fromRoute,'publicationReturnState');$('publicationTitle').textContent='Мої публікації';$('publicationEmpty').textContent='У вас ще немає фотографій';const result=await db.from('photos').select('*').eq('owner_id',me.uid).order('created_at',{ascending:false}).limit(500);const list=result.data||[];await enrichPhotos(list).catch(()=>{});drawPhotoList('publicationGrid','publicationEmpty',list,'У вас ще немає фотографій')}
+async function openPublicationJournal(country=null,fromRoute=false){if(!me.uid){openModal('login');return}openFeatureView('publicationView',country?'#journal='+encodeURIComponent(country):'#journal',fromRoute,'publicationReturnState');$('publicationTitle').textContent=tr('Журнал публікацій');$('publicationEmpty').textContent='У вас ще немає фотографій';const [photosResult,notificationsResult]=await Promise.all([db.from('photos').select('*').eq('owner_id',me.uid).order('created_at',{ascending:false}).limit(500),db.from('notifications').select('message,created_at').eq('user_id',me.uid).like('message','%[[PHOTO_REVIEW:%').order('created_at',{ascending:false}).limit(1000)]);const list=photosResult.data||[];await enrichPhotos(list).catch(()=>{});drawPublicationJournal(list,notificationsResult.data||[])}
 async function openFollowingPage(fromRoute=false){openFeatureView('followingView','#following',fromRoute,'followingReturnState');if(!me.uid){openModal('login');return}const ids=me.following||[];const result=ids.length?await db.from('photos').select('*').eq('status','approved').in('owner_id',ids).order('created_at',{ascending:false}).limit(300):{data:[]};const list=result.data||[];await enrichPhotos(list).catch(()=>{});drawPhotoList('followingGrid','followingEmpty',list,ids.length?'Поки немає фото від авторів, на яких ви підписалися.':'Ви ще ні на кого не підписані.')}
 async function setFollowUser(uid,button){if(!me.uid){openModal('login');return}if(uid===me.uid)return;const next=new Set(me.following||[]),following=next.has(uid);following?next.delete(uid):next.add(uid);button.disabled=true;try{const{data,error}=await db.auth.updateUser({data:{tpe_following:[...next]}});if(error)throw error;me.following=[...next];button.textContent=following?'Підписатися':'Ви підписані';button.classList.toggle('active',!following)}catch(error){alert(error.message||'Не вдалося зберегти підписку')}finally{button.disabled=false}}
 function vehicleSearchMarkup(rows){return rows.length?rows.map(v=>{const label=[v.fleet_no,v.plate_no,v.extra_no].filter(Boolean).join(' · ')||'Номер не вказано',detail=[v.model,v.city_name,v.ent_name].filter(Boolean).join(' · ');return'<button class="vehicle-search-result" type="button" data-vehicle-id="'+String(v.id).replace(/["&<>]/g,'')+'"><b>'+escapeHtml(label)+'</b><small>'+escapeHtml(detail)+'</small></button>'}).join(''):'<div class="vehicle-search-empty">Нічого не знайдено</div>'}
@@ -7668,6 +7689,7 @@ async function openPhotoForm(p) {
   const start = (p && list.find(c => c.id === p.city_id)) || list.find(c => c.id === currentId) || null;
   const pref = p ? p.enterprise_id : (start && curEnt && curEnt.city_id === start.id ? curEnt.id : null);
   phEditId = p ? p.id : null;
+  phEditStatus = p ? String(p.status || 'pending').toLowerCase() : null;
   upReset();
   phRegionLocation=p?photoRegionLocation(p):null;
   phCityId = start ? start.id : null;
@@ -7980,7 +8002,8 @@ $('photoUp').addEventListener('submit', async ev => {
   $('phSubmit').disabled = true;
   try {
     if (editing) {
-      const { error } = await db.from('photos').update(fields).eq('id', phEditId);
+      const updatedFields = phEditStatus === 'rejected' ? { ...fields, status: 'pending' } : fields;
+      const { error } = await db.from('photos').update(updatedFields).eq('id', phEditId);
       if (error) throw error;
       await openMyPhotos();
     } else {
@@ -8027,23 +8050,22 @@ async function approvePhoto(p) {
     return;
   }
   await logAction('photo_approve', p.city_name, p.enterprise_name);
-  await notify(p.owner_id, 'Ваше фото (' + (p.enterprise_name || '') + ') у місті «' + (p.city_name || '') + '» прийнято і опубліковано');
+  await notify(p.owner_id, 'Ваше фото (' + (p.enterprise_name || '') + ') у місті «' + (p.city_name || '') + '» прийнято і опубліковано ' + PHOTO_REVIEW_MARKER + 'approved:' + p.id + ']]');
   await loadPhotoReqs();
   await loadPhotos();
 }
 
 function rejectPhoto(p) {
   askReason('Причина відмови', async reason => {
-    const { data, error } = await db.from('photos').delete().eq('id', p.id).select('id');
+    const { data, error } = await db.from('photos').update({ status: 'rejected' }).eq('id', p.id).eq('status', 'pending').select('id');
     if (error) return error.message;
     if (!data || !data.length) {
       await loadPhotoReqs();
       return '';
     }
-    await db.storage.from('photos').remove([p.path]);
     const locationLabel=photoLocationLabel(p);
     await logAction('photo_reject', locationLabel, reason);
-    await notify(p.owner_id, 'Ваше фото (' + (p.enterprise_name || '') + ') у місці «' + locationLabel + '» відхилено. Причина: ' + reason);
+    await notify(p.owner_id, 'Ваше фото (' + (p.enterprise_name || '') + ') у місці «' + locationLabel + '» відхилено. Причина: ' + reason + ' ' + PHOTO_REVIEW_MARKER + 'rejected:' + p.id + ']]');
     await loadPhotoReqs();
     await loadPhotos();
     return '';
@@ -8542,3 +8564,4 @@ loadMaintenanceMode();
 </script>
 </body>
 </html>
+
