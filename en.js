@@ -431,7 +431,17 @@
     "Пропущено (вже є): ": "Skipped (already exist): ",
     "Міст: ": "Cities: ",
     "Підприємств: ": "Enterprises: ",
-    "ТС: ": "Vehicles: "
+    "ТС: ": "Vehicles: ",
+    "Запропонувати прапор": "Suggest a flag",
+    "Надіслати на розгляд": "Submit for review",
+    "Заявки на прапори країн": "Country flag requests",
+    "Заявок на прапори немає": "No flag requests",
+    "Оберіть зображення до 5 МБ": "Choose an image up to 5 MB",
+    "Увійдіть, щоб запропонувати прапор": "Sign in to suggest a flag",
+    "Завантаження…": "Uploading…",
+    "Не знайдено адміністраторів": "No administrators found",
+    "Прапор надіслано адміністрації на розгляд": "Flag sent to administrators for review",
+    "Не вдалося надіслати заявку": "Could not send the request",
   },
 
   subs: {'founded': 'founded $1', 'km2': '$1 km²'},
