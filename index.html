@@ -2448,7 +2448,7 @@ html[data-theme="dark"] .ph-info, html[data-theme="dark"] .cv-fav { color: var(-
 .up-f { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
 .up-f > span { font-size: 13px; font-weight: 700; color: #777; }
 .up-f .dd-btn { height: 40px; border-color: #c8c8c8; font-size: 15px; }
-.up-location-pick{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}.up-location-pick .btn{min-height:40px;padding:0 10px;white-space:nowrap}@media(max-width:600px){.up-location-pick{grid-template-columns:1fr}.up-location-pick .btn{width:100%}}
+.up-location-pick{display:block}
 .up-in { width: 100%; height: 40px; padding: 0 14px; border: 1px solid #c8c8c8; border-radius: 8px; background: #fff; color: #222; font: inherit; font-size: 15px; box-sizing: border-box; outline: none; }
 textarea.up-in { height: auto; padding: 10px 14px; resize: vertical; }
 .up-in:focus { border-color: #808080; }
@@ -3138,7 +3138,7 @@ body.maintenance-active{overflow:hidden}
         <button class="btn light up-clear" id="phClear" type="button">Очистити форму</button>
       </div>
       <div class="up-col">
-        <div class="up-f"><span>Місто або область *</span><div class="up-location-pick"><button class="dd-btn" id="phCityBtn" type="button"><span class="dd-label"></span><i class="dd-arrow"></i></button><button class="btn light" id="phRegionBtn" type="button"><span class="dd-label">Обрати область</span></button></div></div>
+        <div class="up-f"><span>Місце зйомки *</span><div class="up-location-pick"><button class="dd-btn" id="phCityBtn" type="button"><span class="dd-label"></span><i class="dd-arrow"></i></button></div></div>
         <label class="up-inl"><span>Місце зйомки</span><input id="phPlace" type="text" maxlength="150" autocomplete="off" placeholder="вулиця, зупинка"></label>
         <div class="up-f"><span>Дата зйомки</span>
           <div class="up-date">
@@ -7695,7 +7695,6 @@ async function openPhotoForm(p) {
   phRegionLocation=p?photoRegionLocation(p):null;
   phCityId = start ? start.id : null;
   phSetBtn('phCityBtn', phRegionLocation?[phRegionLocation.region,phRegionLocation.country].filter(Boolean).join(' | '):(start ? phCityList.find(x => x.key === start.id).name : 'Оберіть місто'));
-  phSetBtn('phRegionBtn',phRegionLocation?'Область обрана':'Обрати область');
   phTypeKey = p ? p.transport : null;
   phCatName = p && p.category ? p.category : PH_CATS[0];
   phSetBtn('phCatBtn', phCatName);
@@ -7757,7 +7756,6 @@ async function openMyPhotos() {
 
 function pickCity(c) {
   phRegionLocation=null;
-  phSetBtn('phRegionBtn','Обрати область');
   phCityId = c.id;
   const it = phCityList.find(x => x.key === c.id);
   phSetBtn('phCityBtn', it ? it.name : c.name);
@@ -7771,7 +7769,7 @@ function pickCity(c) {
   closeModal();
 }
 
-function openTreePicker(title, rows, selId, onPick, allLabel, back) {
+function openTreePicker(title, rows, selId, onPick, allLabel, back, onRegionPick) {
   const cmp = (a, b) => String(a).localeCompare(String(b), 'uk');
   const open = new Set();
   const cur = rows.find(c => c.id === selId);
@@ -7807,7 +7805,7 @@ function openTreePicker(title, rows, selId, onPick, allLabel, back) {
       b.addEventListener('click', () => onPick(c));
       return b;
     };
-    const node = (key, label, cls) => {
+    const node = (key, label, cls, onSelect) => {
       const n = document.createElement('div');
       n.className = 'tree-node' + (q || open.has(key) ? ' open' : '');
       const h = document.createElement('button');
@@ -7820,7 +7818,11 @@ function openTreePicker(title, rows, selId, onPick, allLabel, back) {
       h.append(a,cls==='tree-country'?countryFlagElement(label):document.createTextNode(''),t);
       const body = document.createElement('div');
       body.className = 'tree-body';
-      h.addEventListener('click', () => {
+      h.addEventListener('click', event => {
+        if (onSelect && !event.target.closest('.tree-arrow')) {
+          onSelect();
+          return;
+        }
         if (n.classList.toggle('open')) open.add(key);
         else open.delete(key);
       });
@@ -7841,8 +7843,9 @@ function openTreePicker(title, rows, selId, onPick, allLabel, back) {
       const c = node('c:' + country, country, 'tree-country');
       g.loose.sort((a, b) => cmp(a.name, b.name)).forEach(x => c.body.appendChild(cityBtn(x)));
       [...g.regions.keys()].sort(cmp).forEach(region => {
-        const r = node('r:' + country + '|' + region, region, 'tree-region');
-        g.regions.get(region).sort((a, b) => cmp(a.name, b.name)).forEach(x => r.body.appendChild(cityBtn(x)));
+        const regionCities = g.regions.get(region).sort((a, b) => cmp(a.name, b.name));
+        const r = node('r:' + country + '|' + region, region, 'tree-region', onRegionPick ? () => onRegionPick({ region, country, city_id: regionCities[0] && regionCities[0].id }) : null);
+        regionCities.forEach(x => r.body.appendChild(cityBtn(x)));
         c.body.appendChild(r.n);
       });
       out.push(c.n);
@@ -7864,13 +7867,11 @@ function openTreePicker(title, rows, selId, onPick, allLabel, back) {
 
 function openCityTree() {
   const all = phCityList.map(x => cities.find(c => c.id === x.key)).filter(c => c && c.is_published);
-  openTreePicker('Місто', all, phCityId, pickCity, null, 'photoUp');
+  openTreePicker('Місце зйомки', all, phCityId, pickCity, null, 'photoUp', pickPhotoRegion);
 }
 
 $('phCityBtn').addEventListener('click', openCityTree);
-function openRegionPicker(){const seen=new Map();cities.filter(city=>city.is_published&&city.region).forEach(city=>{const key=JSON.stringify([city.region,city.country||'']);if(!seen.has(key))seen.set(key,{key,name:[city.region,city.country].filter(Boolean).join(' | '),region:city.region,country:city.country||'',city_id:city.id})});const regions=[...seen.values()].sort((a,b)=>a.name.localeCompare(b.name,lang));if(!regions.length){alert(tr('Областей для вибору немає'));return}openList('Оберіть область',regions,phRegionLocation?JSON.stringify([phRegionLocation.region,phRegionLocation.country]):null,item=>pickPhotoRegion(item),'photoUp')}
-function pickPhotoRegion(item){phRegionLocation={region:item.region,country:item.country};phCityId=item.city_id;phSetBtn('phCityBtn',[item.region,item.country].filter(Boolean).join(' | '));phSetBtn('phRegionBtn','Область обрана');phTypeKey=null;phVehSel=[];phRouteSel=null;phShowVeh();phSetBad('fleet',false);phSetBad('route',false);phFillEnts(null).then(()=>{phCheckFleet();phCheckRoute()});closeModal()}
-$('phRegionBtn').addEventListener('click',openRegionPicker);
+function pickPhotoRegion(item){if(!item||!item.city_id)return;phRegionLocation={region:item.region,country:item.country};phCityId=item.city_id;phSetBtn('phCityBtn',[item.region,item.country].filter(Boolean).join(' | '));phTypeKey=null;phVehSel=[];phRouteSel=null;phShowVeh();phSetBad('fleet',false);phSetBad('route',false);phFillEnts(null).then(()=>{phCheckFleet();phCheckRoute()});closeModal()}
 $('phOwn').addEventListener('change',syncPhotoAuthorField);
 
 $('phCatBtn').addEventListener('click', () => openList('Категорія', PH_CATS.map(c => ({ key: c, name: c })), phCatName, it => {
