@@ -3120,7 +3120,7 @@ body.maintenance-active{overflow:hidden}
         <button class="btn light up-clear" id="phClear" type="button">Очистити форму</button>
       </div>
       <div class="up-col">
-        <div class="up-f"><span>Місто або область *</span><div class="up-location-pick"><button class="dd-btn" id="phCityBtn" type="button"><span class="dd-label"></span><i class="dd-arrow"></i></button><button class="btn light" id="phRegionBtn" type="button">Обрати область</button></div></div>
+        <div class="up-f"><span>Місто або область *</span><div class="up-location-pick"><button class="dd-btn" id="phCityBtn" type="button"><span class="dd-label"></span><i class="dd-arrow"></i></button><button class="btn light" id="phRegionBtn" type="button"><span class="dd-label">Обрати область</span></button></div></div>
         <label class="up-inl"><span>Місце зйомки</span><input id="phPlace" type="text" maxlength="150" autocomplete="off" placeholder="вулиця, зупинка"></label>
         <div class="up-f"><span>Дата зйомки</span>
           <div class="up-date">
@@ -7656,6 +7656,10 @@ async function openPhotoForm(p) {
   const list = cities
     .filter(c => c.is_published)
     .sort((a, b) => String(a.name).localeCompare(String(b.name), 'uk'));
+  if (p && p.city_id && !list.some(c => c.id === p.city_id)) {
+    const originalCity = cities.find(c => c.id === p.city_id);
+    if (originalCity) list.push(originalCity);
+  }
   if (!list.length) {
     alert('Поки немає міст');
     return;
@@ -8538,4 +8542,3 @@ loadMaintenanceMode();
 </script>
 </body>
 </html>
-
