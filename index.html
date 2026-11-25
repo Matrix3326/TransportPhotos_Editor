@@ -8352,22 +8352,6 @@ function openPhoto(p) {
 }
 
 function closePhoto(){const state=ppPrev;ppPrev=null;ppCur=null;restorePageState(state)}
-  $('photoPage').classList.add('hidden');
-  const pr = ppPrev;
-  ppPrev = null;
-  ppCur = null;
-  if (pr && pr.pages.length) {
-    pr.pages.forEach(id => $(id).classList.remove('hidden'));
-    history.replaceState(null, '', pr.pages.includes('userProfilePage') ? '#user=' + encodeURIComponent(userProfileCurrent||'') : pr.pages.includes('myView') ? '#my' : pr.pages.includes('galleryView') ? '#gallery' : location.pathname + location.search);
-  } else if (pr && pr.cityId) {
-    currentId = pr.cityId;
-    curEnt = pr.ent;
-    renderCity();
-  } else {
-    history.replaceState(null, '', location.pathname + location.search);
-    $('openGallery').click();
-  }
-}
 
 let photoOpenRequest=0;
 async function openPhotoById(id) {
@@ -8564,3 +8548,4 @@ loadMaintenanceMode();
 </script>
 </body>
 </html>
+
