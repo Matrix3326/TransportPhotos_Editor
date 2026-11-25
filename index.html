@@ -2448,6 +2448,7 @@ html[data-theme="dark"] .ph-info, html[data-theme="dark"] .cv-fav { color: var(-
 .up-f { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
 .up-f > span { font-size: 13px; font-weight: 700; color: #777; }
 .up-f .dd-btn { height: 40px; border-color: #c8c8c8; font-size: 15px; }
+.up-location-pick{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}.up-location-pick .btn{min-height:40px;padding:0 10px;white-space:nowrap}@media(max-width:600px){.up-location-pick{grid-template-columns:1fr}.up-location-pick .btn{width:100%}}
 .up-in { width: 100%; height: 40px; padding: 0 14px; border: 1px solid #c8c8c8; border-radius: 8px; background: #fff; color: #222; font: inherit; font-size: 15px; box-sizing: border-box; outline: none; }
 textarea.up-in { height: auto; padding: 10px 14px; resize: vertical; }
 .up-in:focus { border-color: #808080; }
@@ -3119,7 +3120,7 @@ body.maintenance-active{overflow:hidden}
         <button class="btn light up-clear" id="phClear" type="button">Очистити форму</button>
       </div>
       <div class="up-col">
-        <div class="up-f"><span>Місто/регіон *</span><button class="dd-btn" id="phCityBtn" type="button"><span class="dd-label"></span><i class="dd-arrow"></i></button></div>
+        <div class="up-f"><span>Місто або область *</span><div class="up-location-pick"><button class="dd-btn" id="phCityBtn" type="button"><span class="dd-label"></span><i class="dd-arrow"></i></button><button class="btn light" id="phRegionBtn" type="button">Обрати область</button></div></div>
         <label class="up-inl"><span>Місце зйомки</span><input id="phPlace" type="text" maxlength="150" autocomplete="off" placeholder="вулиця, зупинка"></label>
         <div class="up-f"><span>Дата зйомки</span>
           <div class="up-date">
@@ -5306,7 +5307,7 @@ async function loadVehicleEnterpriseHistory(v){
   });
   $('vpHistory').replaceChildren(...rows);
 }
-async function loadVehicleProfilePhotos(v,sourcePhoto){const {data,error}=await db.from('photos').select('*').eq('status','approved').eq('city_id',v.city_id).order('created_at',{ascending:false}).limit(1000);if(vehPageCurrent!==v)return;const map=new Map((error?[]:data||[]).map(photo=>[photo.id,photo]));if(sourcePhoto&&sourcePhoto.id)map.set(sourcePhoto.id,sourcePhoto);const photos=[...map.values()].filter(photo=>photoIsLinkedToVehicle(photo,v)||sourcePhoto&&photo.id===sourcePhoto.id).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));await enrichPhotos(photos);if(vehPageCurrent!==v)return;$('vpPhotoGrid').replaceChildren(...photos.map(phCard));$('vpPhotoEmpty').classList.toggle('hidden',photos.length>0)}
+async function loadVehicleProfilePhotos(v,sourcePhoto){const {data,error}=await db.from('photos').select('*').eq('status','approved').in('city_id',photoVehicleCityIds(v.city_id,true)).order('created_at',{ascending:false}).limit(1000);if(vehPageCurrent!==v)return;const map=new Map((error?[]:data||[]).map(photo=>[photo.id,photo]));if(sourcePhoto&&sourcePhoto.id)map.set(sourcePhoto.id,sourcePhoto);const photos=[...map.values()].filter(photo=>photoIsLinkedToVehicle(photo,v)||sourcePhoto&&photo.id===sourcePhoto.id).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));await enrichPhotos(photos);if(vehPageCurrent!==v)return;$('vpPhotoGrid').replaceChildren(...photos.map(phCard));$('vpPhotoEmpty').classList.toggle('hidden',photos.length>0)}
 function closeVehicleProfile(){const prev=vehPageReturn;vehPageReturn=null;vehPageCurrent=null;vehPageEditable=false;PAGES.forEach(id=>$(id).classList.add('hidden'));if(!prev)return;currentId=prev.cityId;curEnt=prev.ent;ppCur=prev.photo;renderCity();if(prev.page)$(prev.page).classList.remove('hidden');history.replaceState(null,'',prev.hash||location.pathname+location.search);window.scrollTo({top:0})}
 function cleanVehicleNumber(value){const x=String(value==null?'':value).normalize('NFKC').replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u2800\u00A0]/g,' ').trim();return /[A-Za-z0-9\u00C0-\u024F\u0400-\u04FF]/.test(x)?x:''}
 function normalizeVehicleKey(value){return String(value||'').normalize('NFKC').replace(/\s+/g,'').toLocaleUpperCase()}
@@ -5968,7 +5969,7 @@ async function deletePhotoWithReason(p, afterDelete) {
     if(published){
       try {
         if(isPhotoMod())await logAction('photo_delete',p.city_name,reason);
-        if(p.owner_id&&p.owner_id!==me.uid)await notify(p.owner_id,'Ваше опубліковане фото у місті «'+(p.city_name||'—')+'» видалено. Причина: '+reason+(photoUrl?' [[OPEN_PHOTO_URL:'+encodeURIComponent(photoUrl)+']]':''));
+        if(p.owner_id&&p.owner_id!==me.uid)await notify(p.owner_id,'Ваше опубліковане фото у місці «'+photoLocationLabel(p)+'» видалено. Причина: '+reason+(photoUrl?' [[OPEN_PHOTO_URL:'+encodeURIComponent(photoUrl)+']]':''));
       } catch(e) { console.error(e); }
     }
     if(afterDelete)await afterDelete();
@@ -6914,6 +6915,8 @@ Object.assign(logLabels, { photo_approve: 'прийняв фото', photo_rejec
 
 const phUrl = p => db.storage.from('photos').getPublicUrl(p.path).data.publicUrl;
 const PHOTO_LINKS_PREFIX = '[[tp-vehicles-v1:';
+const PHOTO_REGION_PREFIX = '[[tp-location-region-v1:';
+let phRegionLocation=null;
 function photoVehicleLinks(photo) {
   if (photo && Array.isArray(photo._vehicleLinks)) return photo._vehicleLinks;
   const tags = String(photo && photo.tags || '');
@@ -6928,20 +6931,24 @@ function photoVehicleLinks(photo) {
   if (!photo || !(photo.fleet_no || photo.plate_no || photo.model)) return [];
   return [{ id: null, city_id: photo.city_id || null, enterprise_id: photo.enterprise_id || null, fleet_no: photo.fleet_no || '', extra_no: '', plate_no: photo.plate_no || '', model: photo.model || '', vehicle_type: photo.transport || null }];
 }
+function photoRegionLocation(photo){const tags=String(photo&&photo.tags||'');const marker=tags.split('\n').find(line=>line.startsWith(PHOTO_REGION_PREFIX)&&line.endsWith(']]'));if(!marker)return null;try{const value=JSON.parse(decodeURIComponent(marker.slice(PHOTO_REGION_PREFIX.length,-2)));return value&&value.region?value:null}catch(error){return null}}
+function photoLocationLabel(photo){const area=photoRegionLocation(photo);return area?[area.region,area.country].filter(Boolean).join(' | '):String(photo&&photo.city_name||'—')}
+function photoRegionMarker(area){return area&&area.region?PHOTO_REGION_PREFIX+encodeURIComponent(JSON.stringify({region:area.region,country:area.country||''})) + ']]':''}
 function photoUserTags(value) {
-  return String(value || '').split('\n').filter(line => !(line.startsWith(PHOTO_LINKS_PREFIX) && line.endsWith(']]'))).join('\n').trim();
+  return String(value || '').split('\n').filter(line => !((line.startsWith(PHOTO_LINKS_PREFIX)||line.startsWith(PHOTO_REGION_PREFIX)) && line.endsWith(']]'))).join('\n').trim();
 }
-function photoTagsWithVehicleLinks(value, links) {
+function photoTagsWithVehicleLinks(value, links, area) {
   const tags = photoUserTags(value);
   const metadata = links.length ? PHOTO_LINKS_PREFIX + encodeURIComponent(JSON.stringify(links.map(link => ({ id: link.id || null, city_id: link.city_id || null, city_name: link.city_name || '', enterprise_id: link.enterprise_id || null, ent_name: link.ent_name || '', fleet_no: link.fleet_no || '', extra_no: link.extra_no || '', plate_no: link.plate_no || '', model: link.model || '', vehicle_type: link.vehicle_type || null })))) + ']]' : '';
-  return [tags, metadata].filter(Boolean).join('\n') || null;
+  return [tags, metadata, photoRegionMarker(area)].filter(Boolean).join('\n') || null;
 }
+function photoVehicleCityMatches(photo,cityId){const area=photoRegionLocation(photo),city=cities.find(item=>item.id===cityId);if(!area)return false;return !!(city&&city.region===area.region&&String(city.country||'').toLowerCase()===String(area.country||'').toLowerCase())}
 function photoIsLinkedToVehicle(photo, vehicle) {
   return photoVehicleLinks(photo).some(link => {
     if (link.id && vehicle.id) return link.id === vehicle.id;
     const plate=normalizeVehicleKey(link.plate_no),fleet=normalizeVehicleKey(link.fleet_no||link.extra_no),vehiclePlate=normalizeVehicleKey(vehicle.plate_no),vehicleFleet=normalizeVehicleKey(vehicle.fleet_no||vehicle.extra_no);
     const sameNumber=plate&&vehiclePlate?plate===vehiclePlate:(!plate&&fleet&&vehicleFleet?fleet===vehicleFleet:false);
-    return sameNumber&&(!link.model||!vehicle.model||normalizeVehicleModel(link.model)===normalizeVehicleModel(vehicle.model))&&(!link.city_id||link.city_id===vehicle.city_id);
+    return sameNumber&&(!link.model||!vehicle.model||normalizeVehicleModel(link.model)===normalizeVehicleModel(vehicle.model))&&(!link.city_id||link.city_id===vehicle.city_id||photoVehicleCityMatches(photo,vehicle.city_id));
   });
 }
 
@@ -6954,7 +6961,7 @@ function phTime(s) {
 function phCard(p) {
   const card=document.createElement('div');card.className='ph-card';const pic=document.createElement('div');pic.className='ph-pic';const img=document.createElement('img');img.loading='lazy';img.src=phUrl(p);img.alt=p.caption||'';pic.appendChild(img);
   if(p.owner_id===me.uid){const bd=document.createElement('span'),status=String(p.status||'pending').toLowerCase();bd.className='ph-badge'+(status==='approved'?' is-approved':status==='rejected'?' is-rejected':'');if(status==='approved')bd.textContent='Опубліковано';else if(status==='rejected')bd.textContent='Відхилено';else bd.append(makeUiIcon('hourglass',true),document.createTextNode(' На модерації'));pic.appendChild(bd)}else if(p.status!=='approved'){const bd=document.createElement('span');bd.className='ph-badge';bd.append(makeUiIcon('hourglass',true),document.createTextNode(' На модерації'));pic.appendChild(bd)}else{const left=20*3600000-(Date.now()-phTime(p.created_at));if(left>0){const nw=document.createElement('span');nw.className='ph-new';nw.textContent='НОВЕ';pic.appendChild(nw);setTimeout(()=>nw.remove(),left)}}
-  const info=document.createElement('div');info.className='ph-info';const loc=document.createElement('div');loc.className='ph-loc';const pin=makeUiIcon('map-pin',true);const lt=document.createElement('span');const photoCity=cities.find(c=>c.id===p.city_id);lt.append(photoCity?cityLink(photoCity):document.createTextNode(p.city_name||'—'));loc.append(pin,lt);
+  const info=document.createElement('div');info.className='ph-info';const loc=document.createElement('div');loc.className='ph-loc';const pin=makeUiIcon('map-pin',true);const lt=document.createElement('span');const photoCity=cities.find(c=>c.id===p.city_id),area=photoRegionLocation(p);if(area){lt.textContent=area.region; if(area.country)lt.append(' | ',countryLink(area.country))}else lt.append(photoCity?cityLink(photoCity):document.createTextNode(p.city_name||'—'));loc.append(pin,lt);
   const row=document.createElement('div');row.className='ph-row';const linked=photoVehicleLinks(p);linked.forEach(link=>{const idLabel=cleanVehicleNumber(link.fleet_no)||cleanVehicleNumber(link.plate_no)||cleanVehicleNumber(link.extra_no);if(link.model){const m=document.createElement('span');m.className='ph-model';m.textContent=link.model;row.appendChild(m)}if(idLabel){const bx=document.createElement('button');bx.type='button';bx.className='ph-box ph-vehicle-link';bx.textContent=idLabel;const color=p._vehicleColors&&p._vehicleColors[link.id]||statColor(VEH_STATUSES,link.status);if(color)bx.style.color=color;bx.title='Відкрити профіль транспортного засобу';bx.addEventListener('click',e=>{e.stopPropagation();openVehicleProfileFromPhoto(p,link)});row.appendChild(bx)}if(link.plate_no&&link.fleet_no&&normalizeVehicleKey(link.plate_no)!==normalizeVehicleKey(idLabel)){const bx=document.createElement('button');bx.type='button';bx.className='ph-box ph-plate ph-vehicle-link';bx.textContent=link.plate_no;const color=p._vehicleColors&&p._vehicleColors[link.id]||statColor(VEH_STATUSES,link.status);if(color)bx.style.color=color;bx.title='Відкрити профіль транспортного засобу';bx.addEventListener('click',e=>{e.stopPropagation();openVehicleProfileFromPhoto(p,link)});row.appendChild(bx)}});if(!linked.length&&p.category){const mu=document.createElement('span');mu.className='ph-muted';mu.textContent=p.category.toLowerCase();row.appendChild(mu)}
   if(p.note){const note=document.createElement('span');note.className='ph-note-indicator';note.title='Є опис до фото';note.appendChild(makeUiIcon('file-description'));pic.appendChild(note)}info.append(loc,row);if(p.own===false){const author=document.createElement('div');author.className='ph-author ph-author-credit';const authorLabel=document.createElement('span');authorLabel.textContent='Автор:';const publisherLabel=document.createElement('span');publisherLabel.textContent='Опублікував:';author.append(makeUiIcon('user',true),authorLabel,document.createTextNode(' '+(p.owner_name||'—')+' · '),publisherLabel,peopleProfileLink(p.owner_id,p._uploaderName||owners[p.owner_id]||(p.owner_id===me.uid?me.name:'—')));info.appendChild(author)}else if(p.owner_name){const author=document.createElement('div');author.className='ph-author';author.append(makeUiIcon('user',true),peopleProfileLink(p.owner_id,p.owner_name));info.appendChild(author)}card.append(pic,info);card.addEventListener('click',()=>openPhoto(p));return card;
 }
@@ -6976,7 +6983,7 @@ async function enrichPhotos(list) {
     const rows=photoVehicleLinks(photo),colors={};
     rows.forEach(link=>{
       const fleet=normalizeVehicleKey(cleanVehicleNumber(link.fleet_no)),plate=normalizeVehicleKey(cleanVehicleNumber(link.plate_no));
-      const vehicle=data.find(item=>link.id&&item.id===link.id)||data.find(item=>item.city_id===link.city_id&&item.enterprise_id===link.enterprise_id&&((plate&&normalizeVehicleKey(item.plate_no)===plate)||(!plate&&fleet&&normalizeVehicleKey(item.fleet_no)===fleet))&&(!link.model||normalizeVehicleModel(item.model)===normalizeVehicleModel(link.model)));
+      const vehicle=data.find(item=>link.id&&item.id===link.id)||data.find(item=>item.city_id===link.city_id&&item.enterprise_id===link.enterprise_id&&((plate&&normalizeVehicleKey(item.plate_no)===plate)||(!plate&&fleet&&normalizeVehicleKey(item.fleet_no)===fleet))&&(!link.model||normalizeVehicleModel(item.model)===normalizeVehicleModel(link.model)))||data.find(item=>{const area=photoRegionLocation(photo),city=cities.find(value=>value.id===item.city_id);return !!(area&&city&&city.region===area.region&&String(city.country||'').toLowerCase()===String(area.country||'').toLowerCase()&&item.enterprise_id===link.enterprise_id&&((plate&&normalizeVehicleKey(item.plate_no)===plate)||(!plate&&fleet&&normalizeVehicleKey(item.fleet_no)===fleet))&&(!link.model||normalizeVehicleModel(item.model)===normalizeVehicleModel(link.model)))});
       if(vehicle){Object.assign(link,vehicle);if(link.id)colors[link.id]=statColor(VEH_STATUSES,vehicle.status)}
     });
     photo._vehicleLinks=rows;photo._vehicleColors=colors;photo._vc=rows[0]&&rows[0].id?colors[rows[0].id]:'var(--text)';
@@ -7007,9 +7014,11 @@ async function loadPhotos() {
     renderPhotos();
     return;
   }
-  const { data, error } = await db.from('photos').select('*').eq('city_id', id).order('created_at', { ascending: false }).limit(200);
+  const city=cities.find(item=>item.id===id),regionMarker=city&&city.region?photoRegionMarker({region:city.region,country:city.country||''}):'';
+  const [cityResult,regionResult]=await Promise.all([db.from('photos').select('*').eq('city_id',id).order('created_at',{ascending:false}).limit(200),regionMarker?db.from('photos').select('*').like('tags','%'+regionMarker+'%').order('created_at',{ascending:false}).limit(200):Promise.resolve({data:[]})]);
   if (id !== currentId) return;
-  photos = error ? [] : data || [];
+  const combined=new Map([...(cityResult.data||[]),...(regionResult.data||[])].map(photo=>[photo.id,photo]));
+  photos = cityResult.error ? [] : [...combined.values()].filter(photo=>{const area=photoRegionLocation(photo);return !area||!city||area.region===city.region&&String(area.country||'').toLowerCase()===String(city.country||'').toLowerCase()});
   await enrichPhotos(photos);
   if (id !== currentId) return;
   drawCityPhoto(id, photos);
@@ -7033,7 +7042,7 @@ function openPhotoOld(p) {
   const t = ENT_TYPES.find(x => x.key === p.transport);
   $('pvImg').src = phUrl(p);
   $('pvInfo').replaceChildren(...[
-    ['Місто', p.city_name],
+    ['Місто', photoLocationLabel(p)],
     ['Підприємство', p.enterprise_name],
     ['Вид транспорту', t && t.name],
     ['Категорія', p.category],
@@ -7221,7 +7230,7 @@ async function phFillEnts(selId) {
     phEntId = null;
     return;
   }
-  const cityIds=photoVehicleCityIds(phCityId);
+  const cityIds=photoVehicleCityIds(phCityId,phRegionLocation);
   const r=await db.from('enterprises').select('id, name, transport_types, city_id').in('city_id',cityIds).order('created_at');
   const list=r.data||[];
   if (tok !== phTok) return;
@@ -7328,7 +7337,7 @@ async function phCheckFleet() {
     phSetBad('fleet', false);
     return;
   }
-  const cityIds=photoVehicleCityIds(phCityId);
+  const cityIds=photoVehicleCityIds(phCityId,phRegionLocation);
   const { data, error } = await db.from('vehicles').select('id').in('city_id',cityIds).or('fleet_no.eq.' + postgrestLiteral(q) + ',plate_no.eq.' + postgrestLiteral(q) + ',extra_no.eq.' + postgrestLiteral(q)).limit(1);
   if (error || $('phFleet').value.trim() !== raw) return;
   phSetBad('fleet', !(data && data[0]), raw);
@@ -7341,8 +7350,8 @@ async function phCheckRoute() {
     phSetBad('route', false);
     return;
   }
-  const city = phCityId;
-  const { data, error } = await db.from('routes').select('id, line').eq('city_id', city).ilike('line', escapeLikePattern(q)).limit(20);
+  const city = phCityId,cityIds=photoVehicleCityIds(city,phRegionLocation);
+  const { data, error } = await db.from('routes').select('id, line').in('city_id',cityIds).ilike('line', escapeLikePattern(q)).limit(100);
   if (error || city !== phCityId || phRouteSel || $('phRoute').value.trim() !== raw) return;
   const ok = (data || []).some(r => String(r.line).toLowerCase() === raw.toLowerCase());
   phSetBad('route', !ok, raw);
@@ -7359,7 +7368,7 @@ async function phEnrichVeh(rows) {
   return rows.map(v=>({...v,ent_name:entMap.get(v.enterprise_id)||'',city_name:cityMap.get(v.city_id)||''}));
 }
 
-function photoVehicleCityIds(cityId){const place=cities.find(item=>item.id===cityId);if(!place||!place.region)return[cityId];const matches=cities.filter(item=>item.region===place.region&&String(item.country||'').toLocaleLowerCase()===String(place.country||'').toLocaleLowerCase()).map(item=>item.id);return matches.length?matches:[cityId]}
+function photoVehicleCityIds(cityId,areaScope=false){const place=cities.find(item=>item.id===cityId);if(!place)return[];const area=areaScope&&typeof areaScope==='object'?areaScope:areaScope?{region:place.region,country:place.country}:null;if(!area||!area.region)return[cityId];const matches=cities.filter(item=>item.region===area.region&&String(item.country||'').toLocaleLowerCase()===String(area.country||'').toLocaleLowerCase()).map(item=>item.id);return matches.length?matches:[cityId]}
 
 function phPickVeh(v) {
   phSetBad('fleet', false);
@@ -7382,7 +7391,7 @@ async function phSearchVeh() {
     hideSug();
     return;
   }
-  const city = phCityId,cityIds=photoVehicleCityIds(city);
+  const city = phCityId,cityIds=photoVehicleCityIds(city,phRegionLocation);
   const { data, error } = await db.from('vehicles')
     .select('id, city_id, enterprise_id, fleet_no, extra_no, plate_no, model, vehicle_type, status, arrived, written_off')
     .in('city_id',cityIds)
@@ -7423,12 +7432,12 @@ async function phSearchRoute() {
     hideSug();
     return;
   }
-  const city = phCityId;
+  const city = phCityId,cityIds=photoVehicleCityIds(city,phRegionLocation);
   const { data } = await db.from('routes')
-    .select('id, enterprise_id, line, name, status, transport, period')
-    .eq('city_id', city)
+    .select('id, city_id, enterprise_id, line, name, status, transport, period')
+    .in('city_id', cityIds)
     .ilike('line', escapeLikePattern(q) + '%')
-    .limit(8);
+    .limit(30);
   if (city !== phCityId || supClean($('phRoute').value) !== q) return;
   sugShow('phRouteSug', (data || []).map(r => {
     const tp = ENT_TYPES.find(t => t.key === r.transport);
@@ -7611,7 +7620,7 @@ function peopleProfileText(key){return (PEOPLE_PROFILE_TEXT[lang]||PEOPLE_PROFIL
 function showUserProfileError(error){$('userProfileName').textContent=peopleProfileText('notFound');$('userProfileMessage').textContent=error&&error.message||peopleProfileText('notFound');$('userProfileMessage').classList.remove('hidden')}
 function peopleProfileLink(uid,name){const label=String(name||'—').trim(),targetId=uid||null,clickable=!!targetId||label!=='—';const node=document.createElement(clickable?'button':'span');node.textContent=label;if(clickable){node.type='button';node.className='people-profile-link';node.addEventListener('click',async event=>{event.stopPropagation();try{let profileId=targetId;if(!profileId){const result=await db.from('profiles').select('id,username').ilike('username',escapeLikePattern(label)).limit(5);profileId=(result.data||[]).find(profile=>String(profile.username||'').toLocaleLowerCase()===label.toLocaleLowerCase())?.id;if(!profileId){const photoResult=await db.from('photos').select('owner_id,owner_name').eq('status','approved').ilike('owner_name',escapeLikePattern(label)).limit(20);profileId=(photoResult.data||[]).find(photo=>String(photo.owner_name||'').toLocaleLowerCase()===label.toLocaleLowerCase())?.owner_id}if(!profileId){alert(peopleProfileText('notFound'));return}}await openUserProfile(profileId,false,label)}catch(error){if($('userProfilePage').classList.contains('hidden'))alert(error&&error.message||peopleProfileText('notFound'));else showUserProfileError(error)}})}return node}
 function profileStat(label,value){const item=document.createElement('div');item.className='people-profile-stat';const count=document.createElement('b');count.textContent=Number(value||0).toLocaleString(lang==='by'?'be':lang);const caption=document.createElement('span');caption.textContent=label;item.append(count,caption);return item}
-function profilePhotoGeography(photos){const groups=new Map();photos.forEach(photo=>{const city=cities.find(item=>item.id===photo.city_id),country=city&&city.country||'—',name=city&&city.name||photo.city_name||'—',id=photo.city_id||city&&city.id||null;if(!groups.has(country))groups.set(country,new Map());const cityRows=groups.get(country),key=id||name,row=cityRows.get(key)||{id,name,count:0};row.count++;cityRows.set(key,row)});return [...groups].map(([country,cityRows])=>[country,[...cityRows.values()].sort((a,b)=>b.count-a.count)]).sort((a,b)=>b[1].reduce((s,city)=>s+city.count,0)-a[1].reduce((s,city)=>s+city.count,0))}
+function profilePhotoGeography(photos){const groups=new Map();photos.forEach(photo=>{const city=cities.find(item=>item.id===photo.city_id),area=photoRegionLocation(photo),country=area&&area.country||city&&city.country||'—',name=area&&area.region||city&&city.name||photo.city_name||'—',id=area?null:photo.city_id||city&&city.id||null;if(!groups.has(country))groups.set(country,new Map());const cityRows=groups.get(country),key=(id||name)+'|'+(area?'region':'city'),row=cityRows.get(key)||{id,name,count:0};row.count++;cityRows.set(key,row)});return [...groups].map(([country,cityRows])=>[country,[...cityRows.values()].sort((a,b)=>b.count-a.count)]).sort((a,b)=>b[1].reduce((s,city)=>s+city.count,0)-a[1].reduce((s,city)=>s+city.count,0))}
 function drawProfileGeography(photos){const root=$('userProfileGeography'),groups=profilePhotoGeography(photos);root.replaceChildren();$('userProfileGeographyEmpty').classList.toggle('hidden',groups.length>0);groups.forEach(([country,cityRows])=>{const row=document.createElement('div');row.className='people-profile-country';const title=document.createElement('b');title.textContent=country+' ('+cityRows.reduce((s,city)=>s+city.count,0)+')';title.classList.add('entity-link');title.addEventListener('click',()=>openCountryProfile(country));const detail=document.createElement('div');detail.className='people-profile-city-links';cityRows.forEach(city=>{const item=document.createElement(city.id?'button':'span');item.textContent=city.name+' ('+city.count+')';if(city.id){item.type='button';item.className='people-profile-city-link';item.addEventListener('click',()=>showCity(city.id))}detail.appendChild(item)});row.append(title,detail);root.appendChild(row)})}
 function drawProfileComments(comments,photoMap){const root=$('userProfileComments');root.replaceChildren();$('userProfileCommentsEmpty').classList.toggle('hidden',comments.length>0);comments.forEach(comment=>{const row=document.createElement('article');row.className='people-profile-comment';const body=document.createElement('p');body.textContent=comment.body||'';const small=document.createElement('small');small.textContent=new Date(comment.created_at).toLocaleString(lang==='uk'?'uk-UA':lang==='ru'?'ru-RU':lang==='by'?'be-BY':'en-US');const photo=photoMap.get(comment.photo_id);row.append(body,small);if(photo){const link=document.createElement('button');link.type='button';link.textContent=(photo.city_name||'')+(photo.model?' · '+photo.model:'');link.addEventListener('click',()=>openPhoto(photo));row.append(document.createElement('br'),link)}root.appendChild(row)})}
 async function loadProfileVotes(ids){const batches=[];for(let i=0;i<ids.length;i+=80)batches.push(ids.slice(i,i+80));const results=await Promise.all(batches.map(batch=>db.from('photo_votes').select('photo_id,value').in('photo_id',batch).limit(10000)));return results.flatMap(result=>result.error?[]:result.data||[])}
@@ -7659,8 +7668,10 @@ async function openPhotoForm(p) {
   const pref = p ? p.enterprise_id : (start && curEnt && curEnt.city_id === start.id ? curEnt.id : null);
   phEditId = p ? p.id : null;
   upReset();
+  phRegionLocation=p?photoRegionLocation(p):null;
   phCityId = start ? start.id : null;
-  phSetBtn('phCityBtn', start ? phCityList.find(x => x.key === start.id).name : 'Оберіть місто');
+  phSetBtn('phCityBtn', phRegionLocation?[phRegionLocation.region,phRegionLocation.country].filter(Boolean).join(' | '):(start ? phCityList.find(x => x.key === start.id).name : 'Оберіть місто'));
+  phSetBtn('phRegionBtn',phRegionLocation?'Область обрана':'Обрати область');
   phTypeKey = p ? p.transport : null;
   phCatName = p && p.category ? p.category : PH_CATS[0];
   phSetBtn('phCatBtn', phCatName);
@@ -7721,6 +7732,8 @@ async function openMyPhotos() {
 }
 
 function pickCity(c) {
+  phRegionLocation=null;
+  phSetBtn('phRegionBtn','Обрати область');
   phCityId = c.id;
   const it = phCityList.find(x => x.key === c.id);
   phSetBtn('phCityBtn', it ? it.name : c.name);
@@ -7831,6 +7844,9 @@ function openCityTree() {
 }
 
 $('phCityBtn').addEventListener('click', openCityTree);
+function openRegionPicker(){const seen=new Map();cities.filter(city=>city.is_published&&city.region).forEach(city=>{const key=JSON.stringify([city.region,city.country||'']);if(!seen.has(key))seen.set(key,{key,name:[city.region,city.country].filter(Boolean).join(' | '),region:city.region,country:city.country||'',city_id:city.id})});const regions=[...seen.values()].sort((a,b)=>a.name.localeCompare(b.name,lang));if(!regions.length){alert(tr('Областей для вибору немає'));return}openList('Оберіть область',regions,phRegionLocation?JSON.stringify([phRegionLocation.region,phRegionLocation.country]):null,item=>pickPhotoRegion(item),'photoUp')}
+function pickPhotoRegion(item){phRegionLocation={region:item.region,country:item.country};phCityId=item.city_id;phSetBtn('phCityBtn',[item.region,item.country].filter(Boolean).join(' | '));phSetBtn('phRegionBtn','Область обрана');phTypeKey=null;phVehSel=[];phRouteSel=null;phShowVeh();phSetBad('fleet',false);phSetBad('route',false);phFillEnts(null).then(()=>{phCheckFleet();phCheckRoute()});closeModal()}
+$('phRegionBtn').addEventListener('click',openRegionPicker);
 $('phOwn').addEventListener('change',syncPhotoAuthorField);
 
 $('phCatBtn').addEventListener('click', () => openList('Категорія', PH_CATS.map(c => ({ key: c, name: c })), phCatName, it => {
@@ -7900,7 +7916,7 @@ $('photoUp').addEventListener('submit', async ev => {
     const q = supClean(typedFleet);
     const { data: vm } = await db.from('vehicles')
       .select('id, city_id, enterprise_id, fleet_no, extra_no, plate_no, model, vehicle_type, status, arrived, written_off')
-      .in('city_id',photoVehicleCityIds(city.id))
+      .in('city_id',photoVehicleCityIds(city.id,phRegionLocation))
       .or('fleet_no.eq.' + postgrestLiteral(q) + ',plate_no.eq.' + postgrestLiteral(q) + ',extra_no.eq.' + postgrestLiteral(q))
       .limit(20);
     if (vm && vm.length) {
@@ -7916,8 +7932,8 @@ $('photoUp').addEventListener('submit', async ev => {
   const typedRoute = $('phRoute').value.trim();
   if (!phRouteSel && typedRoute) {
     const { data: rm } = await db.from('routes')
-      .select('id, enterprise_id, line, name, status, transport, period')
-      .eq('city_id', city.id)
+      .select('id, city_id, enterprise_id, line, name, status, transport, period')
+      .in('city_id',photoVehicleCityIds(city.id,phRegionLocation))
       .ilike('line', escapeLikePattern(supClean(typedRoute)))
       .limit(20);
     const same = (rm || []).filter(r => String(r.line).toLowerCase() === typedRoute.toLowerCase());
@@ -7956,7 +7972,7 @@ $('photoUp').addEventListener('submit', async ev => {
     route_note: tv('phRouteNote'),
     note: tv('phNote'),
     owner_name: $('phOwn').checked ? (me.name||'') : $('phAuthorName').value.trim(),
-    tags: photoTagsWithVehicleLinks(tv('phTags'),selectedVehicles),
+    tags: photoTagsWithVehicleLinks(tv('phTags'),selectedVehicles,phRegionLocation),
     shot_date: phKind === 'unknown' ? null : [dd, mm, yy].filter(Boolean).join('.') || null,
     date_kind: phKind,
     own: $('phOwn').checked
@@ -8025,8 +8041,9 @@ function rejectPhoto(p) {
       return '';
     }
     await db.storage.from('photos').remove([p.path]);
-    await logAction('photo_reject', p.city_name, reason);
-    await notify(p.owner_id, 'Ваше фото (' + (p.enterprise_name || '') + ') у місті «' + (p.city_name || '') + '» відхилено. Причина: ' + reason);
+    const locationLabel=photoLocationLabel(p);
+    await logAction('photo_reject', locationLabel, reason);
+    await notify(p.owner_id, 'Ваше фото (' + (p.enterprise_name || '') + ') у місці «' + locationLabel + '» відхилено. Причина: ' + reason);
     await loadPhotoReqs();
     await loadPhotos();
     return '';
@@ -8048,7 +8065,7 @@ async function loadPhotoReqs() {
     info.className = 'acc-info';
     const l1 = document.createElement('p');
     const b = document.createElement('b');
-    b.textContent = (p.city_name || '—') + ' · ' + (p.enterprise_name || '—');
+    b.textContent = photoLocationLabel(p) + ' · ' + (p.enterprise_name || '—');
     l1.appendChild(b);
     const l2 = document.createElement('p');
     l2.textContent = [t && t.name, p.category].filter(Boolean).join(' · ');
@@ -8232,8 +8249,8 @@ function openPhoto(p) {
   const dt = document.createElement('span');
   dt.textContent = ppDate(p);
   const lc = document.createElement('span');
-  const cityLabel=city?cityLink(city):document.createTextNode(p.city_name||'—');
-  lc.append(makeUiIcon('map-pin',true), ' ', cityLabel);
+  const area=photoRegionLocation(p),cityLabel=city?cityLink(city):document.createTextNode(p.city_name||'—');
+  if(area){lc.append(makeUiIcon('map-pin',true),' ',document.createTextNode(area.region));if(area.country)lc.append(' | ',countryLink(area.country))}else lc.append(makeUiIcon('map-pin',true), ' ', cityLabel);
   $('ppMeta').replaceChildren(au, dt, lc);
 
   const left = document.createElement('div');
@@ -8241,7 +8258,7 @@ function openPhoto(p) {
   const where = document.createElement('div');
   const cb = document.createElement('b');
   cb.textContent = p.city_name || (city && city.name) || '—';
-  where.append(city?cityLink(city):cb,...[city&&city.region].filter(Boolean).map(x=>' | '+x));if(city&&city.country)where.append(' | ',countryLink(city.country));
+  if(area){where.append(document.createTextNode(area.region));if(area.country)where.append(' | ',countryLink(area.country))}else where.append(city?cityLink(city):cb,...[city&&city.region].filter(Boolean).map(x=>' | '+x));if(!area&&city&&city.country)where.append(' | ',countryLink(city.country));
   left.appendChild(where);
   if (p.enterprise_name) {
     const en = document.createElement('div');
