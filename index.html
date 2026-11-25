@@ -3907,7 +3907,7 @@ db.auth.onAuthStateChange((event, session) => {
   setTimeout(() => {
     render(session);
     loadCities().then(() => {
-      if (!routed && (session || !location.hash || location.hash.startsWith('#user='))) { routed = true; route(); }
+      if (!routed) { routed = true; route(); }
     });
   }, 0);
 });
@@ -6923,7 +6923,7 @@ function photoUserTags(value) {
 }
 function photoTagsWithVehicleLinks(value, links) {
   const tags = photoUserTags(value);
-  const metadata = links.length > 1 ? PHOTO_LINKS_PREFIX + encodeURIComponent(JSON.stringify(links.map(link => ({ id: link.id || null, city_id: link.city_id || null, city_name: link.city_name || '', enterprise_id: link.enterprise_id || null, ent_name: link.ent_name || '', fleet_no: link.fleet_no || '', extra_no: link.extra_no || '', plate_no: link.plate_no || '', model: link.model || '', vehicle_type: link.vehicle_type || null })))) + ']]' : '';
+  const metadata = links.length ? PHOTO_LINKS_PREFIX + encodeURIComponent(JSON.stringify(links.map(link => ({ id: link.id || null, city_id: link.city_id || null, city_name: link.city_name || '', enterprise_id: link.enterprise_id || null, ent_name: link.ent_name || '', fleet_no: link.fleet_no || '', extra_no: link.extra_no || '', plate_no: link.plate_no || '', model: link.model || '', vehicle_type: link.vehicle_type || null })))) + ']]' : '';
   return [tags, metadata].filter(Boolean).join('\n') || null;
 }
 function photoIsLinkedToVehicle(photo, vehicle) {
@@ -7211,13 +7211,9 @@ async function phFillEnts(selId) {
     phEntId = null;
     return;
   }
-  let list;
-  if (phCityId === currentId) {
-    list = enterprises;
-  } else {
-    const r = await db.from('enterprises').select('id, name, transport_types').eq('city_id', phCityId).order('created_at');
-    list = r.data || [];
-  }
+  const cityIds=photoVehicleCityIds(phCityId);
+  const r=await db.from('enterprises').select('id, name, transport_types, city_id').in('city_id',cityIds).order('created_at');
+  const list=r.data||[];
   if (tok !== phTok) return;
   phEnts = list;
   phEntId = list.some(e => e.id === selId) ? selId : null;
@@ -7322,7 +7318,8 @@ async function phCheckFleet() {
     phSetBad('fleet', false);
     return;
   }
-  const { data, error } = await db.from('vehicles').select('id').or('fleet_no.eq.' + postgrestLiteral(q) + ',plate_no.eq.' + postgrestLiteral(q) + ',extra_no.eq.' + postgrestLiteral(q)).limit(1);
+  const cityIds=photoVehicleCityIds(phCityId);
+  const { data, error } = await db.from('vehicles').select('id').in('city_id',cityIds).or('fleet_no.eq.' + postgrestLiteral(q) + ',plate_no.eq.' + postgrestLiteral(q) + ',extra_no.eq.' + postgrestLiteral(q)).limit(1);
   if (error || $('phFleet').value.trim() !== raw) return;
   phSetBad('fleet', !(data && data[0]), raw);
 }
@@ -7352,6 +7349,8 @@ async function phEnrichVeh(rows) {
   return rows.map(v=>({...v,ent_name:entMap.get(v.enterprise_id)||'',city_name:cityMap.get(v.city_id)||''}));
 }
 
+function photoVehicleCityIds(cityId){const place=cities.find(item=>item.id===cityId);if(!place||!place.region)return[cityId];const matches=cities.filter(item=>item.region===place.region&&String(item.country||'').toLocaleLowerCase()===String(place.country||'').toLocaleLowerCase()).map(item=>item.id);return matches.length?matches:[cityId]}
+
 function phPickVeh(v) {
   phSetBad('fleet', false);
   const pe = phEnts.find(e => e.id === v.enterprise_id);
@@ -7373,10 +7372,10 @@ async function phSearchVeh() {
     hideSug();
     return;
   }
-  const city = phCityId;
+  const city = phCityId,cityIds=photoVehicleCityIds(city);
   const { data, error } = await db.from('vehicles')
     .select('id, city_id, enterprise_id, fleet_no, extra_no, plate_no, model, vehicle_type, status, arrived, written_off')
-    .eq('city_id',city)
+    .in('city_id',cityIds)
     .or(['fleet_no','plate_no','extra_no'].map(column=>column+'.ilike.'+postgrestLiteral(q,true)).join(','))
     .limit(20);
   if(error){hideSug();return}
@@ -7558,11 +7557,13 @@ function route(fromPop) {
   else if (h.startsWith('#changes=')) openRecentVehicleChanges(decodeURIComponent(h.slice(9)),true);
   else if (h === '#following') openFollowingPage(true);
   else if (h.startsWith('#country=')) openCountryProfile(decodeURIComponent(h.slice(9)),true);
-  else if (h.startsWith('#photo=')) openPhotoById(h.slice(7));
+  else if (h.startsWith('#photo=')) { try { openPhotoById(decodeURIComponent(h.slice(7))); } catch (error) { openPhotoById(h.slice(7)); } }
   else if (h.startsWith('#user=')) openUserProfile(decodeURIComponent(h.slice(6)), true);
   else if (fromPop) PAGES.forEach(id => $(id).classList.add('hidden'));
 }
-window.addEventListener('popstate', () => route(true));
+let lastHandledHash=location.hash;
+window.addEventListener('popstate',()=>{lastHandledHash=location.hash;route(true)});
+window.addEventListener('hashchange',()=>{if(location.hash===lastHandledHash)return;lastHandledHash=location.hash;route(true)});
 wireVehicleSearch('globalVehicleSearch','globalVehicleSearchResults');wireVehicleSearch('cityVehicleSearch','cityVehicleSearchResults',true);
 $('globalVehicleSearchToggle').addEventListener('click',()=>{$('globalVehicleSearch').classList.toggle('hidden');if(!$('globalVehicleSearch').classList.contains('hidden'))$('globalVehicleSearch').focus()});
 $('openFollowing').addEventListener('click',()=>openFollowingPage());$('openPublicationJournal').addEventListener('click',()=>openPublicationJournal());
@@ -7876,7 +7877,7 @@ $('photoUp').addEventListener('submit', async ev => {
     const q = supClean(typedFleet);
     const { data: vm } = await db.from('vehicles')
       .select('id, city_id, enterprise_id, fleet_no, extra_no, plate_no, model, vehicle_type, status, arrived, written_off')
-      .eq('city_id',city.id)
+      .in('city_id',photoVehicleCityIds(city.id))
       .or('fleet_no.eq.' + postgrestLiteral(q) + ',plate_no.eq.' + postgrestLiteral(q) + ',extra_no.eq.' + postgrestLiteral(q))
       .limit(20);
     if (vm && vm.length) {
@@ -8305,9 +8306,21 @@ function closePhoto() {
   }
 }
 
+let photoOpenRequest=0;
 async function openPhotoById(id) {
-  const { data } = await db.from('photos').select('*').eq('id', id).maybeSingle();
-  if (data) openPhoto(data);
+  const request=++photoOpenRequest;
+  try {
+    const {data,error}=await db.from('photos').select('*').eq('id',id).maybeSingle();
+    if(request!==photoOpenRequest||location.hash!=='#photo='+id)return;
+    if(error)throw error;
+    if(!data){await openGallery();alert(tr('Фото не знайдено або воно ще не опубліковане'));return}
+    await enrichPhotos([data]).catch(()=>{});
+    if(request===photoOpenRequest&&location.hash==='#photo='+id)openPhoto(data);
+  } catch(error) {
+    if(request!==photoOpenRequest)return;
+    await openGallery();
+    alert(tr('Не вдалося відкрити фото')+': '+(error&&error.message||''));
+  }
 }
 
 /* --- коментарі --- */
@@ -8488,3 +8501,4 @@ loadMaintenanceMode();
 </script>
 </body>
 </html>
+
