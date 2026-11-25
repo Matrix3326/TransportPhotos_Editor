@@ -39,6 +39,8 @@
     "Автор фотографії *": "Photo author *",
     "Вкажіть автора": "Enter the author",
     "Укажи автора фотографії": "Enter the photo author",
+    "Фото не знайдено або воно ще не опубліковане": "Photo not found or not published yet",
+    "Не вдалося відкрити фото": "Could not open photo",
     "Автор:": "Author:",
     "Опублікував:": "Uploaded by:",
     "Редактори": "Editors",
