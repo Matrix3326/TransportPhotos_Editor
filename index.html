@@ -7011,9 +7011,9 @@ function phTime(s) {
   return new Date(/[zZ]|[+-]\d\d(:?\d\d)?$/.test(v) ? v : v.replace(' ', 'T') + 'Z').getTime();
 }
 
-function photoHasExternalAuthor(photo){return photo&&[false,0,'false','0'].includes(photo.own)}
+function photoHasExternalAuthor(photo){return !!photo&&[false,0,'false','0'].includes(photo.own)}
 function photoUploaderName(photo){return photo&&(photo._uploaderName||owners[photo.owner_id]||(photo.owner_id===me.uid?me.name:''))||'—'}
-function photoAuthorName(photo){if(photoHasExternalAuthor(photo))return photo.owner_name||photo.author_name||'—';if(photo&&photo.owner_id===me.uid&&me.name)return me.name;return photo&&photo.owner_name||photoUploaderName(photo)||'—'}
+function photoAuthorName(photo){if(photoHasExternalAuthor(photo))return photo.owner_name||photo.author_name||'—';return photoUploaderName(photo)!=='—'?photoUploaderName(photo):photo&&photo.owner_name||'—'}
 
 function phCard(p) {
   const card=document.createElement('div');card.className='ph-card';const pic=document.createElement('div');pic.className='ph-pic';const img=document.createElement('img');img.loading='lazy';img.src=phUrl(p);img.alt=p.caption||'';pic.appendChild(img);
@@ -7025,7 +7025,7 @@ function phCard(p) {
 
 async function enrichPhotos(list) {
   const photosWithLinks=list.filter(p=>photoVehicleLinks(p).length);
-  const uploaderIds=[...new Set(list.filter(photo=>photoHasExternalAuthor(photo)||!photo.owner_name).map(photo=>photo.owner_id).filter(id=>id&&id!==me.uid&&!owners[id]))];
+  const uploaderIds=[...new Set(list.map(photo=>photo.owner_id).filter(id=>id&&id!==me.uid&&!owners[id]))];
   if(!photosWithLinks.length&&!uploaderIds.length){list.forEach(photo=>photo._uploaderName=owners[photo.owner_id]||(photo.owner_id===me.uid?me.name:''));return}
   const links=photosWithLinks.flatMap(photo=>photoVehicleLinks(photo)),ids=[...new Set(links.map(link=>link.id).filter(Boolean))];
   const fleets=[...new Set(links.map(link=>String(link.fleet_no||'').trim()).filter(Boolean))],plates=[...new Set(links.map(link=>String(link.plate_no||'').trim()).filter(Boolean))];
@@ -7033,7 +7033,7 @@ async function enrichPhotos(list) {
   if(ids.length)queries.push(db.from('vehicles').select('id,city_id,enterprise_id,fleet_no,extra_no,plate_no,model,vehicle_type,status').in('id',ids));
   if(fleets.length)queries.push(db.from('vehicles').select('id,city_id,enterprise_id,fleet_no,extra_no,plate_no,model,vehicle_type,status').in('fleet_no',fleets));
   if(plates.length)queries.push(db.from('vehicles').select('id,city_id,enterprise_id,fleet_no,extra_no,plate_no,model,vehicle_type,status').in('plate_no',plates));
-  const profileQuery=uploaderIds.length?db.from('profiles').select('id,username').in('id',uploaderIds):Promise.resolve({data:[]});
+  const profileQuery=uploaderIds.length?Promise.all(Array.from({length:Math.ceil(uploaderIds.length/100)},(_,index)=>db.from('profiles').select('id,username').in('id',uploaderIds.slice(index*100,(index+1)*100)))).then(results=>({data:results.flatMap(result=>result.data||[])})):Promise.resolve({data:[]});
   const [results,profileResult]=await Promise.all([Promise.all(queries),profileQuery]),data=results.flatMap(result=>result.data||[]),uploaderNames=new Map((profileResult.data||[]).map(profile=>[profile.id,profile.username]));
   list.forEach(photo=>photo._uploaderName=uploaderNames.get(photo.owner_id)||owners[photo.owner_id]||(photo.owner_id===me.uid?me.name:''));
   photosWithLinks.forEach(photo=>{
@@ -8115,7 +8115,9 @@ function rejectPhoto(p) {
 async function loadPhotoReqs() {
   if (!isPhotoMod()) return;
   const { data, error } = await db.from('photos').select('*').eq('status', 'pending').order('created_at');
-  const rows = (error ? [] : data || []).map(p => {
+  const pendingPhotos=error?[]:data||[];
+  await enrichPhotos(pendingPhotos).catch(()=>{});
+  const rows = pendingPhotos.map(p => {
     const t = ENT_TYPES.find(x => x.key === p.transport);
     const d = document.createElement('div');
     d.className = 'notif-item ph-req';
