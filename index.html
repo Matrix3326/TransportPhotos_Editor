@@ -5291,7 +5291,7 @@ function resetVehDelete() {
 }
 
 function openVehForm(v) {
-  if (!curEnt) return;
+  if (!curEnt && !v) return;
   vehEditingId = v ? v.id : null;
   $('vehTitle').textContent = v ? 'Редагувати ТС' : 'Додати ТС';
   $('vehFleet').value = v ? v.fleet_no : '';
@@ -5425,8 +5425,8 @@ $('vehForm').addEventListener('submit', async ev => {
   setMsg($('vehMsg'), '');
   const e = curEnt;
   const { data: s } = await db.auth.getSession();
-  if (!e || !s.session) {
-    setMsg($('vehMsg'), 'Увійди, щоб додати ТС');
+  if ((!e && !vehEditingId) || !s.session) {
+    setMsg($('vehMsg'), 'Увійди, щоб додати або редагувати ТС');
     return;
   }
   const t = id => $(id).value.trim() || null;
@@ -5467,9 +5467,10 @@ $('vehForm').addEventListener('submit', async ev => {
   }
   const correction=vehicleCorrectionContext&&vehicleCorrectionContext.vehicle_id===vehEditingId?vehicleCorrectionContext:null;
   if(correction){const resolveError=await finishVehicleCorrection(correction,'applied',correction.text);if(resolveError){setMsg($('vehMsg'),'ТС збережено, але заявку не вдалося завершити: '+resolveError);return}vehicleCorrectionContext=null}
+  const activeProfile=vehPageCurrent&&vehPageCurrent.id===vehEditingId?{vehicle:vehPageCurrent,sourcePhoto:vehPageReturn&&vehPageReturn.photo}:null;
   closeModal();
   await loadVehicles();
-  if (vehPageCurrent && vehPageCurrent.id === vehEditingId) { const refreshed = vehicles.find(x => x.id === vehEditingId); if (refreshed) openVehicleProfile(refreshed, vehPageEditable); }
+  if(activeProfile){const refreshed=vehicles.find(x=>x.id===vehEditingId)||{...activeProfile.vehicle,...row};openVehicleProfile(refreshed,vehPageEditable,activeProfile.sourcePhoto)}
 });
 
 $('vehDelete').addEventListener('click', async () => {
