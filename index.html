@@ -7010,18 +7010,22 @@ function phTime(s) {
   return new Date(/[zZ]|[+-]\d\d(:?\d\d)?$/.test(v) ? v : v.replace(' ', 'T') + 'Z').getTime();
 }
 
+function photoHasExternalAuthor(photo){return photo&&[false,0,'false','0'].includes(photo.own)}
+function photoUploaderName(photo){return photo&&(photo._uploaderName||owners[photo.owner_id]||(photo.owner_id===me.uid?me.name:''))||'—'}
+function photoAuthorName(photo){if(photoHasExternalAuthor(photo))return photo.owner_name||photo.author_name||'—';if(photo&&photo.owner_id===me.uid&&me.name)return me.name;return photo&&photo.owner_name||photoUploaderName(photo)||'—'}
+
 function phCard(p) {
   const card=document.createElement('div');card.className='ph-card';const pic=document.createElement('div');pic.className='ph-pic';const img=document.createElement('img');img.loading='lazy';img.src=phUrl(p);img.alt=p.caption||'';pic.appendChild(img);
   if(p.owner_id===me.uid){const bd=document.createElement('span'),status=String(p.status||'pending').toLowerCase();bd.className='ph-badge'+(status==='approved'?' is-approved':status==='rejected'?' is-rejected':'');if(status==='approved')bd.textContent='Опубліковано';else if(status==='rejected')bd.textContent='Відхилено';else bd.append(makeUiIcon('hourglass',true),document.createTextNode(' На модерації'));pic.appendChild(bd)}else if(p.status!=='approved'){const bd=document.createElement('span');bd.className='ph-badge';bd.append(makeUiIcon('hourglass',true),document.createTextNode(' На модерації'));pic.appendChild(bd)}else{const left=20*3600000-(Date.now()-phTime(p.created_at));if(left>0){const nw=document.createElement('span');nw.className='ph-new';nw.textContent='НОВЕ';pic.appendChild(nw);setTimeout(()=>nw.remove(),left)}}
-  const info=document.createElement('div');info.className='ph-info';const loc=document.createElement('div');loc.className='ph-loc';const pin=makeUiIcon('map-pin',true);const lt=document.createElement('span');const photoCity=cities.find(c=>c.id===p.city_id),area=photoRegionLocation(p);if(area){lt.textContent=area.region; if(area.country)lt.append(' | ',countryLink(area.country))}else lt.append(photoCity?cityLink(photoCity):document.createTextNode(p.city_name||'—'));loc.append(pin,lt);
+  const info=document.createElement('div');info.className='ph-info';const loc=document.createElement('div');loc.className='ph-loc';const pin=makeUiIcon('map-pin',true);const lt=document.createElement('span');const photoCity=cities.find(c=>c.id===p.city_id),area=photoRegionLocation(p);if(area){lt.textContent=area.region; if(area.country)lt.append(' | ',countryLink(area.country))}else lt.append(photoCity?cityLink(photoCity):document.createTextNode(p.city_name||'—'));if(p.caption)lt.append(', ',document.createTextNode(p.caption));loc.append(pin,lt);
   const row=document.createElement('div');row.className='ph-row';const linked=photoVehicleLinks(p),primary=linked[0];if(primary){const idLabel=cleanVehicleNumber(primary.plate_no)||cleanVehicleNumber(primary.fleet_no)||cleanVehicleNumber(primary.extra_no);if(primary.model){const model=document.createElement('span');model.className='ph-model';model.textContent=primary.model;row.appendChild(model)}if(idLabel){const badge=document.createElement('button');badge.type='button';badge.className='ph-box ph-vehicle-link';badge.textContent=idLabel;const color=p._vehicleColors&&p._vehicleColors[primary.id]||statColor(VEH_STATUSES,primary.status);if(color)badge.style.color=color;badge.title='Відкрити профіль транспортного засобу';badge.addEventListener('click',event=>{event.stopPropagation();openVehicleProfileFromPhoto(p,primary)});row.appendChild(badge)}if(linked.length>1){const more=document.createElement('button');more.type='button';more.className='ph-box ph-more-vehicles';more.textContent='+'+(linked.length-1);more.title='Ще '+(linked.length-1)+' прив’язок транспорту';more.setAttribute('aria-label',more.title);more.addEventListener('click',event=>{event.stopPropagation();openPhoto(p,[...card.parentElement.querySelectorAll('.ph-card')].map(item=>item._photo).filter(Boolean))});row.appendChild(more)}}if(!linked.length&&p.category){const mu=document.createElement('span');mu.className='ph-muted';mu.textContent=p.category.toLowerCase();row.appendChild(mu)}
-  if(p.note){const note=document.createElement('span');note.className='ph-note-indicator';note.title='Є опис до фото';note.appendChild(makeUiIcon('file-description'));pic.appendChild(note)}info.appendChild(loc);if(p.caption){const place=document.createElement('div');place.className='ph-place';place.textContent=p.caption;info.appendChild(place)}info.appendChild(row);if(p.own===false){const author=document.createElement('div');author.className='ph-author ph-author-credit';const authorLabel=document.createElement('span');authorLabel.textContent='Автор:';const publisherLabel=document.createElement('span');publisherLabel.textContent='Опублікував:';author.append(makeUiIcon('user',true),authorLabel,document.createTextNode(' '+(p.owner_name||'—')+' · '),publisherLabel,peopleProfileLink(p.owner_id,p._uploaderName||owners[p.owner_id]||(p.owner_id===me.uid?me.name:'—')));info.appendChild(author)}else if(p.owner_name){const author=document.createElement('div');author.className='ph-author';author.append(makeUiIcon('user',true),peopleProfileLink(p.owner_id,p.owner_name));info.appendChild(author)}card._photo=p;card.append(pic,info);card.addEventListener('click',()=>openPhoto(p,[...card.parentElement.querySelectorAll('.ph-card')].map(item=>item._photo).filter(Boolean)));return card;
+  if(p.note){const note=document.createElement('span');note.className='ph-note-indicator';note.title='Є опис до фото';note.appendChild(makeUiIcon('file-description'));pic.appendChild(note)}info.appendChild(loc);info.appendChild(row);if(photoHasExternalAuthor(p)){const author=document.createElement('div');author.className='ph-author ph-author-credit';const authorLabel=document.createElement('span');authorLabel.textContent='Автор:';const publisherLabel=document.createElement('span');publisherLabel.textContent='Опублікував:';author.append(makeUiIcon('user',true),authorLabel,document.createTextNode(' '+photoAuthorName(p)+' · '),publisherLabel,peopleProfileLink(p.owner_id,photoUploaderName(p)));info.appendChild(author)}else{const authorName=photoAuthorName(p);if(authorName!=='—'){const author=document.createElement('div');author.className='ph-author';author.append(makeUiIcon('user',true),peopleProfileLink(p.owner_id,authorName));info.appendChild(author)}}card._photo=p;card.append(pic,info);card.addEventListener('click',()=>openPhoto(p,[...card.parentElement.querySelectorAll('.ph-card')].map(item=>item._photo).filter(Boolean)));return card;
 }
 
 async function enrichPhotos(list) {
   const photosWithLinks=list.filter(p=>photoVehicleLinks(p).length);
-  const uploaderIds=[...new Set(list.filter(photo=>photo.own===false&&photo.owner_id).map(photo=>photo.owner_id).filter(id=>id!==me.uid&&!owners[id]))];
-  if(!photosWithLinks.length&&!uploaderIds.length){list.filter(photo=>photo.own===false).forEach(photo=>photo._uploaderName=owners[photo.owner_id]||(photo.owner_id===me.uid?me.name:'—'));return}
+  const uploaderIds=[...new Set(list.filter(photo=>photoHasExternalAuthor(photo)||!photo.owner_name).map(photo=>photo.owner_id).filter(id=>id&&id!==me.uid&&!owners[id]))];
+  if(!photosWithLinks.length&&!uploaderIds.length){list.forEach(photo=>photo._uploaderName=owners[photo.owner_id]||(photo.owner_id===me.uid?me.name:''));return}
   const links=photosWithLinks.flatMap(photo=>photoVehicleLinks(photo)),ids=[...new Set(links.map(link=>link.id).filter(Boolean))];
   const fleets=[...new Set(links.map(link=>String(link.fleet_no||'').trim()).filter(Boolean))],plates=[...new Set(links.map(link=>String(link.plate_no||'').trim()).filter(Boolean))];
   const queries=[];
@@ -7030,7 +7034,7 @@ async function enrichPhotos(list) {
   if(plates.length)queries.push(db.from('vehicles').select('id,city_id,enterprise_id,fleet_no,extra_no,plate_no,model,vehicle_type,status').in('plate_no',plates));
   const profileQuery=uploaderIds.length?db.from('profiles').select('id,username').in('id',uploaderIds):Promise.resolve({data:[]});
   const [results,profileResult]=await Promise.all([Promise.all(queries),profileQuery]),data=results.flatMap(result=>result.data||[]),uploaderNames=new Map((profileResult.data||[]).map(profile=>[profile.id,profile.username]));
-  list.filter(photo=>photo.own===false).forEach(photo=>photo._uploaderName=uploaderNames.get(photo.owner_id)||owners[photo.owner_id]||(photo.owner_id===me.uid?me.name:'—'));
+  list.forEach(photo=>photo._uploaderName=uploaderNames.get(photo.owner_id)||owners[photo.owner_id]||(photo.owner_id===me.uid?me.name:''));
   photosWithLinks.forEach(photo=>{
     const rows=photoVehicleLinks(photo),colors={};
     rows.forEach(link=>{
@@ -7739,8 +7743,8 @@ async function openPhotoForm(p) {
     const d = String(p.shot_date || '').split('.');
     set('phYYYY', d.pop()); set('phMM', d.pop()); set('phDD', d.pop());
     setKind(p.date_kind);
-    $('phOwn').checked = p.own !== false;
-    set('phAuthorName',p.own===false?p.owner_name:'');
+    $('phOwn').checked = !photoHasExternalAuthor(p);
+    set('phAuthorName',photoHasExternalAuthor(p)?p.owner_name:'');
     phVehSel = photoVehicleLinks(p);
     if(!phVehSel.length&&p.fleet_no)phVehSel=[{fleet_no:p.fleet_no,model:p.model||'',plate_no:p.plate_no||'',status:null,enterprise_id:p.enterprise_id,ent_name:p.enterprise_name,city_id:p.city_id}];
     if(phVehSel.length)set('phFleet','');
@@ -8306,7 +8310,7 @@ function openPhoto(p, navigation = []) {
   $('ppPhotoNote').classList.toggle('hidden',!p.note);
 
   const au = document.createElement('span');
-  if(p.own===false){const uploadedBy=p._uploaderName||owners[p.owner_id]||(p.owner_id===me.uid?me.name:'—'),authorLabel=document.createElement('span'),publisherLabel=document.createElement('span');authorLabel.textContent='Автор:';publisherLabel.textContent='Опублікував:';au.append(authorLabel,' '+(p.owner_name||'—')+' · ',publisherLabel,' ',peopleProfileLink(p.owner_id,uploadedBy))}else au.append(makeUiIcon('user',true),' ',peopleProfileLink(p.owner_id,p.owner_name||'—'));
+  if(photoHasExternalAuthor(p)){const authorLabel=document.createElement('span'),publisherLabel=document.createElement('span');authorLabel.textContent='Автор:';publisherLabel.textContent='Опублікував:';au.append(authorLabel,' '+photoAuthorName(p)+' · ',publisherLabel,' ',peopleProfileLink(p.owner_id,photoUploaderName(p)))}else au.append(makeUiIcon('user',true),' ',peopleProfileLink(p.owner_id,photoAuthorName(p)));
   const dt = document.createElement('span');
   dt.textContent = ppDate(p);
   const lc = document.createElement('span');
