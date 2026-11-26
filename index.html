@@ -3066,7 +3066,7 @@ body.maintenance-active{overflow:hidden}
           </div>
         </div>
         <div class="cv-side">
-          <div class="cv-photo" id="viPhoto">Фото міста</div>
+          <div class="cv-photo hidden" id="viPhoto"></div>
         </div>
       </div>
 
@@ -4262,14 +4262,15 @@ function drawCityPhoto(cityId,list) {
   const box=$('viPhoto');
   if(!box)return;
   const candidates=(list||[]).filter(photo=>photo.status==='approved'&&photo.path);
-  if(!candidates.length){box.replaceChildren(document.createTextNode('Фото міста'));return}
+  if(!candidates.length){box.replaceChildren();box.classList.add('hidden');return}
+  box.classList.remove('hidden');
   const photo=candidates[Math.floor(Math.random()*candidates.length)];
   const image=document.createElement('img');
   image.src=db.storage.from('photos').getPublicUrl(photo.path).data.publicUrl;
   const city=cities.find(item=>item.id===cityId);
   image.alt=city&&city.name?'Фото міста '+city.name:'Фото міста';
   image.loading='lazy';
-  image.onerror=()=>{if(box.contains(image))box.replaceChildren(document.createTextNode('Фото міста'))};
+  image.onerror=()=>{if(box.contains(image)){box.replaceChildren();box.classList.add('hidden')}};
   box.replaceChildren(image);
 }
 
