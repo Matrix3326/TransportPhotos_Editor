@@ -7539,15 +7539,21 @@ async function phSearchVeh() {
     .eq(column,q)
     .limit(30)));
   const exactRows=[...new Map(exactResults.flatMap(result=>result.error?[]:result.data||[]).map(vehicle=>[vehicle.id,vehicle])).values()];
-  let data=exactRows;
-  if(!data.length){
-    const result=await db.from('vehicles')
-      .select('id, city_id, enterprise_id, fleet_no, extra_no, plate_no, model, vehicle_type, status, arrived, written_off')
-      .or(columns.map(column=>column+'.ilike.'+postgrestLiteral(q,true)).join(','))
-      .limit(100);
-    if(result.error){hideSug();return}
-    data=result.data||[];
-  }
+  const select='id, city_id, enterprise_id, fleet_no, extra_no, plate_no, model, vehicle_type, status, arrived, written_off';
+  const partialFilter=columns.map(column=>column+'.ilike.'+postgrestLiteral(q,true)).join(',');
+  const [cityResult,otherResult]=await Promise.all([
+    db.from('vehicles').select(select).eq('city_id',city).or(partialFilter).limit(100),
+    db.from('vehicles').select(select).neq('city_id',city).or(partialFilter).limit(100)
+  ]);
+  if(cityResult.error&&otherResult.error&&!exactRows.length){hideSug();return}
+  const data=[...new Map([...exactRows,...(cityResult.data||[]),...(otherResult.data||[])].map(vehicle=>[vehicle.id,vehicle])).values()]
+    .sort((a,b)=>{
+      const aInCity=a.city_id===city,bInCity=b.city_id===city;
+      if(aInCity!==bInCity)return aInCity?-1:1;
+      const numberMatches=vehicle=>[vehicle.fleet_no,vehicle.plate_no,vehicle.extra_no].some(value=>String(value||'').trim().toLocaleLowerCase()===q.toLocaleLowerCase());
+      const aExact=numberMatches(a),bExact=numberMatches(b);
+      return aExact===bExact?0:aExact?-1:1;
+    }).slice(0,100);
   if (city !== phCityId || supClean($('phFleet').value) !== q) return;
   const vehicles=await phEnrichVeh(data);
   if (city !== phCityId || supClean($('phFleet').value) !== q) return;
