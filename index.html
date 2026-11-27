@@ -7533,13 +7533,23 @@ async function phSearchVeh() {
     return;
   }
   const city = phCityId;
-  const { data, error } = await db.from('vehicles')
+  const columns=['fleet_no','plate_no','extra_no'];
+  const exactResults=await Promise.all(columns.map(column=>db.from('vehicles')
     .select('id, city_id, enterprise_id, fleet_no, extra_no, plate_no, model, vehicle_type, status, arrived, written_off')
-    .or(['fleet_no','plate_no','extra_no'].map(column=>column+'.ilike.'+postgrestLiteral(q,true)).join(','))
-    .limit(30);
-  if(error){hideSug();return}
+    .eq(column,q)
+    .limit(30)));
+  const exactRows=[...new Map(exactResults.flatMap(result=>result.error?[]:result.data||[]).map(vehicle=>[vehicle.id,vehicle])).values()];
+  let data=exactRows;
+  if(!data.length){
+    const result=await db.from('vehicles')
+      .select('id, city_id, enterprise_id, fleet_no, extra_no, plate_no, model, vehicle_type, status, arrived, written_off')
+      .or(columns.map(column=>column+'.ilike.'+postgrestLiteral(q,true)).join(','))
+      .limit(100);
+    if(result.error){hideSug();return}
+    data=result.data||[];
+  }
   if (city !== phCityId || supClean($('phFleet').value) !== q) return;
-  const vehicles=await phEnrichVeh(data||[]);
+  const vehicles=await phEnrichVeh(data);
   if (city !== phCityId || supClean($('phFleet').value) !== q) return;
   sugShow('phFleetSug', vehicles.map(v => {
     const ent = phEnts.find(e => e.id === v.enterprise_id);
