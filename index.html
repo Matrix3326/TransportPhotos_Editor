@@ -8748,6 +8748,74 @@ async function loadMaintenanceMode(){
 }
 loadMaintenanceMode();
 
+/* ---- Одноразове стискання всіх фото до 1 МБ (тільки owner) ---- */
+async function shrinkBlob(blob){
+  const LIMIT=1024*1024;
+  const mime=['image/png','image/webp'].includes(blob.type)?blob.type:'image/jpeg';
+  const img=await createImageBitmap(blob,{imageOrientation:'from-image'});
+  const s=Math.min(1920/img.width,1920/img.height,1);
+  let w=Math.round(img.width*s),h=Math.round(img.height*s);
+  while(Math.max(w,h)>=400){
+    const c=document.createElement('canvas');c.width=w;c.height=h;
+    c.getContext('2d').drawImage(img,0,0,w,h);
+    for(const q of mime==='image/png'?[undefined]:[.9,.82,.74,.66]){
+      const b=await new Promise(r=>c.toBlob(r,mime,q));
+      if(b&&b.size<=LIMIT)return {blob:b,mime};
+    }
+    w=Math.floor(w*.85);h=Math.floor(h*.85);
+  }
+  return null;
+}
+async function compressAllPhotos(log){
+  const LIMIT=1024*1024;
+  let from=0,done=0,skipped=0,failed=0,saved=0;
+  for(;;){
+    const {data,error}=await db.from('photos').select('id,path').order('created_at').range(from,from+49);
+    if(error){log('Помилка: '+error.message);return}
+    if(!data.length)break;
+    for(const p of data){
+      try{
+        const url=db.storage.from('photos').getPublicUrl(p.path).data.publicUrl;
+        const res=await fetch(url,{cache:'no-store'});
+        if(!res.ok)throw new Error('HTTP '+res.status);
+        const src=await res.blob();
+        if(src.size<=LIMIT){skipped++;continue}
+        const out=await shrinkBlob(src);
+        if(!out)throw new Error('не вдалося стиснути');
+        const up=await db.storage.from('photos').upload(p.path,out.blob,{upsert:true,contentType:out.mime,cacheControl:'31536000'});
+        if(up.error)throw up.error;
+        done++;saved+=src.size-out.blob.size;
+      }catch(e){failed++;console.error(p.path,e)}
+      log('Стиснуто: '+done+', пропущено: '+skipped+', помилок: '+failed+', зекономлено: '+(saved/1048576).toFixed(1)+' МБ');
+    }
+    if(data.length<50)break;
+    from+=50;
+  }
+  log('Готово. Стиснуто: '+done+', пропущено: '+skipped+', помилок: '+failed+', зекономлено: '+(saved/1048576).toFixed(1)+' МБ');
+}
+(function(){
+  const btn=document.createElement('button');
+  btn.type='button';btn.className='btn dark hidden';btn.textContent='Стиснути всі фото до 1 МБ';
+  const msg=document.createElement('p');msg.id='compressMsg';msg.className='msg';
+  $('staffPhotos').append(btn,msg);
+  btn.addEventListener('click',async()=>{
+    if(me.role!=='owner')return;
+    if(!confirm('Стиснення незворотне. Не закривайте вкладку до кінця. Продовжити?'))return;
+    btn.disabled=true;
+    await compressAllPhotos(t=>{msg.textContent=t});
+    btn.disabled=false;
+  });
+  $('openRequests').addEventListener('click',()=>btn.classList.toggle('hidden',me.role!=='owner'));
+})();
+
+</script>
+</body>
+</html>
+
+</script>
+</body>
+</html>
+
 </script>
 </body>
 </html>
