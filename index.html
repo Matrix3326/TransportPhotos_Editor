@@ -8371,7 +8371,10 @@ function ppDate(p) {
 const PP_ACTION_ICONS={
   share:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8.7 10.7l6.6 -3.4"/><path d="M8.7 13.3l6.6 3.4"/></svg>',
   pencil:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"/><path d="M13.5 6.5l4 4"/></svg>',
-  trash:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>'
+  trash:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>',
+  quality:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c5 0 8.3 4.5 9 7-.2.8-.7 1.8-1.5 2.8"/><path d="M6.2 6.2C3.9 7.6 2.4 9.8 2 12c.4 1.3 1.5 3.2 3.4 4.7A10.2 10.2 0 0 0 12 19c1.3 0 2.4-.2 3.5-.7"/></svg>',
+  inaccuracy:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v4"/><path d="M12 16h.01"/><path d="M10.3 3.9 2.6 17.2A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.8L13.7 3.9a2 2 0 0 0-3.4 0Z"/><circle cx="18" cy="6" r="4"/></svg>',
+  complaint:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.8 19a1.5 1.5 0 0 0 1.3 2.2h15.8a1.5 1.5 0 0 0 1.3-2.2L12 3Z"/><path d="M12 9v5"/><path d="M12 18h.01"/></svg>'
 };
 function ppAct(icon, label, fn, cls) {
   const b = document.createElement('button');
@@ -8395,6 +8398,13 @@ function ppFact(label, value) {
   else b.textContent = value;
   d.append(label + ' ', b);
   return d;
+}
+
+async function submitPhotoReport(photo,type,reason){
+  const {error}=await db.functions.invoke('submit-photo-report',{body:{photo_id:photo.id,type,reason}});
+  if(error){const context=error.context;let detail='';if(context instanceof Response)detail=await context.clone().json().then(value=>value.error||'').catch(()=> '');else if(context&&context.message)detail=context.message;const message=detail||error.message||'';if(/Failed to send a request|Failed to fetch|NetworkError/i.test(message))return tr('Не вдалося з’єднатися з функцією скарг на фото. Перевірте, що Edge Function submit-photo-report розгорнута.');if(message==='No administrators found')return tr('Не знайдено адміністраторів');if(message==='Photo cannot be reported')return tr('Це фото не можна поскаржити');if(message==='Could not send report')return tr('Не вдалося надіслати скаргу');return message}
+  alert(tr('Дякуємо, повідомлення надіслано адміністрації'));
+  return '';
 }
 
 function openPhoto(p, navigation = []) {
@@ -8500,6 +8510,11 @@ function openPhoto(p, navigation = []) {
     }
     setTimeout(() => { s.textContent = 'Поділитись фотографією'; }, 2000);
   }));
+  if(me.uid&&p.status==='approved'&&p.owner_id!==me.uid){
+    side.push(ppAct('quality',tr('Вказати на низьку якість фото'),()=>askReason(tr('Вказати на низьку якість фото'),reason=>submitPhotoReport(p,'low_quality',reason))));
+    side.push(ppAct('inaccuracy',tr('Вказати на неточність'),()=>askReason(tr('Вказати на неточність'),reason=>submitPhotoReport(p,'inaccuracy',reason))));
+    side.push(ppAct('complaint',tr('Скарга на порушення правил'),()=>askReason(tr('Скарга на порушення правил'),reason=>submitPhotoReport(p,'rule_violation',reason))));
+  }
   if (me.uid && (p.owner_id === me.uid || isPhotoMod())) {
     side.push(ppAct('pencil', 'Редагувати', () => openPhotoForm(p)));
     side.push(ppAct('trash', 'Видалити', async (b, s) => {
