@@ -6993,7 +6993,7 @@ document.addEventListener('visibilitychange', () => {
 const PH_CATS = ['Зовнішнє фото', 'Салон', 'Кабіна', 'Обладнання', 'Детальна зйомка', 'Заводська табличка', 'Інфраструктура', 'Неідентифікований транспорт', 'Додаткова спецтехніка'];
 const PH_TYPE_BY_NAME = { 'Tram / LRV': 'tram', 'Trolleybus': 'trolleybus', 'Bus': 'bus', 'Metro / Railway': 'metro', 'Funicular': 'funicular', 'Monorail': 'monorail', '(Other)': 'other' };
 const PH_W = 1920;
-const PH_Q = 0.98;
+const PH_MAX_BYTES = 1024 * 1024;
 let photos = [];
 let phImg = null;
 let phEnts = [];
@@ -7197,9 +7197,47 @@ function phSize() {
   return [phImg.naturalWidth || phImg.width, phImg.naturalHeight || phImg.height];
 }
 
-function phCrop() {
-  const [w,h]=phSize();
-  return [0,0,w,h];
+function phCanvasBlob(canvas, mime, quality) {
+  return new Promise(resolve => canvas.toBlob(resolve, mime, quality));
+}
+
+async function phCompressFile(file) {
+  if (file.size <= PH_MAX_BYTES) {
+    return { blob: file, mime: file.type, extension: file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg' };
+  }
+  const [sourceWidth, sourceHeight] = phSize();
+  const initialScale = Math.min(PH_W / sourceWidth, PH_W / sourceHeight, 1);
+  let width = Math.max(1, Math.round(sourceWidth * initialScale));
+  let height = Math.max(1, Math.round(sourceHeight * initialScale));
+  const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+  const qualities = [0.92, 0.88, 0.84, 0.8, 0.76, 0.72, 0.68];
+  while (Math.max(width, height) >= 320) {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Не вдалося обробити фото');
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    context.drawImage(phImg, 0, 0, width, height);
+    if (mime === 'image/png') {
+      const blob = await phCanvasBlob(canvas, mime);
+      if (!blob) throw new Error('Не вдалося стиснути фото');
+      if (blob.size <= PH_MAX_BYTES) return { blob, mime, extension: 'png' };
+    } else {
+      for (const quality of qualities) {
+        const blob = await phCanvasBlob(canvas, mime, quality);
+        if (!blob) throw new Error('Не вдалося стиснути фото');
+        if (blob.size <= PH_MAX_BYTES) return { blob, mime, extension: 'jpg' };
+      }
+    }
+    const nextWidth = Math.max(1, Math.floor(width * 0.85));
+    const nextHeight = Math.max(1, Math.floor(height * 0.85));
+    if (nextWidth === width && nextHeight === height) break;
+    width = nextWidth;
+    height = nextHeight;
+  }
+  throw new Error('Не вдалося зменшити фото до 1 МБ');
 }
 
 function phDraw() {
@@ -8108,16 +8146,11 @@ $('photoUp').addEventListener('submit', async ev => {
       await openMyPhotos();
     } else {
       setMsg($('phMsg'), 'Стискаю і завантажую...', true);
-      const [sx,sy,sw,sh]=phCrop();
-      const scale=Math.min(PH_W/sw,PH_W/sh,1),ow=Math.max(1,Math.round(sw*scale)),oh=Math.max(1,Math.round(sh*scale));
-      const cv=document.createElement('canvas');cv.width=ow;cv.height=oh;
-      const cx=cv.getContext('2d');cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';cx.drawImage(phImg,sx,sy,sw,sh,0,0,ow,oh);
-      const lossless = cv.width <= 1280;
-      const mime = lossless ? 'image/png' : 'image/jpeg';
-      const blob = await new Promise(r => cv.toBlob(r, mime, PH_Q));
-      if (!blob) throw new Error('Не вдалося стиснути фото');
+      const originalFile = $('phFile').files && $('phFile').files[0];
+      if (!originalFile) throw new Error('Оберіть фото для завантаження');
+      const { blob, mime, extension } = await phCompressFile(originalFile);
       const uid = s.session.user.id;
-      const path = uid + '/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + (lossless ? '.png' : '.jpg');
+      const path = uid + '/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.' + extension;
       const up = await db.storage.from('photos').upload(path, blob, { contentType: mime, cacheControl: '31536000' });
       if (up.error) throw up.error;
       const status = isStaff() ? 'approved' : 'pending';
