@@ -4962,7 +4962,7 @@ const VEH_STATUSES = [
 
 let vehicles = [];
 let curEnt = null;
-let vehEditingId = null;
+let vehEditingId = null, vehEditingSource = null;
 let vehType = 'bus';
 let vehStatus = 'active';
 let vehDelTimer = null;
@@ -5298,6 +5298,7 @@ function resetVehDelete() {
 function openVehForm(v) {
   if (!curEnt && !v) return;
   vehEditingId = v ? v.id : null;
+  vehEditingSource = v || null;
   $('vehTitle').textContent = v ? 'Редагувати ТС' : 'Додати ТС';
   $('vehFleet').value = v ? v.fleet_no : '';
   $('vehExtra').value = v && v.extra_no ? v.extra_no : '';
@@ -5333,7 +5334,7 @@ function openVehicleProfile(v, editable=false, sourcePhoto=null) {
   const tp=ENT_TYPES.find(t=>t.key===v.vehicle_type),st=VEH_STATUSES.find(x=>x.key===v.status);$('vpFacts').replaceChildren();
   [['Виробник',v.manufacturer],['Тип транспорту',tp&&tp.name],['Модель',v.model],['Виготовлено',v.build_year],['Заводський номер',v.factory_no],['VIN-код',v.vin],['Призначення',v.purpose],['Поточний стан',st&&st.name],['Надійшов',v.arrived],['Початок роботи',v.start_date||'—'],['Списаний',v.written_off||'—'],['Примітка',v.note]].filter(x=>x[1]!=null&&String(x[1]).trim()!=='').forEach(([label,value])=>{const d=document.createElement('div');d.className='veh-fact';const sm=document.createElement('small');sm.textContent=label;const b=document.createElement('b');b.textContent=String(value);d.append(sm,b);$('vpFacts').appendChild(d)});
   const loading=document.createElement('tr'),loadingCell=document.createElement('td');loadingCell.colSpan=7;loadingCell.textContent='Завантаження історії підприємств…';loading.appendChild(loadingCell);$('vpHistory').replaceChildren(loading);
-  $('vpPhotoGrid').replaceChildren();$('vpPhotoEmpty').classList.remove('hidden');currentId=null;renderCity();PAGES.forEach(id=>$(id).classList.toggle('hidden',id!=='vehiclePage'));loadVehicleEnterpriseHistory(v);loadVehicleProfilePhotos(v,sourcePhoto);window.scrollTo({top:0});
+  $('vpPhotoGrid').replaceChildren();$('vpPhotoEmpty').textContent='Завантаження фотографій…';$('vpPhotoEmpty').classList.remove('hidden');currentId=null;renderCity();PAGES.forEach(id=>$(id).classList.toggle('hidden',id!=='vehiclePage'));loadVehicleEnterpriseHistory(v);loadVehicleProfilePhotos(v,sourcePhoto);window.scrollTo({top:0});
 }
 async function loadVehicleEnterpriseHistory(v){
   const queries=[],fields='id, city_id, enterprise_id, fleet_no, plate_no, model, vin, factory_no, build_year, arrived, start_date, written_off, status';
@@ -5365,7 +5366,7 @@ async function loadVehicleEnterpriseHistory(v){
   });
   $('vpHistory').replaceChildren(...rows);
 }
-async function loadVehicleProfilePhotos(v,sourcePhoto){const queries=[db.from('photos').select('*').eq('status','approved').in('city_id',photoVehicleCityIds(v.city_id,true)).order('created_at',{ascending:false}).limit(1000)];if(v.id)queries.push(db.from('photos').select('*').eq('status','approved').like('tags','%'+v.id+'%').order('created_at',{ascending:false}).limit(1000));const numberFilters=[];if(v.plate_no)numberFilters.push('plate_no.eq.'+postgrestLiteral(v.plate_no));if(v.fleet_no||v.extra_no)numberFilters.push('fleet_no.eq.'+postgrestLiteral(v.fleet_no||v.extra_no));if(numberFilters.length)queries.push(db.from('photos').select('*').eq('status','approved').or(numberFilters.join(',')).order('created_at',{ascending:false}).limit(1000));const results=await Promise.all(queries);if(vehPageCurrent!==v)return;const map=new Map(results.flatMap(result=>result.error?[]:result.data||[]).map(photo=>[photo.id,photo]));if(sourcePhoto&&sourcePhoto.id)map.set(sourcePhoto.id,sourcePhoto);const photos=[...map.values()].filter(photo=>photoIsLinkedToVehicle(photo,v)||sourcePhoto&&photo.id===sourcePhoto.id).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));await enrichPhotos(photos);if(vehPageCurrent!==v)return;$('vpPhotoGrid').replaceChildren(...photos.map(phCard));$('vpPhotoEmpty').classList.toggle('hidden',photos.length>0)}
+async function loadVehicleProfilePhotos(v,sourcePhoto){const queries=[db.from('photos').select('*').eq('status','approved').in('city_id',photoVehicleCityIds(v.city_id,true)).order('created_at',{ascending:false}).limit(1000)];if(v.id)queries.push(db.from('photos').select('*').eq('status','approved').like('tags','%'+v.id+'%').order('created_at',{ascending:false}).limit(1000));const numberFilters=[];if(v.plate_no)numberFilters.push('plate_no.eq.'+postgrestLiteral(v.plate_no));if(v.fleet_no||v.extra_no)numberFilters.push('fleet_no.eq.'+postgrestLiteral(v.fleet_no||v.extra_no));if(numberFilters.length)queries.push(db.from('photos').select('*').eq('status','approved').or(numberFilters.join(',')).order('created_at',{ascending:false}).limit(1000));const results=await Promise.all(queries);if(vehPageCurrent!==v)return;const map=new Map(results.flatMap(result=>result.error?[]:result.data||[]).map(photo=>[photo.id,photo]));if(sourcePhoto&&sourcePhoto.id)map.set(sourcePhoto.id,sourcePhoto);const photos=[...map.values()].filter(photo=>photoIsLinkedToVehicle(photo,v)||sourcePhoto&&photo.id===sourcePhoto.id).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));await enrichPhotos(photos);if(vehPageCurrent!==v)return;$('vpPhotoGrid').replaceChildren(...photos.map(phCard));$('vpPhotoEmpty').textContent='Пов’язаних фотографій поки немає.';$('vpPhotoEmpty').classList.toggle('hidden',photos.length>0)}
 function closeVehicleProfile(){const prev=vehPageReturn;vehPageReturn=null;vehPageCurrent=null;vehPageEditable=false;PAGES.forEach(id=>$(id).classList.add('hidden'));if(!prev)return;currentId=prev.cityId;curEnt=prev.ent;ppCur=prev.photo;renderCity();if(prev.page)$(prev.page).classList.remove('hidden');history.replaceState(null,'',prev.hash||location.pathname+location.search);window.scrollTo({top:0})}
 function cleanVehicleNumber(value){const x=String(value==null?'':value).normalize('NFKC').replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF\u2800\u00A0]/g,' ').trim();return /[A-Za-z0-9\u00C0-\u024F\u0400-\u04FF]/.test(x)?x:''}
 function normalizeVehicleKey(value){return String(value||'').normalize('NFKC').replace(/\s+/g,'').toLocaleUpperCase()}
@@ -5556,7 +5557,7 @@ $('plateGen').addEventListener('click', () => {
 let dupStep = 1;
 
 function dupNums() {
-  const src = vehicles.find(x => x.id === vehEditingId);
+  const src = vehEditingSource || vehicles.find(x => x.id === vehEditingId);
   const base = src ? String(src.fleet_no) : '';
   const n = Math.max(1, Math.min(50, parseInt($('dupCount').value, 10) || 1));
   const m = /^(.*?)(\d+)$/.exec(base);
@@ -5574,7 +5575,7 @@ function dupNums() {
 }
 
 function drawDup() {
-  const src = vehicles.find(x => x.id === vehEditingId);
+  const src = vehEditingSource || vehicles.find(x => x.id === vehEditingId);
   const hasNum = !!src && /\d$/.test(String(src.fleet_no));
   $('dupResult').value = dupNums().join(', ');
   setMsg($('dupMsg'), !hasNum && dupStep !== 0 ? 'Номер без цифр в кінці: копії матимуть той самий номер' : '');
@@ -5602,11 +5603,16 @@ $('dupCancel').addEventListener('click', () => showView('veh'));
 
 $('dupForm').addEventListener('submit', async ev => {
   ev.preventDefault();
-  const src = vehicles.find(x => x.id === vehEditingId);
-  const e = curEnt;
-  const { data: s } = await db.auth.getSession();
-  if (!src || !e || !s.session) {
-    setMsg($('dupMsg'), 'Увійди, щоб додати ТС');
+  const src = vehEditingSource || vehicles.find(x => x.id === vehEditingId);
+  const e = curEnt || (src && enterprises.find(item => item.id === src.enterprise_id)) || (src && src.enterprise_id ? { id: src.enterprise_id, city_id: src.city_id } : null);
+  const { data } = await db.auth.getSession();
+  const user = data && data.session && data.session.user;
+  if (!user) {
+    setMsg($('dupMsg'), 'Увійдіть, щоб додати ТС');
+    return;
+  }
+  if (!src || !e) {
+    setMsg($('dupMsg'), 'Не вдалося визначити підприємство для нового ТС');
     return;
   }
   const nums = dupNums();
@@ -5630,7 +5636,7 @@ $('dupForm').addEventListener('submit', async ev => {
     note: src.note,
     city_id: e.city_id,
     enterprise_id: e.id,
-    owner_id: s.session.user.id
+    owner_id: user.id
   }));
   $('dupSubmit').disabled = true;
   const { error } = await db.from('vehicles').insert(rows);
