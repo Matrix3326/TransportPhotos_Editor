@@ -2948,14 +2948,7 @@ body.maintenance-active{overflow:hidden}
 @media(max-width:800px){.pp-wrap{padding:12px}.pp-img,.pp-img img{max-height:70dvh}.pp-control{width:36px;height:36px}.pp-back{left:5px;top:5px}.pp-fullscreen{right:5px;top:5px}.pp-next{right:5px}.pp-meta{justify-content:flex-start}.pp-meta>span{flex:1 1 42%}.pp-meta .pp-vote{flex:0 0 auto}.pp-cols{grid-template-columns:minmax(0,1fr);gap:18px}.pp-veh-row{grid-template-columns:minmax(0,1fr) 40px;gap:8px 10px}.pp-veh-context,.pp-veh-id{grid-column:1}.pp-veh-info{grid-column:2;grid-row:1 / span 2}.pp-veh-row .pp-route{grid-column:1 / -1;justify-self:start}}
 
 .pp-veh-detail-wrap{width:100%;min-width:0}.pp-veh-inline{width:100%;padding:14px 0 18px;border-bottom:1px solid var(--border)}.pp-veh-inline.hidden{display:none}.pp-veh-inline .veh-quick-location{margin-bottom:12px}.pp-veh-inline .veh-quick-heading{margin-bottom:12px}.pp-veh-inline-loading{padding:10px 0;color:var(--muted)}@media(max-width:600px){.pp-veh-inline{padding:10px 0 14px}.pp-veh-inline .veh-quick-heading{gap:8px;flex-wrap:wrap}.pp-veh-inline .veh-quick-badge{min-height:40px;font-size:18px;padding:0 9px}.pp-veh-inline .veh-quick-name b{font-size:18px}.pp-veh-inline .veh-quick-close{width:34px;height:34px}.pp-veh-inline .veh-quick-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}</style>
-<style>
-.site-announcement{position:sticky;top:92px;z-index:4;display:flex;align-items:center;height:36px;margin:10px 0 0;overflow:hidden;border:1px solid color-mix(in srgb,var(--danger) 45%,var(--border));border-radius:10px;background:color-mix(in srgb,var(--danger) 9%,var(--surface));color:var(--text)}
-.site-announcement-track{display:flex;width:max-content;align-items:center;animation:announcement-scroll 34s linear infinite}
-.site-announcement:hover .site-announcement-track,.site-announcement:focus-within .site-announcement-track{animation-play-state:paused}
-.site-announcement-copy{flex:none;padding:0 56px;font-size:14px;font-weight:600;white-space:nowrap}
-@keyframes announcement-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-@media(prefers-reduced-motion:reduce){.site-announcement-track{animation:none;transform:none}.site-announcement-copy[aria-hidden=true]{display:none}}
-</style></head>
+</head>
 <body>
 <div id="maintenanceScreen" class="maintenance-screen hidden" role="status" aria-live="polite" aria-hidden="true">
   <div class="maintenance-card"><span class="maintenance-brand">TransportPhotos Editor</span><h1 id="maintenanceTitle">Технічні роботи</h1><p id="maintenanceMessage">Сайт тимчасово недоступний. Будь ласка, зайдіть трохи пізніше.</p><small>Дякуємо за розуміння.</small></div>
@@ -3000,9 +2993,7 @@ body.maintenance-active{overflow:hidden}
     </div>
   </div>
 </nav>
-<div class="site-announcement" role="status" aria-label="Оголошення">
-  <div class="site-announcement-track"><span class="site-announcement-copy">Не рекламируйте проекты Матраса. Сайт в ближайшее время будет закрыт.</span><span class="site-announcement-copy" aria-hidden="true">Не рекламируйте проекты Матраса. Сайт в ближайшее время будет закрыт.</span></div>
-</div><main class="layout">
+<main class="layout">
   <section class="content">
     <div id="requestsView" class="panel hidden">
   <div class="panel-head"><h3>Staff</h3></div>
